@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+
 from sutta_processor.skeleton import fib
 
 __author__ = "Alek"
