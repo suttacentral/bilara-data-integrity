@@ -40,6 +40,13 @@ class Config:
 
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
+    repo: "FileRepository" = attr.ib(init=False)
+
+    def __attrs_post_init__(self):
+        from sutta_processor.infrastructure.repository.repo import FileRepository
+
+        object.__setattr__(self, "repo", FileRepository(cfg=self))
+
     @classmethod
     def from_yaml(cls, f_pth: Union[str, Path] = None) -> "Config":
         """
