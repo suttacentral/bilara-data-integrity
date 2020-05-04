@@ -1,4 +1,4 @@
-from .checking_uid import checking_uid
 from .example import example
+from .load_all_data import load_all_data
 
-__all__ = ["checking_uid", "example"]
+__all__ = ["load_all_data", "example"]
