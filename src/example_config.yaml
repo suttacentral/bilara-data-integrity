@@ -2,4 +2,4 @@
 exec_module: 'example'
 root_pli_ms_path: "~/bilara-data/root/pli/ms"
 
-debug_dir: "~/sutta_central_debug"
+debug_dir: ""
