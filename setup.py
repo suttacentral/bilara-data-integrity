@@ -18,6 +18,5 @@ except VersionConflict:
     print("Error: version of setuptools is too old (<38.3)!")
     sys.exit(1)
 
-
-if __name__ == "__main__":
+if __name__ in ['__main__', 'builtins']:
     setup(use_pyscaffold=True)
