@@ -33,11 +33,22 @@ def touch_file(pth: Union[str, Path]) -> Path:
     return pth
 
 
+def use_case_present(_inst, _attr, uc_name: str):
+    from sutta_processor.application import use_cases
+
+    if not getattr(use_cases, uc_name, None):
+        choices = use_cases.__all__
+        raise NameError(
+            f"Module {uc_name} was not found, choices: {choices}. "
+            "Check `exec_module` config key."
+        )
+
+
 @attr.s(frozen=True, auto_attribs=True)
 class Config:
-
     root_pli_ms_path: Path = attr.ib(converter=create_dir)
 
+    exec_module: str = attr.ib(validator=use_case_present)
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
     repo: "FileRepository" = attr.ib(init=False)

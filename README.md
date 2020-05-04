@@ -1,19 +1,17 @@
-===============
-sutta_processor
-===============
-
+# sutta_processor
 
 Process and check suttas.
 
+# Installation
 
-Description
-===========
+```bash
+# Tested under python3.7
+# Create virtual environment
+pip -r requirements.txt
+python3 src/run_app.py
+```
 
-A longer description of your project goes here...
-
-
-Note
-====
-
-This project has been set up using PyScaffold 3.2.3. For details and usage
-information on PyScaffold see https://pyscaffold.org/.
+# Run
+```bash
+python3 src/run_app.py -c /path/to/config
+```
