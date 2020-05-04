@@ -1,6 +1,9 @@
+import json
+from pathlib import Path
 from typing import Dict, Tuple
 
 import attr
+from natsort import natsorted, ns
 
 from sutta_processor.application.value_objects import UID, Verse
 from sutta_processor.application.value_objects.uid import RawUID
@@ -21,12 +24,14 @@ class Mn:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class MnAggregate:
+class MnFileAggregate:
     parts: Tuple[Mn]
     index: Dict[UID, Mn]
 
+    f_pth: Path
+
     @classmethod
-    def from_dict(cls, in_dto: dict) -> "MnAggregate":
+    def from_dict(cls, in_dto: dict, f_pth: Path) -> "MnFileAggregate":
         parts = []
         index = {}
         for k, v in in_dto.items():
@@ -35,4 +40,37 @@ class MnAggregate:
             parts.append(mn)
         if not (len(in_dto) == len(index) == len(parts)):
             raise RuntimeError(f"Lost data during domain model conversion.")
-        return cls(parts=tuple(parts), index=index)
+        return cls(parts=tuple(parts), index=index, f_pth=f_pth)
+
+    @classmethod
+    def from_file(cls, f_pth: Path) -> "MnFileAggregate":
+        with open(f_pth) as f:
+            data = json.load(f)
+        return cls.from_dict(in_dto=data, f_pth=f_pth)
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class MnAggregate:
+    files: Tuple[MnFileAggregate]
+    index: Dict[UID, Mn]
+
+    mn_pth = Path("sutta/mn")
+
+    _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
+
+    @classmethod
+    def from_path(cls, root_pth: Path) -> "MnAggregate":
+        def update_index(aggregate):
+            len_before = len(index)
+            index.update(aggregate.index)
+            len_after = len(index)
+            if len_after - len_before != len(file_aggregate.index):
+                raise RuntimeError(cls._ERR_MSG.format(f_pth=f_pth))
+
+        files = []
+        index = {}
+        for f_pth in natsorted((root_pth / cls.mn_pth).glob("*.json"), alg=ns.PATH):
+            file_aggregate = MnFileAggregate.from_file(f_pth=f_pth)
+            update_index(aggregate=file_aggregate)
+            files.append(file_aggregate)
+        return cls(files=tuple(files), index=index)
