@@ -13,9 +13,10 @@ frozendict==1.2           # via sutta_processor (setup.py)
 importlib-metadata==1.6.0  # via pluggy, pytest
 isort==4.3.21             # via sutta_processor (setup.py)
 more-itertools==8.2.0     # via pytest
+natsort==7.0.1            # via sutta_processor (setup.py)
 packaging==20.3           # via pytest
 pathspec==0.8.0           # via black
-pip-tools==5.1.0          # via sutta_processor (setup.py)
+pip-tools==5.1.1          # via sutta_processor (setup.py)
 pluggy==0.13.1            # via pytest
 py==1.8.1                 # via pytest
 pycodestyle==2.5.0        # via sutta_processor (setup.py)
