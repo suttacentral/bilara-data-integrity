@@ -1,8 +1,10 @@
 import logging
+from collections import Counter
 from pathlib import Path
 from typing import Dict, Tuple
 
 import attr
+from natsort import natsorted, ns
 
 from sutta_processor.application.value_objects import UID
 
@@ -29,16 +31,24 @@ class PaliCanonAggregate:
 
         files = []
         index = {}
-        json_files = root_pth.glob("**/*.html")
-        # for f_pth in natsorted(json_files, alg=ns.PATH):
-        for f_pth in json_files:
+        all_files = natsorted(root_pth.glob("**/*.html"), alg=ns.PATH)
+        c: Counter = Counter(ok=0, error=0, all=len(all_files))
+        for i, f_pth in enumerate(all_files):
             try:
                 file_aggregate = PaliFileAggregate.from_file(f_pth=f_pth)
                 # update_index(aggregate=file_aggregate)
                 files.append(file_aggregate)
+                c["ok"] += 1
             except Exception as e:
                 # TODO [23]: Deal with parsing error
-                log.error("Error processing file: '%s', error: %s", f_pth, e)
+                log.debug("Error processing file: '%s', error: %s", f_pth, e)
+                c["error"] += 1
+            log.debug("Processing files: %s/%s", i, c["all"])
+
+        msg = "Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
+        ratio = (c["error"] / c["all"]) * 100
+        log.info(msg, c["all"], c["ok"], c["error"], ratio)
+
         log.info(
             "* Loaded '%s' UIDs for '%s'", len(index), cls.__name__,
         )
