@@ -47,6 +47,7 @@ def use_case_present(_inst, _attr, uc_name: str):
 @attr.s(frozen=True, auto_attribs=True)
 class Config:
     root_pli_ms_path: Path = attr.ib(converter=create_dir)
+    pali_canon_path: Path = attr.ib(converter=create_dir)
 
     exec_module: str = attr.ib(validator=use_case_present)
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
