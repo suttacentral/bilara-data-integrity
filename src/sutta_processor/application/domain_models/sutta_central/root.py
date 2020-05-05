@@ -47,6 +47,12 @@ class SuttaCentralAggregate:
         vinaya = VinayaAggregate.from_path(root_pth=root_pth)
         update_index(aggregate=vinaya)
 
+        part_count = (
+            len(vinaya.files_aggregates),
+            len(abhidhamma.files_aggregates),
+            len(sutta.files_aggregates),
+        )
+        log.debug("** Loaded '%s' files", sum(part_count))
         log.debug("** Root: Loaded all '%s' indexes", len(index))
         kwargs = {
             "sutta": sutta,
