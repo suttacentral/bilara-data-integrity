@@ -8,7 +8,7 @@ class FileRepository:
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
-    def get_root(self) -> SuttaCentralAggregate:
+    def get_all_sutta_central(self) -> SuttaCentralAggregate:
         root_aggregate = SuttaCentralAggregate.from_path(
             root_pth=self.cfg.root_pli_ms_path
         )
