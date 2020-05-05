@@ -6,12 +6,23 @@ Process and check suttas.
 
 ```bash
 # Tested under python3.7
-# Create virtual environment
-pip -r requirements.txt
-python3 src/run_app.py
+# Create your virtual environment
+
+# Install requrements
+pip install -r requirements.txt
+# Install this package in develop mode
+pip install -e .
+
+# For makefile to work overwrite the path to virtual env
+VENV_PATH=/pth/to/venv make test
 ```
 
 # Run
 ```bash
-python3 src/run_app.py -c /path/to/config
+# (activate your virtual env)
+# Run package
+sutta-processor -c ./src/example_config.yaml
+
+# You might want to copy the configuration file somewhere and modify it to
+# suit your local paths
 ```
