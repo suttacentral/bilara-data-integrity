@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import attr
-from natsort import natsorted, ns
 
 from sutta_processor.application.value_objects import UID
 
@@ -31,10 +30,15 @@ class PaliCanonAggregate:
         files = []
         index = {}
         json_files = root_pth.glob("**/*.html")
-        for f_pth in natsorted(json_files, alg=ns.PATH):
-            # file_aggregate = PaliFileAggregate.from_file(f_pth=f_pth)
-            # update_index(aggregate=file_aggregate)
-            files.append(f_pth)
+        # for f_pth in natsorted(json_files, alg=ns.PATH):
+        for f_pth in json_files:
+            try:
+                file_aggregate = PaliFileAggregate.from_file(f_pth=f_pth)
+                # update_index(aggregate=file_aggregate)
+                files.append(file_aggregate)
+            except Exception as e:
+                # TODO [23]: Deal with parsing error
+                log.error("Error processing file: '%s', error: %s", f_pth, e)
         log.info(
             "* Loaded '%s' UIDs for '%s'", len(index), cls.__name__,
         )
