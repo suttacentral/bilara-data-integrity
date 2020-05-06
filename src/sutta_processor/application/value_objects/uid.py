@@ -27,8 +27,25 @@ class PaliCrumb(str):
 
 
 class PaliMsId(str):
+    XML_ID = "p_"  # Used in original XML docs
+    MS_ID = "ms"  # Used everywhere else to reference this source
+
     def __new__(cls, content: str):
+        """
+        :param content: ms1V_1
+        """
+        if not content.startswith(cls.MS_ID):
+            raise ValueError(f"'{content}' is not valid ms id")
         return super().__new__(cls, content)
+
+    @classmethod
+    def from_xml_id(cls, content: str) -> "PaliMsId":
+        """
+        :param content: p_1V_1
+        """
+        if not content.startswith(cls.XML_ID):
+            raise ValueError(f"'{content}' is not valid xml id")
+        return cls(f"{cls.MS_ID}{content[2:]}")
 
 
 class PaliMsDivId(str):
