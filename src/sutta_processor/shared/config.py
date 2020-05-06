@@ -51,12 +51,14 @@ class Config:
     root_pli_ms_path: Path = attr.ib(converter=create_dir)
     pali_canon_path: Path = attr.ib(converter=create_dir)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
+    reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     log_level: int = attr.ib(default=logging.INFO)
 
     repo: "FileRepository" = attr.ib(init=False)
     pali_concordance: "PaliConcordanceService" = attr.ib(init=False)
+    sc_reference: "SCReferenceService" = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         from sutta_processor.infrastructure.repository.repo import FileRepository
@@ -64,9 +66,13 @@ class Config:
         from sutta_processor.application.services.pali_concordance import (
             PaliConcordanceService,
         )
+        from sutta_processor.application.services.sutta_central_reference import (
+            SCReferenceService,
+        )
 
-        object.__setattr__(self, "repo", FileRepository(cfg=self))
         object.__setattr__(self, "pali_concordance", PaliConcordanceService(cfg=self))
+        object.__setattr__(self, "repo", FileRepository(cfg=self))
+        object.__setattr__(self, "sc_reference", SCReferenceService(cfg=self))
 
     @classmethod
     def from_yaml(cls, f_pth: Union[str, Path] = None) -> "Config":

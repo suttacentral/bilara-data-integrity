@@ -5,6 +5,8 @@ root_pli_ms_path: "~/bilara-data/root/pli/ms"
 pali_canon_path: "~/ms_palicanon"
 pali_concordance_filepath: "~/all_pali_concordance.json"
 
+reference_root_path: "~/reference/pli/ms"
+
 debug_dir: ""
 # Log level: [0, 50]. 10-debug, 20-info
 log_level: 20
