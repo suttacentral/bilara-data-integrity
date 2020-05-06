@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class PaliCanonAggregate:
-    files_aggregates: Tuple[PaliFileAggregate]
+    file_aggregates: Tuple[PaliFileAggregate]
     index: Dict[UID, PaliVersus]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
@@ -29,15 +29,15 @@ class PaliCanonAggregate:
             if len_after - len_before != len(file_aggregate.index):
                 raise RuntimeError(cls._ERR_MSG.format(f_pth=f_pth))
 
-        files = []
+        file_aggregates = []
         index = {}
         all_files = natsorted(root_pth.glob("**/*.html"), alg=ns.PATH)
         c: Counter = Counter(ok=0, error=0, all=len(all_files))
         for i, f_pth in enumerate(all_files):
             try:
                 file_aggregate = PaliFileAggregate.from_file(f_pth=f_pth)
-                # update_index(aggregate=file_aggregate)
-                files.append(file_aggregate)
+                update_index(aggregate=file_aggregate)
+                file_aggregates.append(file_aggregate)
                 c["ok"] += 1
             except Exception as e:
                 # TODO [23]: Deal with parsing error
@@ -45,15 +45,12 @@ class PaliCanonAggregate:
                 c["error"] += 1
             log.debug("Processing files: %s/%s", i, c["all"])
 
-        msg = "Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
+        msg = "* Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
         ratio = (c["error"] / c["all"]) * 100
         log.info(msg, c["all"], c["ok"], c["error"], ratio)
-
-        log.info(
-            "* Loaded '%s' UIDs for '%s'", len(index), cls.__name__,
-        )
-        log.info("* files parsed: %s", len(files))
-        return cls(files_aggregates=tuple(files), index=index)
+        msg = "* Loaded '%s' UIDs for '%s'"
+        log.info(msg, len(index), cls.__name__)
+        return cls(file_aggregates=tuple(file_aggregates), index=index)
 
     def __str__(self):
         return f"<{self.__class__.__name__}, loaded_UIDs: '{len(self.index):,}'>"
