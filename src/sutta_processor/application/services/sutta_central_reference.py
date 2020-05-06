@@ -4,12 +4,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Set
 
-from sutta_processor.application.domain_models import SuttaCentralAggregate
-from sutta_processor.application.domain_models.pali_canon.root import PaliCanonAggregate
 from sutta_processor.application.value_objects import UID
 from sutta_processor.application.value_objects.uid import PaliMsId
 from sutta_processor.shared.config import Config
-from sutta_processor.shared.exceptions import PaliMsIdError, MultipleIdFoundError
+from sutta_processor.shared.exceptions import MultipleIdFoundError, PaliMsIdError
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +31,9 @@ class Engine:
                 print(f"key: {k}, val: {v}")
 
     @classmethod
-    def get_pali_id_index(cls, uid_index: Dict[UID, PaliMsId]) -> Dict[PaliMsId, Set[UID]]:
+    def get_pali_id_index(
+        cls, uid_index: Dict[UID, PaliMsId]
+    ) -> Dict[PaliMsId, Set[UID]]:
         pali_id_index = defaultdict(set)
         for k, v in uid_index.items():
             pali_id_index[v].add(k)

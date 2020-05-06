@@ -1,3 +1,6 @@
+from sutta_processor.shared.exceptions import PaliMsIdError, PaliXmlIdError
+
+
 class RawUID(str):
     def __new__(cls, content: str):
         return super().__new__(cls, content)
@@ -35,7 +38,7 @@ class PaliMsId(str):
         :param content: ms1V_1
         """
         if not content.startswith(cls.MS_ID):
-            raise ValueError(f"'{content}' is not valid ms id")
+            raise PaliMsIdError(f"'{content}' is not valid ms id")
         return super().__new__(cls, content)
 
     @classmethod
@@ -45,7 +48,7 @@ class PaliMsId(str):
         """
         content = content.strip()
         if not content.startswith(cls.XML_ID):
-            raise ValueError(f"'{content}' is not valid xml id")
+            raise PaliXmlIdError(f"'{content}' is not valid xml id")
         return cls(f"{cls.MS_ID}{content[2:]}")
 
 
