@@ -37,7 +37,7 @@ class PaliMsId(str):
         """
         :param content: ms1V_1
         """
-        if not content.startswith(cls.MS_ID):
+        if not content.startswith(cls.MS_ID) or ("div" in content):
             raise PaliMsIdError(f"'{content}' is not valid ms id")
         return super().__new__(cls, content)
 
