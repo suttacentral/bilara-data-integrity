@@ -51,5 +51,9 @@ class PaliCanonAggregate:
         log.info(msg, len(index), cls.__name__)
         return cls(file_aggregates=tuple(file_aggregates), index=index)
 
+    @classmethod
+    def name(cls) -> str:
+        return cls.__name__
+
     def __str__(self):
         return f"<{self.__class__.__name__}, loaded_UIDs: '{len(self.index):,}'>"

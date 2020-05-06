@@ -33,20 +33,21 @@ class PaliFileAggregate:
     crumb: PaliCrumb
 
     f_pth: Path
-    page: _ElementTree
+    raw_source: str
 
     html_extractor = PaliHtmlExtractor
 
     @classmethod
     def from_file(cls, f_pth: Path) -> "PaliFileAggregate":
-        page = cls.get_page(f_pth=f_pth)
+        raw_source = cls.get_raw_source(f_pth=f_pth)
+        page = cls.get_page(raw_source=raw_source)
         crumb: PaliCrumb = cls.html_extractor.get_crumb(page=page)
         index: Dict[PaliMsId, PaliVersus] = cls.get_index(page=page)
         kwargs = {
             "crumb": crumb,
             "f_pth": f_pth,
             "index": index,
-            "page": page,
+            "raw_source": raw_source,
             "versets": tuple(index.values()),
         }
         return cls(**kwargs)
@@ -66,7 +67,11 @@ class PaliFileAggregate:
         return ms_id, versus
 
     @classmethod
-    def get_page(cls, f_pth: Path) -> _ElementTree:
+    def get_raw_source(cls, f_pth: Path) -> str:
         with open(f_pth) as f:
-            txt = f.read().replace("<br>", "<br/>")
+            return f.read()
+
+    @classmethod
+    def get_page(cls, raw_source: str) -> _ElementTree:
+        txt = raw_source.replace("<br>", "<br/>")
         return etree.fromstring(txt)
