@@ -56,11 +56,17 @@ class Config:
     log_level: int = attr.ib(default=logging.INFO)
 
     repo: "FileRepository" = attr.ib(init=False)
+    pali_concordance: "PaliConcordanceService" = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         from sutta_processor.infrastructure.repository.repo import FileRepository
 
+        from sutta_processor.application.services.pali_concordance import (
+            PaliConcordanceService,
+        )
+
         object.__setattr__(self, "repo", FileRepository(cfg=self))
+        object.__setattr__(self, "pali_concordance", PaliConcordanceService(cfg=self))
 
     @classmethod
     def from_yaml(cls, f_pth: Union[str, Path] = None) -> "Config":
