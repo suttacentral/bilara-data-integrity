@@ -38,6 +38,7 @@ class PaliHtmlExtractor:
 
     @classmethod
     def get_verse(cls, paragraph: _Element) -> PaliVerse:
-        text = paragraph.xpath("./text()")[0]
+        text = paragraph.xpath("./text()")
+        text = text[0] if text else ""
         versus = PaliVerse(text)
         return versus

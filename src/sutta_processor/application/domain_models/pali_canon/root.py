@@ -40,7 +40,7 @@ class PaliCanonAggregate:
                 file_aggregates.append(file_aggregate)
                 c["ok"] += 1
             except Exception as e:
-                log.debug("Error processing file: '%s', error: %s", f_pth, e)
+                log.warning("Error processing: %s, file: '%s', ", e, f_pth)
                 c["error"] += 1
             log.trace("Processing file: %s/%s", i, c["all"])
 

@@ -68,4 +68,5 @@ class PaliFileAggregate:
     @classmethod
     def get_page(cls, f_pth: Path) -> _ElementTree:
         with open(f_pth) as f:
-            return etree.parse(f)
+            txt = f.read().replace("<br>", "<br/>")
+        return etree.fromstring(txt)
