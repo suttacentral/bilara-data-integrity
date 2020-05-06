@@ -26,9 +26,9 @@ class Engine:
         self.uid_index = self.get_uid_index(raw_index=raw_index)
         self.pali_id_index = self.get_pali_id_index(uid_index=self.uid_index)
 
-        for k, v in self.pali_id_index.items():
-            if len(v) != 1:
-                print(f"key: {k}, val: {v}")
+        if len(self.uid_index) != len(self.pali_id_index):
+            msg = "uid->pali and pali->uid indexes are different lengths. '%s' vs '%s'"
+            log.warning(msg, len(self.uid_index), len(self.pali_id_index))
 
     @classmethod
     def get_pali_id_index(
@@ -37,6 +37,12 @@ class Engine:
         pali_id_index = defaultdict(set)
         for k, v in uid_index.items():
             pali_id_index[v].add(k)
+
+        for pali_id, uid_set in pali_id_index.items():
+            if len(uid_set) != 1:
+                msg = "Pali_ms_id '%s' is referencing several SuttaCentral uid: %s"
+                log.warning(msg, pali_id, uid_set)
+
         return pali_id_index
 
     @classmethod
@@ -58,11 +64,12 @@ class Engine:
             return pali_id_set.pop()
 
         index = {}
-        for k, v in raw_index.items():
+        for uid, sources in raw_index.items():  # type: str, str
             try:
-                index[UID(k)] = get_pali_ms_id(reference_value=v)
-            except MultipleIdFoundError as e:
-                log.warning(e)
+                index[UID(uid)] = get_pali_ms_id(reference_value=sources)
+            except MultipleIdFoundError:
+                msg = "SuttaCentral uid '%s' is referencing several pali sources: %s"
+                log.warning(msg, uid, sources)
             except KeyError:
                 # No reference found for that UID
                 pass
