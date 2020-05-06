@@ -31,7 +31,7 @@ class PaliHtmlExtractor:
         msdiv_id = PaliMsDivId("")
         try:
             a_msdiv = paragraph.xpath("./a[@class='msdiv']")[0]
-            msdiv_id = PaliMsDivId(a_msdiv.get("id", ""))
+            msdiv_id = PaliMsDivId(a_msdiv.get("id", "").strip())
         except IndexError:
             log.trace("No msdiv if for ms: '%s'", ms_id)
         return ms_id, msdiv_id
@@ -40,5 +40,5 @@ class PaliHtmlExtractor:
     def get_verse(cls, paragraph: _Element) -> PaliVerse:
         text = paragraph.xpath("./text()")
         text = text[0] if text else ""
-        versus = PaliVerse(text)
+        versus = PaliVerse(text.strip())
         return versus

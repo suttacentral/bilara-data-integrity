@@ -43,6 +43,7 @@ class PaliMsId(str):
         """
         :param content: p_1V_1
         """
+        content = content.strip()
         if not content.startswith(cls.XML_ID):
             raise ValueError(f"'{content}' is not valid xml id")
         return cls(f"{cls.MS_ID}{content[2:]}")
