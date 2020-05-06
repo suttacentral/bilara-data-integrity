@@ -46,10 +46,12 @@ def use_case_present(_inst, _attr, uc_name: str):
 
 @attr.s(frozen=True, auto_attribs=True)
 class Config:
+    exec_module: str = attr.ib(validator=use_case_present)
+
     root_pli_ms_path: Path = attr.ib(converter=create_dir)
     pali_canon_path: Path = attr.ib(converter=create_dir)
+    pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
 
-    exec_module: str = attr.ib(validator=use_case_present)
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     log_level: int = attr.ib(default=logging.INFO)
 
