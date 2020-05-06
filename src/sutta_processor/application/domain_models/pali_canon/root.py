@@ -40,10 +40,9 @@ class PaliCanonAggregate:
                 file_aggregates.append(file_aggregate)
                 c["ok"] += 1
             except Exception as e:
-                # TODO [23]: Deal with parsing error
                 log.debug("Error processing file: '%s', error: %s", f_pth, e)
                 c["error"] += 1
-            log.debug("Processing files: %s/%s", i, c["all"])
+            log.trace("Processing file: %s/%s", i, c["all"])
 
         msg = "* Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
         ratio = (c["error"] / c["all"]) * 100

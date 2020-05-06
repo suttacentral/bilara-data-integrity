@@ -51,6 +51,7 @@ class Config:
 
     exec_module: str = attr.ib(validator=use_case_present)
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    log_level: int = attr.ib(default=logging.INFO)
 
     repo: "FileRepository" = attr.ib(init=False)
 
@@ -72,7 +73,9 @@ class Config:
         log.info("Loading config: '%s'", f_pth)
         with open(f_pth) as f:
             file_setts = yaml.safe_load(stream=f) or {}
-        setup_logging(debug_dir=file_setts.get("debug_dir"))
+        setup_logging(
+            debug_dir=file_setts.get("debug_dir"), log_level=file_setts.get("log_level")
+        )
 
         setts_names = [field.name for field in attr.fields(cls)]
         log.debug("Loaded setts from file: %s, values: %s", f_pth, file_setts)
@@ -80,17 +83,27 @@ class Config:
         return kwargs
 
 
-def setup_logging(debug_dir, debug_filename="app.log"):
+def setup_logging(debug_dir, log_level=None, debug_filename="app.log"):
+    def add_trace_level(trace_lvl=9):
+        logging.addLevelName(trace_lvl, "TRACE")
+
+        def trace(self, message, *args, **kws):
+            if self.isEnabledFor(trace_lvl):
+                self._log(trace_lvl, message, args, **kws)
+
+        logging.Logger.trace = trace
+
     # Reset logging
     logging.getLogger("").handlers = []
+    log_level = log_level or logging.INFO
 
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(
         logging.Formatter(fmt=STREAM_LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S")
     )
-    log_level = logging.DEBUG if debug_dir else logging.INFO
     stream_handler.setLevel(log_level)
     log_handlers = [stream_handler]
+    add_trace_level()
     if debug_dir:
         debug_dir = Path(debug_dir).expanduser().resolve()
         debug_dir.mkdir(exist_ok=True, parents=True)
@@ -100,9 +113,7 @@ def setup_logging(debug_dir, debug_filename="app.log"):
         file_log_handler.setLevel(log_level)
         log_handlers.append(file_log_handler)
     # noinspection PyArgumentList
-    logging.basicConfig(
-        level=logging.DEBUG, handlers=log_handlers,
-    )
+    logging.basicConfig(level=log_level, handlers=log_handlers)
 
 
 def configure_argparse() -> argparse.Namespace:

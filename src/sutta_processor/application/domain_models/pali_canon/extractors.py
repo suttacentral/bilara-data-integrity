@@ -33,7 +33,7 @@ class PaliHtmlExtractor:
             a_msdiv = paragraph.xpath("./a[@class='msdiv']")[0]
             msdiv_id = PaliMsDivId(a_msdiv.get("id", ""))
         except IndexError:
-            log.debug("No msdiv if for ms: '%s'", ms_id)
+            log.trace("No msdiv if for ms: '%s'", ms_id)
         return ms_id, msdiv_id
 
     @classmethod
