@@ -4,6 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Set
 
+from sutta_processor.application.domain_models.pali_canon.root import PaliCanonAggregate
 from sutta_processor.application.value_objects import UID
 from sutta_processor.application.value_objects.uid import PaliMsId
 from sutta_processor.shared.config import Config
@@ -12,7 +13,7 @@ from sutta_processor.shared.exceptions import MultipleIdFoundError, PaliMsIdErro
 log = logging.getLogger(__name__)
 
 
-class Engine:
+class ReferenceEngine:
     uid_index: Dict[UID, PaliMsId]
     pali_id_index: Dict[PaliMsId, Set[UID]]
 
@@ -41,7 +42,7 @@ class Engine:
         for pali_id, uid_set in pali_id_index.items():
             if len(uid_set) != 1:
                 msg = "Pali_ms_id '%s' is referencing several SuttaCentral uid: %s"
-                log.warning(msg, pali_id, uid_set)
+                log.error(msg, pali_id, uid_set)
 
         return pali_id_index
 
@@ -69,7 +70,7 @@ class Engine:
                 index[UID(uid)] = get_pali_ms_id(reference_value=sources)
             except MultipleIdFoundError:
                 msg = "SuttaCentral uid '%s' is referencing several pali sources: %s"
-                log.warning(msg, uid, sources)
+                log.error(msg, uid, sources)
             except KeyError:
                 # No reference found for that UID
                 pass
@@ -101,13 +102,24 @@ class Engine:
 
 
 class SCReferenceService:
-    _engine: Engine = None
+    _reference_engine: ReferenceEngine = None
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
+    def log_missing_pali_id_from_reference(self, pali_aggregate: PaliCanonAggregate):
+        diff = {
+            k
+            for k in pali_aggregate.index
+            if k not in self.reference_engine.pali_id_index
+        }
+        if diff:
+            msg = "There are '%s' PaliMsID that are not found in the reference file"
+            log.error(msg, len(diff))
+            log.error("Missing PaliMsID from reference: %s", diff)
+
     @property
-    def engine(self) -> Engine:
-        if not self._engine:
-            self._engine = Engine(cfg=self.cfg)
-        return self._engine
+    def reference_engine(self) -> ReferenceEngine:
+        if not self._reference_engine:
+            self._reference_engine = ReferenceEngine(cfg=self.cfg)
+        return self._reference_engine
