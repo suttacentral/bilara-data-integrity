@@ -22,7 +22,7 @@ class PaliHtmlExtractor:
 
     @classmethod
     def get_paragraphs(cls, page: _ElementTree) -> List[_Element]:
-        return page.xpath("//body/p")
+        return page.xpath("//body//p")
 
     @classmethod
     def get_ms_msdiv(cls, paragraph: _Element) -> Tuple[PaliMsId, PaliMsDivId]:
