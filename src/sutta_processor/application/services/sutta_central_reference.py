@@ -118,6 +118,17 @@ class SCReferenceService:
             log.error(msg, len(diff))
             log.error("Missing PaliMsID from reference: %s", diff)
 
+    def log_wrong_ids_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
+        diff = {
+            k
+            for k in self.reference_engine.pali_id_index
+            if k not in pali_aggregate.index
+        }
+        if diff:
+            msg = "There are '%s' wrong PaliMsId in the reference data"
+            log.error(msg, len(diff))
+            log.error("Wrong PaliMsId is the reference data: %s", diff)
+
     @property
     def reference_engine(self) -> ReferenceEngine:
         if not self._reference_engine:
