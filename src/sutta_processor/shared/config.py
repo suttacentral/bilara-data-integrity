@@ -1,5 +1,6 @@
 import argparse
 import logging
+from logging.config import dictConfig
 from pathlib import Path
 from typing import Union
 
@@ -11,8 +12,7 @@ log = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 SRC_ROOT = HERE.parent
 
-FILE_LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-STREAM_LOG_FORMAT = "[%(asctime)s]: %(message)s"
+
 NULL_PTH = Path("/dev/null")
 
 
@@ -87,8 +87,9 @@ class Config:
         log.info("Loading config: '%s'", f_pth)
         with open(f_pth) as f:
             file_setts = yaml.safe_load(stream=f) or {}
-        setup_logging(
-            debug_dir=file_setts.get("debug_dir"), log_level=file_setts.get("log_level")
+        Logging.setup(
+            debug_dir=file_setts.get("debug_dir"),
+            log_level=file_setts.get("log_level"),
         )
 
         setts_names = [field.name for field in attr.fields(cls)]
@@ -97,8 +98,90 @@ class Config:
         return kwargs
 
 
-def setup_logging(debug_dir, log_level=None, debug_filename="app.log"):
-    def add_trace_level(trace_lvl=9):
+class Logging:
+    APP_LOG_FILENAME = "app.log"
+    REPORT_LOG_FILENAME = "report.log"
+
+    FORMATTERS = {
+        "verbose": {
+            "format": (
+                "%(asctime)s [%(levelname)7s] %(funcName)20s:%(lineno)d: %(message)s"
+            ),
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "simple": {"format": "%(message)s",},
+    }
+
+    @classmethod
+    def setup(cls, debug_dir: str = "", log_level=None):
+        """
+        WARNING: Information about the discrepancy in the data, should be fixed when
+                 errors are corrected.
+        ERROR: Error found in the processed data. Should give some ids to check and fix.
+        """
+        log_level = log_level or logging.INFO
+        cls.add_trace_level()
+        handlers = {
+            **cls.get_console_conf(log_level=log_level),
+            **cls.get_file_handlers(debug_dir=debug_dir, log_level=log_level),
+        }
+
+        root_handler = ["console", "file", "file_report"] if debug_dir else ["console"]
+
+        log_conf = {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": cls.FORMATTERS,
+            "handlers": handlers,
+            "loggers": {
+                "": {
+                    "level": logging._levelToName.get(log_level, "INFO"),
+                    "handlers": root_handler,
+                },
+                "root": {
+                    "level": logging._levelToName.get(log_level, "INFO"),
+                    "handlers": root_handler,
+                },
+            },
+        }
+        dictConfig(log_conf)
+
+    @classmethod
+    def get_file_handlers(cls, debug_dir: str, log_level: int) -> dict:
+        if not debug_dir:
+            return {}
+
+        debug_dir = Path(debug_dir).expanduser().resolve()
+        debug_dir.mkdir(exist_ok=True, parents=True)
+        handlers = {
+            "file": {
+                "class": "logging.FileHandler",
+                "filename": str(debug_dir / cls.APP_LOG_FILENAME),
+                "formatter": "verbose",
+                "level": logging._levelToName.get(log_level, "TRACE"),
+            },
+            "file_report": {
+                "class": "logging.FileHandler",
+                "filename": str(debug_dir / cls.REPORT_LOG_FILENAME),
+                "mode": "w",
+                "formatter": "simple",
+                "level": "ERROR",
+            },
+        }
+
+        return handlers
+
+    @classmethod
+    def get_console_conf(cls, log_level) -> dict:
+        console = {
+            "level": logging._levelToName.get(log_level, "DEBUG"),
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        }
+        return {"console": console}
+
+    @classmethod
+    def add_trace_level(cls, trace_lvl=9):
         logging.addLevelName(trace_lvl, "TRACE")
 
         def trace(self, message, *args, **kws):
@@ -106,28 +189,6 @@ def setup_logging(debug_dir, log_level=None, debug_filename="app.log"):
                 self._log(trace_lvl, message, args, **kws)
 
         logging.Logger.trace = trace
-
-    # Reset logging
-    logging.getLogger("").handlers = []
-    log_level = log_level or logging.INFO
-
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(
-        logging.Formatter(fmt=STREAM_LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S")
-    )
-    stream_handler.setLevel(log_level)
-    log_handlers = [stream_handler]
-    add_trace_level()
-    if debug_dir:
-        debug_dir = Path(debug_dir).expanduser().resolve()
-        debug_dir.mkdir(exist_ok=True, parents=True)
-        filepath = debug_dir / debug_filename
-        file_log_handler = logging.FileHandler(filepath)
-        file_log_handler.setFormatter(logging.Formatter(fmt=FILE_LOG_FORMAT))
-        file_log_handler.setLevel(log_level)
-        log_handlers.append(file_log_handler)
-    # noinspection PyArgumentList
-    logging.basicConfig(level=log_level, handlers=log_handlers)
 
 
 def configure_argparse() -> argparse.Namespace:
@@ -140,13 +201,6 @@ def configure_argparse() -> argparse.Namespace:
         help="Path to config file",
         metavar="CONFIG_PATH",
         required=True,
-        type=str,
-    )
-    parser.add_argument(
-        "--debug_dir",
-        default="",
-        help="Path for debug assets, logs and files.",
-        metavar="PATH",
         type=str,
     )
     parser.add_argument(
