@@ -4,6 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Set
 
+from sutta_processor.application.domain_models import SuttaCentralAggregate
 from sutta_processor.application.domain_models.pali_canon.root import PaliCanonAggregate
 from sutta_processor.application.value_objects import UID
 from sutta_processor.application.value_objects.uid import PaliMsId
@@ -118,16 +119,23 @@ class SCReferenceService:
             log.error(msg, len(diff))
             log.error("Missing PaliMsID from reference: %s", diff)
 
-    def log_wrong_ids_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
+    def log_wrong_pali_id_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
         diff = {
             k
             for k in self.reference_engine.pali_id_index
             if k not in pali_aggregate.index
         }
         if diff:
-            msg = "There are '%s' wrong PaliMsId in the reference data"
-            log.error(msg, len(diff))
+            log.error("There are '%s' wrong PaliMsId in the reference data", len(diff))
             log.error("Wrong PaliMsId is the reference data: %s", diff)
+
+    def log_wrong_uid_in_reference_data(self, sutta_aggregate: SuttaCentralAggregate):
+        diff = {
+            k for k in self.reference_engine.uid_index if k not in sutta_aggregate.index
+        }
+        if diff:
+            log.error("There are '%s' wrong SC UID in the reference data", len(diff))
+            log.error("Wrong SC UID is the reference data: %s", diff)
 
     @property
     def reference_engine(self) -> ReferenceEngine:

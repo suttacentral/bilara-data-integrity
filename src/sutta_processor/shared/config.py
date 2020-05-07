@@ -159,16 +159,16 @@ class Logging:
                 "filename": str(debug_dir / cls.APP_LOG_FILENAME),
                 "formatter": "verbose",
                 "level": logging._levelToName.get(log_level, "TRACE"),
+                "mode": "w",
             },
             "file_report": {
                 "class": "logging.FileHandler",
                 "filename": str(debug_dir / cls.REPORT_LOG_FILENAME),
-                "mode": "w",
                 "formatter": "simple",
                 "level": "ERROR",
+                "mode": "w",
             },
         }
-
         return handlers
 
     @classmethod
