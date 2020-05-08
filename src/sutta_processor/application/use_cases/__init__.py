@@ -3,7 +3,8 @@ import logging
 from .check_reference_data import check_reference_data
 from .load_all_data import load_all_data
 from .loading_palicanon import loading_palicanon
-from .load_ms_yuttadhammo import load_ms_yuttadhammo
+from .ms_yuttadhammo_convert_to_html import ms_yuttadhammo_convert_to_html
+from .ms_yuttadhammo_load import ms_yuttadhammo_load
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +16,8 @@ def noop(cfg):
 __all__ = [
     "check_reference_data",
     "load_all_data",
-    "load_ms_yuttadhammo",
     "loading_palicanon",
+    "ms_yuttadhammo_convert_to_html",
+    "ms_yuttadhammo_load",
     "noop",
 ]

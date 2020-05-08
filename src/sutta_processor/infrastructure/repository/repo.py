@@ -1,10 +1,41 @@
+import logging
 import pickle
 
+from sutta_processor.application.domain_models.ms_yuttadhammo.root import YuttaAggregate
 from sutta_processor.application.domain_models.pali_canon.root import PaliCanonAggregate
 from sutta_processor.application.domain_models.sutta_central.root import (
     SuttaCentralAggregate,
 )
 from sutta_processor.shared.config import Config
+
+log = logging.getLogger(__name__)
+
+
+class YuttadhammoRepo:
+    def __init__(self, cfg: Config):
+        self.cfg = cfg
+
+    def get_aggregate(self) -> YuttaAggregate:
+        root_aggregate = YuttaAggregate.from_path(root_pth=self.cfg.ms_yuttadhammo_path)
+        return root_aggregate
+
+    def get_xml_data_for_conversion(self) -> YuttaAggregate:
+        root_aggregate = YuttaAggregate.convert_to_html(
+            root_pth=self.cfg.ms_yuttadhammo_path
+        )
+        return root_aggregate
+
+    @classmethod
+    def save_yutta_html_files(cls, aggregate: YuttaAggregate):
+        def save_file(f_aggregate):
+            f_pth = str(f_aggregate.f_pth).replace("xml", "html")
+
+            with open(f_pth, "w") as f:
+                f.write(f_aggregate.html_cleaned)
+
+        for file_aggregate in aggregate.file_aggregates:
+            log.trace("Saving html file for xml: '%s'", file_aggregate.f_pth.name)
+            save_file(f_aggregate=file_aggregate)
 
 
 class FileRepository:
@@ -12,6 +43,7 @@ class FileRepository:
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
+        self.yutta: YuttadhammoRepo = YuttadhammoRepo(cfg=cfg)
 
     def get_all_sutta_central(self) -> SuttaCentralAggregate:
         root_aggregate = SuttaCentralAggregate.from_path(

@@ -52,6 +52,10 @@ class PaliMsId(str):
         return cls(f"{cls.MS_ID}{content[2:]}")
 
 
+class YuttaMsId(PaliMsId):
+    pass
+
+
 class PaliMsDivId(str):
     def __new__(cls, content: str):
         return super().__new__(cls, content)
