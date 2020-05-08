@@ -287,3 +287,4 @@ cover/*
 # Per-project virtualenvs
 .venv*/
 *.iml
+!/scripts/*
