@@ -50,6 +50,7 @@ class Config:
 
     root_pli_ms_path: Path = attr.ib(converter=create_dir)
     pali_canon_path: Path = attr.ib(converter=create_dir)
+    ms_yuttadhammo_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
