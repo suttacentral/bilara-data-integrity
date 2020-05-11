@@ -54,13 +54,13 @@ class FileRepository:
         root_aggregate = PaliCanonAggregate.from_path(root_pth=self.cfg.pali_canon_path)
         return root_aggregate
 
-    def dump_to_pickle(self, aggregate):
+    def dump_pickle(self, aggregate):
         out_pth = self.cfg.debug_dir / f"{aggregate.name()}.{self.PICKLE_EXTENSION}"
         out_pth.touch(exist_ok=True)
         with open(out_pth, "wb") as f:
             pickle.dump(obj=aggregate, file=f)
 
-    def load_from_pickle(self, aggregate_cls):
+    def load_pickle(self, aggregate_cls):
         out_pth = self.cfg.debug_dir / f"{aggregate_cls.name()}.{self.PICKLE_EXTENSION}"
         out_pth.touch(exist_ok=True)
         with open(out_pth, "rb") as f:
