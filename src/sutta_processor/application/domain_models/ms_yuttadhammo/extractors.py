@@ -22,7 +22,14 @@ class YuttaExtractor:
 
     @classmethod
     def get_id_nodes(cls, page: _Element) -> List[_Element]:
-        id_nodes = page.xpath("//div[(@class='q' or @class='CENTER') and @id]")
+        search_class = (
+            "@class='q' or "
+            "@class='CENTER' or "
+            "@class='ENDH3' or "
+            "@class='SUMMARY' or "
+            "@class='ENDBOOK'"
+        )
+        id_nodes = page.xpath(f"//div[({search_class}) and @id]")
         return id_nodes
 
     @classmethod

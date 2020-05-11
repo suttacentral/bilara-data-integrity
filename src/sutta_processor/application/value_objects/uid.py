@@ -51,6 +51,10 @@ class PaliMsId(str):
             raise PaliXmlIdError(f"'{content}' is not valid xml id")
         return cls(f"{cls.MS_ID}{content[2:]}")
 
+    @property
+    def stem(self) -> str:
+        return self.replace(self.MS_ID, "", 1)
+
 
 class YuttaMsId(PaliMsId):
     pass
