@@ -62,5 +62,9 @@ class SuttaCentralAggregate:
         }
         return cls(**kwargs)
 
+    @classmethod
+    def name(cls) -> str:
+        return cls.__name__
+
     def __str__(self):
         return f"<RootAggregate, loaded_UIDs: '{len(self.index):,}'>"

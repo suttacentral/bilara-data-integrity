@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 import attr
 from natsort import natsorted, ns
 
-from sutta_processor.application.value_objects import UID
+from sutta_processor.application.value_objects.uid import PaliMsId
 
 from .base import PaliFileAggregate, PaliVersus
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class PaliCanonAggregate:
     file_aggregates: Tuple[PaliFileAggregate]
-    index: Dict[UID, PaliVersus]
+    index: Dict[PaliMsId, PaliVersus]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
@@ -50,6 +50,10 @@ class PaliCanonAggregate:
         msg = "* Loaded '%s' UIDs for '%s'"
         log.info(msg, len(index), cls.__name__)
         return cls(file_aggregates=tuple(file_aggregates), index=index)
+
+    @classmethod
+    def name(cls) -> str:
+        return cls.__name__
 
     def __str__(self):
         return f"<{self.__class__.__name__}, loaded_UIDs: '{len(self.index):,}'>"
