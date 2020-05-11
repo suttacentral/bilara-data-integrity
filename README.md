@@ -31,7 +31,7 @@ sutta-processor -c ./src/example_config.yaml
 ## Validate SuttaCentral reference data
 Load 1) Pali, 2) SC root data and 3) SC reference data. Checks:
 * All PapliMsIds are referenced in reference data
-* Reference data contain only valid PaliMsIds
+* Reference data contain only valid MsIds
 * Reference data contain only valid SC UIDs
 ### How to run
 * In your configuration file set `exec_module: "check_reference_data"`

@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 import attr
 from natsort import natsorted, ns
 
-from sutta_processor.application.value_objects.uid import PaliMsId
+from sutta_processor.application.value_objects.uid import MsId
 
 from .base import YuttaFileAggregate, YuttaVersus
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class YuttaAggregate:
     file_aggregates: Tuple[YuttaFileAggregate]
-    index: Dict[PaliMsId, YuttaVersus]
+    index: Dict[MsId, YuttaVersus]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 

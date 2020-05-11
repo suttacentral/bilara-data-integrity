@@ -2,7 +2,7 @@ class SuttaError(Exception):
     pass
 
 
-class PaliMsIdError(SuttaError):
+class MsIdError(SuttaError):
     pass
 
 

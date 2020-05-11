@@ -3,11 +3,7 @@ from typing import List, Tuple
 
 from lxml.etree import _Element, _ElementTree
 
-from sutta_processor.application.value_objects.uid import (
-    PaliCrumb,
-    PaliMsDivId,
-    PaliMsId,
-)
+from sutta_processor.application.value_objects.uid import MsId, PaliCrumb, PaliMsDivId
 from sutta_processor.application.value_objects.verse import PaliVerse
 
 log = logging.getLogger(__name__)
@@ -25,9 +21,9 @@ class PaliHtmlExtractor:
         return page.xpath("//body//p")
 
     @classmethod
-    def get_ms_msdiv(cls, paragraph: _Element) -> Tuple[PaliMsId, PaliMsDivId]:
+    def get_ms_msdiv(cls, paragraph: _Element) -> Tuple[MsId, PaliMsDivId]:
         a_ms = paragraph.xpath("./a[@class='ms']")[0]
-        ms_id = PaliMsId.from_xml_id(a_ms.get("id", ""))
+        ms_id = MsId.from_xml_id(a_ms.get("id", ""))
         msdiv_id = PaliMsDivId("")
         try:
             a_msdiv = paragraph.xpath("./a[@class='msdiv']")[0]

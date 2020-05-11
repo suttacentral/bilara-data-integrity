@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 import attr
 from lxml.etree import _Element
 
-from sutta_processor.application.value_objects.uid import YuttaMsId
+from sutta_processor.application.value_objects.uid import MsId
 from sutta_processor.application.value_objects.verse import YuttaVerse
 
 from .extractors import YuttaExtractor
@@ -15,14 +15,14 @@ log = logging.getLogger(__name__)
 
 @attr.s(frozen=True, auto_attribs=True)
 class YuttaVersus:
-    ms_id: YuttaMsId
+    ms_id: MsId
     verse: YuttaVerse
 
 
 @attr.s(frozen=True, auto_attribs=True)
 class YuttaFileAggregate:
     versets: Tuple[YuttaVersus]
-    index: Dict[YuttaMsId, YuttaVersus]
+    index: Dict[MsId, YuttaVersus]
 
     f_pth: Path
     raw_xml: str
@@ -55,7 +55,7 @@ class YuttaFileAggregate:
         index = {}
         raw_html = cls.get_raw_source(f_pth=f_pth)
         page = cls.extractor.get_page_from_html(html=raw_html)
-        index: Dict[YuttaMsId, YuttaVersus] = cls.get_index(page=page)
+        index: Dict[MsId, YuttaVersus] = cls.get_index(page=page)
 
         kwargs = {
             "f_pth": f_pth,
@@ -67,15 +67,15 @@ class YuttaFileAggregate:
         return cls(**kwargs)
 
     @classmethod
-    def get_index(cls, page: _Element) -> Dict[YuttaMsId, YuttaVersus]:
+    def get_index(cls, page: _Element) -> Dict[MsId, YuttaVersus]:
         id_nodes = cls.extractor.get_id_nodes(page=page)
         dict_args = (cls.get_versus(node=n) for n in id_nodes)
         index = {ms_id: versus for ms_id, versus in dict_args}
         return index
 
     @classmethod
-    def get_versus(cls, node: _Element) -> Tuple[YuttaMsId, YuttaVersus]:
-        ms_id = YuttaMsId.from_xml_id(cls.extractor.get_ms_id(node=node))
+    def get_versus(cls, node: _Element) -> Tuple[MsId, YuttaVersus]:
+        ms_id = MsId.from_xml_id(cls.extractor.get_ms_id(node=node))
         verse = YuttaVerse(cls.extractor.get_verse(node=node))
         versus = YuttaVersus(ms_id=ms_id, verse=verse)
         return ms_id, versus

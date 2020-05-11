@@ -1,4 +1,4 @@
-from sutta_processor.shared.exceptions import PaliMsIdError, PaliXmlIdError
+from sutta_processor.shared.exceptions import MsIdError, PaliXmlIdError
 
 
 class RawUID(str):
@@ -29,7 +29,7 @@ class PaliCrumb(str):
         return self.parts[0]
 
 
-class PaliMsId(str):
+class MsId(str):
     XML_ID_P = "p_"  # Used in original XML docs
     XML_ID_H = "h_"
     MS_ID = "ms"  # Used everywhere else to reference this source
@@ -39,11 +39,11 @@ class PaliMsId(str):
         :param content: ms1V_1
         """
         if not content.startswith(cls.MS_ID) or ("div" in content):
-            raise PaliMsIdError(f"'{content}' is not valid ms id")
+            raise MsIdError(f"'{content}' is not valid ms id")
         return super().__new__(cls, content)
 
     @classmethod
-    def from_xml_id(cls, content: str) -> "PaliMsId":
+    def from_xml_id(cls, content: str) -> "MsId":
         """
         :param content: p_1V_1
         """
@@ -55,10 +55,6 @@ class PaliMsId(str):
     @property
     def stem(self) -> str:
         return self.replace(self.MS_ID, "", 1)
-
-
-class YuttaMsId(PaliMsId):
-    pass
 
 
 class PaliMsDivId(str):
