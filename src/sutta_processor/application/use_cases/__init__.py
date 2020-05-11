@@ -1,8 +1,8 @@
 import logging
 
-from .check_reference_data import check_reference_data
-from .load_all_data import load_all_data
-from .loading_palicanon import loading_palicanon
+from .reference_data_check import reference_data_check
+from .bilara_load import bilara_load
+from .ms_palicanon_load import ms_palicanon_load
 from .ms_yuttadhammo_convert_to_html import ms_yuttadhammo_convert_to_html
 from .ms_yuttadhammo_load import ms_yuttadhammo_load
 
@@ -14,10 +14,10 @@ def noop(cfg):
 
 
 __all__ = [
-    "check_reference_data",
-    "load_all_data",
-    "loading_palicanon",
+    "bilara_load",
+    "ms_palicanon_load",
     "ms_yuttadhammo_convert_to_html",
     "ms_yuttadhammo_load",
     "noop",
+    "reference_data_check",
 ]

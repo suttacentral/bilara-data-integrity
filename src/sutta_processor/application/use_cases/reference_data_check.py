@@ -7,7 +7,7 @@ from sutta_processor.shared.config import Config
 log = logging.getLogger(__name__)
 
 
-def check_reference_data(cfg: Config):
+def reference_data_check(cfg: Config):
     yutta_aggregate: YuttaAggregate = cfg.repo.yutta.get_aggregate()
     sutta_aggregate: SuttaCentralAggregate = cfg.repo.get_all_sutta_central()
     cfg.sc_reference.log_missing_ms_id_from_reference(pali_aggregate=yutta_aggregate)
