@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 import attr
 from natsort import natsorted, ns
 
-from sutta_processor.application.value_objects.uid import MsId
+from sutta_processor.application.value_objects import MsId
 
 from .base import PaliFileAggregate, PaliVersus
 

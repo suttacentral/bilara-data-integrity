@@ -1,10 +1,10 @@
 import logging
 import pickle
 
-from sutta_processor.application.domain_models.ms_yuttadhammo.root import YuttaAggregate
-from sutta_processor.application.domain_models.pali_canon.root import PaliCanonAggregate
-from sutta_processor.application.domain_models.sutta_central.root import (
+from sutta_processor.application.domain_models import (
+    PaliCanonAggregate,
     SuttaCentralAggregate,
+    YuttaAggregate,
 )
 from sutta_processor.shared.config import Config
 

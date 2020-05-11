@@ -5,8 +5,7 @@ from typing import Dict, Tuple
 import attr
 from lxml.etree import _Element
 
-from sutta_processor.application.value_objects.uid import MsId
-from sutta_processor.application.value_objects.verse import MsVerse
+from sutta_processor.application.value_objects import MsId, MsVerse
 
 from .extractors import YuttaExtractor
 

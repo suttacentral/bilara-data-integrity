@@ -3,8 +3,12 @@ from typing import List, Tuple
 
 from lxml.etree import _Element, _ElementTree
 
-from sutta_processor.application.value_objects.uid import MsId, PaliCrumb, PaliMsDivId
-from sutta_processor.application.value_objects.verse import MsVerse
+from sutta_processor.application.value_objects import (
+    MsId,
+    MsVerse,
+    PaliCrumb,
+    PaliMsDivId,
+)
 
 log = logging.getLogger(__name__)
 

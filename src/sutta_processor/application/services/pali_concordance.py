@@ -1,10 +1,11 @@
 import json
 import logging
 
-from sutta_processor.application.domain_models import SuttaCentralAggregate
-from sutta_processor.application.domain_models.pali_canon.root import PaliCanonAggregate
-from sutta_processor.application.value_objects import UID
-from sutta_processor.application.value_objects.uid import MsId
+from sutta_processor.application.domain_models import (
+    PaliCanonAggregate,
+    SuttaCentralAggregate,
+)
+from sutta_processor.application.value_objects import UID, MsId
 from sutta_processor.shared.config import Config
 
 log = logging.getLogger(__name__)
