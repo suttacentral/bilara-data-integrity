@@ -29,7 +29,6 @@ class YuttadhammoRepo:
     def save_yutta_html_files(cls, aggregate: YuttaAggregate):
         def save_file(f_aggregate):
             f_pth = str(f_aggregate.f_pth).replace("xml", "html")
-
             with open(f_pth, "w") as f:
                 f.write(f_aggregate.html_cleaned)
 
