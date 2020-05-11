@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import attr
-from lxml.etree import _Element, _ElementTree
+from lxml.etree import _Element
 
 from sutta_processor.application.value_objects.uid import YuttaMsId
 from sutta_processor.application.value_objects.verse import YuttaVerse
@@ -55,11 +55,7 @@ class YuttaFileAggregate:
         index = {}
         raw_html = cls.get_raw_source(f_pth=f_pth)
         page = cls.extractor.get_page_from_html(html=raw_html)
-
-        # data = cls.get_data(raw_source=raw_source)
-
-        # print(page.xpath("//text()"))
-        # index: Dict[YuttaMsId, YuttaVersus] = cls.get_index(page=page)
+        index: Dict[YuttaMsId, YuttaVersus] = cls.get_index(page=page)
 
         kwargs = {
             "f_pth": f_pth,
@@ -71,17 +67,17 @@ class YuttaFileAggregate:
         return cls(**kwargs)
 
     @classmethod
-    def get_index(cls, page: _ElementTree) -> Dict[YuttaMsId, YuttaVersus]:
-        page_paragraphs = cls.extractor.get_paragraphs(page=page)
-        dict_args = (cls.get_versus(paragraph=p) for p in page_paragraphs)
+    def get_index(cls, page: _Element) -> Dict[YuttaMsId, YuttaVersus]:
+        id_nodes = cls.extractor.get_id_nodes(page=page)
+        dict_args = (cls.get_versus(node=n) for n in id_nodes)
         index = {ms_id: versus for ms_id, versus in dict_args}
         return index
 
     @classmethod
-    def get_versus(cls, paragraph: _Element) -> Tuple[YuttaMsId, YuttaVersus]:
-        ms_id, msdiv_id = cls.html_extractor.get_ms_msdiv(paragraph=paragraph)
-        verse = cls.html_extractor.get_verse(paragraph=paragraph)
-        versus = YuttaVersus(ms_id=ms_id, msdiv_id=msdiv_id, verse=verse)
+    def get_versus(cls, node: _Element) -> Tuple[YuttaMsId, YuttaVersus]:
+        ms_id = YuttaMsId.from_xml_id(cls.extractor.get_ms_id(node=node))
+        verse = YuttaVerse(cls.extractor.get_verse(node=node))
+        versus = YuttaVersus(ms_id=ms_id, verse=verse)
         return ms_id, versus
 
     @property
