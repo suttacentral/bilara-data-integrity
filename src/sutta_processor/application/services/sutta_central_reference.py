@@ -103,6 +103,14 @@ class ReferenceEngine:
 
 class SCReferenceService:
     _reference_engine: ReferenceEngine = None
+    _MS_REF_MISS_COUNT = (
+        "[%s] There are '%s' MsId that are not found in the reference file"
+    )
+    _MS_REF_MISS = "[%s] Missing MsId from reference: %s"
+    _MS_WRONG_COUNT = "[%s] There are '%s' wrong MsId in the reference data"
+    _MS_WRONG = "[%s] Wrong MsId is the reference data: %s"
+    _UID_WRONG_COUNT = "[%s] There are '%s' wrong SC UID in the reference data"
+    _UID_WRONG = "[%s] Wrong SC UID is the reference data: %s"
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
@@ -116,9 +124,8 @@ class SCReferenceService:
             }
         )
         if diff:
-            msg = "There are '%s' MsId that are not found in the reference file"
-            log.error(msg, len(diff))
-            log.error("Missing MsId from reference: %s", diff)
+            log.error(self._MS_REF_MISS_COUNT, self.__class__.__name__, len(diff))
+            log.error(self._MS_REF_MISS, self.__class__.__name__, diff)
 
     def log_wrong_ms_id_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
         diff = sorted(
@@ -129,8 +136,8 @@ class SCReferenceService:
             }
         )
         if diff:
-            log.error("There are '%s' wrong MsId in the reference data", len(diff))
-            log.error("Wrong MsId is the reference data: %s", diff)
+            log.error(self._MS_REF_MISS, self.__class__.__name__, len(diff))
+            log.error(self._MS_WRONG, self.__class__.__name__, diff)
 
     def log_wrong_uid_in_reference_data(self, sutta_aggregate: SuttaCentralAggregate):
         diff = sorted(
@@ -141,8 +148,8 @@ class SCReferenceService:
             }
         )
         if diff:
-            log.error("There are '%s' wrong SC UID in the reference data", len(diff))
-            log.error("Wrong SC UID is the reference data: %s", diff)
+            log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))
+            log.error(self._UID_WRONG, self.__class__.__name__, diff)
 
     @property
     def reference_engine(self) -> ReferenceEngine:

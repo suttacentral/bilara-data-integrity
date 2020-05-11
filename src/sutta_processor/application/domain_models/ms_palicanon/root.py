@@ -6,6 +6,7 @@ from typing import Dict, Tuple
 import attr
 from natsort import natsorted, ns
 
+from sutta_processor.application.domain_models.base import BaseRootAggregate
 from sutta_processor.application.value_objects import MsId
 
 from .base import PaliFileAggregate, PaliVersus
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
-class PaliCanonAggregate:
+class PaliCanonAggregate(BaseRootAggregate):
     file_aggregates: Tuple[PaliFileAggregate]
     index: Dict[MsId, PaliVersus]
 
@@ -44,11 +45,9 @@ class PaliCanonAggregate:
                 c["error"] += 1
             log.trace("Processing file: %s/%s", i, c["all"])
 
-        msg = "* Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
         ratio = (c["error"] / c["all"]) * 100
-        log.info(msg, c["all"], c["ok"], c["error"], ratio)
-        msg = "* Loaded '%s' UIDs for '%s'"
-        log.info(msg, len(index), cls.__name__)
+        log.info(cls._PROCESS_INFO, cls.__name__, c["all"], c["ok"], c["error"], ratio)
+        log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return cls(file_aggregates=tuple(file_aggregates), index=index)
 
     @classmethod

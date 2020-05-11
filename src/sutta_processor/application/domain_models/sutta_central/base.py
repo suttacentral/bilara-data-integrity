@@ -1,12 +1,12 @@
 import json
 import logging
-from abc import ABC
 from pathlib import Path
 from typing import Dict, Tuple
 
 import attr
 from natsort import natsorted, ns
 
+from sutta_processor.application.domain_models.base import BaseRootAggregate
 from sutta_processor.application.value_objects import UID, RawUID, RawVerse, Verse
 
 log = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class FileAggregate:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class BaseAggregate(ABC):
+class BaseAggregate(BaseRootAggregate):
     files_aggregates: Tuple[FileAggregate]
     index: Dict[UID, Versus]
 
@@ -76,7 +76,5 @@ class BaseAggregate(ABC):
             file_aggregate = FileAggregate.from_file(f_pth=f_pth)
             update_index(aggregate=file_aggregate)
             files.append(file_aggregate)
-        log.info(
-            "* Loaded '%s' UIDs for '%s'", len(index), cls.__name__,
-        )
+        log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return cls(files_aggregates=tuple(files), index=index)
