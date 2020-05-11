@@ -4,7 +4,7 @@ from typing import List, Tuple
 from lxml.etree import _Element, _ElementTree
 
 from sutta_processor.application.value_objects.uid import MsId, PaliCrumb, PaliMsDivId
-from sutta_processor.application.value_objects.verse import PaliVerse
+from sutta_processor.application.value_objects.verse import MsVerse
 
 log = logging.getLogger(__name__)
 
@@ -33,8 +33,8 @@ class PaliHtmlExtractor:
         return ms_id, msdiv_id
 
     @classmethod
-    def get_verse(cls, paragraph: _Element) -> PaliVerse:
+    def get_verse(cls, paragraph: _Element) -> MsVerse:
         text = paragraph.xpath("./text()")
         text = text[0] if text else ""
-        versus = PaliVerse(text.strip())
+        versus = MsVerse(text.strip())
         return versus

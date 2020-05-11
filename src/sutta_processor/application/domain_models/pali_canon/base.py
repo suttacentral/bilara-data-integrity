@@ -7,7 +7,7 @@ from lxml import etree
 from lxml.etree import _Element, _ElementTree
 
 from sutta_processor.application.value_objects.uid import MsId, PaliCrumb, PaliMsDivId
-from sutta_processor.application.value_objects.verse import PaliVerse
+from sutta_processor.application.value_objects.verse import MsVerse
 
 from .extractors import PaliHtmlExtractor
 
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class PaliVersus:
     ms_id: MsId
     msdiv_id: PaliMsDivId
-    verse: PaliVerse
+    verse: MsVerse
 
 
 @attr.s(frozen=True, auto_attribs=True)

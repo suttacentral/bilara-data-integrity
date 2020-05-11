@@ -43,10 +43,10 @@ class YuttaExtractor:
     def get_verse(cls, node: _Element) -> str:
         return ""
 
-    def get_verse2(cls, paragraph: _Element) -> "PaliVerse":
+    def get_verse2(cls, paragraph: _Element) -> "MsVerse":
         text = paragraph.xpath("./text()")
         text = text[0] if text else ""
-        versus = PaliVerse(text.strip())
+        versus = MsVerse(text.strip())
         return versus
 
     @classmethod

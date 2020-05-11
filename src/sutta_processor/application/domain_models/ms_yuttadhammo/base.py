@@ -6,7 +6,7 @@ import attr
 from lxml.etree import _Element
 
 from sutta_processor.application.value_objects.uid import MsId
-from sutta_processor.application.value_objects.verse import YuttaVerse
+from sutta_processor.application.value_objects.verse import MsVerse
 
 from .extractors import YuttaExtractor
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 @attr.s(frozen=True, auto_attribs=True)
 class YuttaVersus:
     ms_id: MsId
-    verse: YuttaVerse
+    verse: MsVerse
 
 
 @attr.s(frozen=True, auto_attribs=True)
@@ -76,7 +76,7 @@ class YuttaFileAggregate:
     @classmethod
     def get_versus(cls, node: _Element) -> Tuple[MsId, YuttaVersus]:
         ms_id = MsId.from_xml_id(cls.extractor.get_ms_id(node=node))
-        verse = YuttaVerse(cls.extractor.get_verse(node=node))
+        verse = MsVerse(cls.extractor.get_verse(node=node))
         versus = YuttaVersus(ms_id=ms_id, verse=verse)
         return ms_id, versus
 

@@ -8,11 +8,6 @@ class Verse(str):
         return super().__new__(cls, content)
 
 
-class PaliVerse(str):
-    def __new__(cls, content: str):
-        return super().__new__(cls, content)
-
-
-class YuttaVerse(PaliVerse):
+class MsVerse(str):
     def __new__(cls, content: str):
         return super().__new__(cls, content)
