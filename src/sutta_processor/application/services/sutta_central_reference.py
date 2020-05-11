@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class ReferenceEngine:
     uid_index: Dict[UID, PaliMsId]
-    pali_id_index: Dict[PaliMsId, Set[UID]]
+    ms_id_index: Dict[PaliMsId, Set[UID]]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
@@ -26,14 +26,14 @@ class ReferenceEngine:
             reference_root_path=cfg.reference_root_path
         )
         self.uid_index = self.get_uid_index(raw_index=raw_index)
-        self.pali_id_index = self.get_pali_id_index(uid_index=self.uid_index)
+        self.ms_id_index = self.get_ms_id_index(uid_index=self.uid_index)
 
-        if len(self.uid_index) != len(self.pali_id_index):
+        if len(self.uid_index) != len(self.ms_id_index):
             msg = "uid->pali and pali->uid indexes are different lengths. '%s' vs '%s'"
-            log.warning(msg, len(self.uid_index), len(self.pali_id_index))
+            log.warning(msg, len(self.uid_index), len(self.ms_id_index))
 
     @classmethod
-    def get_pali_id_index(
+    def get_ms_id_index(
         cls, uid_index: Dict[UID, PaliMsId]
     ) -> Dict[PaliMsId, Set[UID]]:
         pali_id_index = defaultdict(set)
@@ -108,31 +108,35 @@ class SCReferenceService:
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
-    def log_missing_pali_id_from_reference(self, pali_aggregate: PaliCanonAggregate):
-        diff = {
-            k
-            for k in pali_aggregate.index
-            if k not in self.reference_engine.pali_id_index
-        }
+    def log_missing_ms_id_from_reference(self, pali_aggregate: PaliCanonAggregate):
+        diff = sorted(
+            {
+                k
+                for k in pali_aggregate.index
+                if k not in self.reference_engine.ms_id_index
+            }
+        )
         if diff:
             msg = "There are '%s' PaliMsID that are not found in the reference file"
             log.error(msg, len(diff))
             log.error("Missing PaliMsID from reference: %s", diff)
 
-    def log_wrong_pali_id_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
-        diff = {
-            k
-            for k in self.reference_engine.pali_id_index
-            if k not in pali_aggregate.index
-        }
+    def log_wrong_ms_id_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
+        diff = sorted(
+            {
+                k
+                for k in self.reference_engine.ms_id_index
+                if k not in pali_aggregate.index
+            }
+        )
         if diff:
             log.error("There are '%s' wrong PaliMsId in the reference data", len(diff))
             log.error("Wrong PaliMsId is the reference data: %s", diff)
 
     def log_wrong_uid_in_reference_data(self, sutta_aggregate: SuttaCentralAggregate):
-        diff = {
+        diff = sorted({
             k for k in self.reference_engine.uid_index if k not in sutta_aggregate.index
-        }
+        })
         if diff:
             log.error("There are '%s' wrong SC UID in the reference data", len(diff))
             log.error("Wrong SC UID is the reference data: %s", diff)

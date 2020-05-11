@@ -7,7 +7,6 @@ import attr
 from natsort import natsorted, ns
 
 from sutta_processor.application.value_objects.uid import PaliMsId
-from sutta_processor.shared.exceptions import PaliXmlIdError
 
 from .base import YuttaFileAggregate, YuttaVersus
 
@@ -65,9 +64,6 @@ class YuttaAggregate:
                 file_aggregate = YuttaFileAggregate.from_file(f_pth=f_pth)
                 update_index(aggregate=file_aggregate)
                 file_aggregates.append(file_aggregate)
-                c["ok"] += 1
-            except PaliXmlIdError as e:
-                log.trace(e)
                 c["ok"] += 1
             except Exception as e:
                 log.warning("Error processing: %s, file: '%s', ", e, f_pth)

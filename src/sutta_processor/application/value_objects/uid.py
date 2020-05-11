@@ -30,7 +30,8 @@ class PaliCrumb(str):
 
 
 class PaliMsId(str):
-    XML_ID = "p_"  # Used in original XML docs
+    XML_ID_P = "p_"  # Used in original XML docs
+    XML_ID_H = "h_"
     MS_ID = "ms"  # Used everywhere else to reference this source
 
     def __new__(cls, content: str):
@@ -47,9 +48,9 @@ class PaliMsId(str):
         :param content: p_1V_1
         """
         content = content.strip()
-        if not content.startswith(cls.XML_ID):
-            raise PaliXmlIdError(f"'{content}' is not valid xml id")
-        return cls(f"{cls.MS_ID}{content[2:]}")
+        if content.startswith(cls.XML_ID_P) or content.startswith(cls.XML_ID_H):
+            return cls(f"{cls.MS_ID}{content[2:]}")
+        raise PaliXmlIdError(f"'{content}' is not valid xml id")
 
     @property
     def stem(self) -> str:
