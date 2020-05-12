@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
 import attr
 
 from sutta_processor.application.value_objects import UID
 
 from .abhidhamma import AbhidhammaAggregate
-from .base import Versus
+from .base import FileAggregate, Versus
 from .sutta import SuttaAggregate
 from .vinaya import VinayaAggregate
 
@@ -21,6 +21,7 @@ class SuttaCentralAggregate:
     vinaya: VinayaAggregate
 
     index: Dict[UID, Versus]
+    files_aggregates: Tuple[FileAggregate]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
@@ -47,18 +48,19 @@ class SuttaCentralAggregate:
         vinaya = VinayaAggregate.from_path(root_pth=root_pth)
         update_index(aggregate=vinaya)
 
-        part_count = (
-            len(vinaya.files_aggregates),
-            len(abhidhamma.files_aggregates),
-            len(sutta.files_aggregates),
+        files_aggregates = (
+            abhidhamma.files_aggregates
+            + sutta.files_aggregates
+            + vinaya.files_aggregates
         )
-        log.debug("** Loaded '%s' files", sum(part_count))
+        log.debug("** Loaded '%s' files", len(files_aggregates))
         log.debug("** Root: Loaded all '%s' indexes", len(index))
         kwargs = {
-            "sutta": sutta,
             "abhidhamma": abhidhamma,
-            "vinaya": vinaya,
+            "files_aggregates": files_aggregates,
             "index": index,
+            "sutta": sutta,
+            "vinaya": vinaya,
         }
         return cls(**kwargs)
 
