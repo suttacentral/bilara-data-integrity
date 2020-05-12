@@ -21,8 +21,8 @@ class Versus:
     raw_verse: RawVerse = attr.ib(converter=RawVerse)
 
     def __attrs_post_init__(self):
-        object.__setattr__(self, "uid", self.raw_uid.strip())
-        object.__setattr__(self, "verse", self.raw_verse.strip())
+        object.__setattr__(self, "uid", UID(self.raw_uid))
+        object.__setattr__(self, "verse", Verse(self.raw_verse))
 
 
 @attr.s(frozen=True, auto_attribs=True)
