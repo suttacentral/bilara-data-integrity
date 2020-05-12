@@ -109,12 +109,17 @@ class BDataCheckService:
         self.cfg = cfg
 
     def check_uid_sequence_in_file(self, aggregate: SuttaCentralAggregate):
-        # for file_aggregate in aggregate.files_aggregates:  # type: FileAggregate
-        #     file_aggregate.
+        error_keys = set()
         previous_elem = UidKey(":")
         for idx in aggregate.index:
-            if not idx.key > previous_elem:
-                log.error("Key '%s' is not grater then the previous: '%s'", idx)
+            if not idx.key.is_next(previous=previous_elem):
+                error_keys.add(idx)
+                msg = "[%s] Sequence error. Previous: '%s' current: '%s'"
+                log.error(msg, self.__class__.__name__, previous_elem.raw, idx)
+            previous_elem = idx.key
+        if error_keys:
+            msg = "[%s] There are '%s' sequence key errors"
+            log.error(msg, self.__class__.__name__, len(error_keys))
 
     @property
     def check_engine(self) -> CheckEngine:
