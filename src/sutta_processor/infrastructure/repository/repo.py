@@ -2,6 +2,7 @@ import logging
 import pickle
 
 from sutta_processor.application.domain_models import (
+    BilaraCommentAggregate,
     BilaraRootAggregate,
     PaliCanonAggregate,
     YuttaAggregate,
@@ -52,6 +53,12 @@ class BilaraRepo:
 
     def get_html(self) -> BilaraHtmlAggregate:
         aggregate = BilaraHtmlAggregate.from_path(root_pth=self.cfg.bilara_html_path)
+        return aggregate
+
+    def get_comments(self) -> BilaraCommentAggregate:
+        aggregate = BilaraCommentAggregate.from_path(
+            root_pth=self.cfg.bilara_comment_path
+        )
         return aggregate
 
 

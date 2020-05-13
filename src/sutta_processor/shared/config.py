@@ -52,6 +52,7 @@ class Config:
     pali_canon_path: Path = attr.ib(converter=create_dir)
     ms_yuttadhammo_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_html_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    bilara_comment_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
