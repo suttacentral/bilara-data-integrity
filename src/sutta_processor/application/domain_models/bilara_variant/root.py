@@ -6,15 +6,15 @@ from typing import Dict, Tuple
 import attr
 
 from sutta_processor.application.domain_models.base import BaseRootAggregate
-from sutta_processor.application.value_objects import UID, HtmlVerse, RawUID
+from sutta_processor.application.value_objects import UID, RawUID, Verse
 
 log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class HtmlVersus:
+class VariantVersus:
     uid: UID = attr.ib(converter=UID, init=False)
-    verse: HtmlVerse = attr.ib(converter=HtmlVerse)
+    verse: Verse = attr.ib(converter=Verse)
 
     raw_uid: RawUID = attr.ib(converter=RawUID)
 
@@ -23,20 +23,20 @@ class HtmlVersus:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class BilaraHtmlFileAggregate:
-    index: Dict[UID, HtmlVersus]
+class BilaraVariantFileAggregate:
+    index: Dict[UID, VariantVersus]
 
     errors: Dict[str, str]
 
     f_pth: Path
 
     @classmethod
-    def from_dict(cls, in_dto: dict, f_pth: Path) -> "BilaraHtmlFileAggregate":
+    def from_dict(cls, in_dto: dict, f_pth: Path) -> "BilaraVariantFileAggregate":
         index = {}
         errors = {}
         for k, v in in_dto.items():
             try:
-                mn = HtmlVersus(raw_uid=k, verse=v)
+                mn = VariantVersus(raw_uid=k, verse=v)
                 index[mn.uid] = mn
             except Exception as e:
                 log.trace(e)
@@ -47,28 +47,28 @@ class BilaraHtmlFileAggregate:
         return cls(index=index, f_pth=f_pth, errors=errors)
 
     @classmethod
-    def from_file(cls, f_pth: Path) -> "BilaraHtmlFileAggregate":
+    def from_file(cls, f_pth: Path) -> "BilaraVariantFileAggregate":
         with open(f_pth) as f:
             data = json.load(f)
         return cls.from_dict(in_dto=data, f_pth=f_pth)
 
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
-class BilaraHtmlAggregate(BaseRootAggregate):
-    index: Dict[UID, HtmlVersus]
-    file_aggregates: Tuple[BilaraHtmlFileAggregate]
+class BilaraVariantAggregate(BaseRootAggregate):
+    index: Dict[UID, VariantVersus]
+    file_aggregates: Tuple[BilaraVariantFileAggregate]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     @classmethod
-    def from_path(cls, root_pth: Path) -> "BilaraHtmlAggregate":
+    def from_path(cls, root_pth: Path) -> "BilaraVariantAggregate":
         file_aggregates, index = cls._from_path(
             root_pth=root_pth,
             glob_pattern="**/*.json",
-            file_aggregate_cls=BilaraHtmlFileAggregate,
+            file_aggregate_cls=BilaraVariantFileAggregate,
         )
         errors = {}
-        for aggregate in file_aggregates:  # type: BilaraHtmlFileAggregate
+        for aggregate in file_aggregates:  # type: BilaraVariantFileAggregate
             errors.update(aggregate.errors)
         if errors:
             log.error("There are '%s' wrong ids: %s", len(errors), errors.keys())

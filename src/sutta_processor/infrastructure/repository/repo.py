@@ -5,7 +5,7 @@ from sutta_processor.application.domain_models import (
     BilaraCommentAggregate,
     BilaraRootAggregate,
     PaliCanonAggregate,
-    YuttaAggregate,
+    YuttaAggregate, BilaraVariantAggregate,
 )
 from sutta_processor.application.domain_models.bilara_html.root import (
     BilaraHtmlAggregate,
@@ -55,9 +55,15 @@ class BilaraRepo:
         aggregate = BilaraHtmlAggregate.from_path(root_pth=self.cfg.bilara_html_path)
         return aggregate
 
-    def get_comments(self) -> BilaraCommentAggregate:
+    def get_comment(self) -> BilaraCommentAggregate:
         aggregate = BilaraCommentAggregate.from_path(
             root_pth=self.cfg.bilara_comment_path
+        )
+        return aggregate
+
+    def get_variant(self) -> BilaraVariantAggregate:
+        aggregate = BilaraVariantAggregate.from_path(
+            root_pth=self.cfg.bilara_variant_path
         )
         return aggregate
 

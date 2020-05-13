@@ -3,3 +3,4 @@ from .bilara_html.root import BilaraHtmlAggregate
 from .bilara_root.root import BilaraRootAggregate
 from .ms_palicanon.root import PaliCanonAggregate
 from .ms_yuttadhammo.root import YuttaAggregate
+from .bilara_variant.root import BilaraVariantAggregate
