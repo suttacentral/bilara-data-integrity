@@ -48,7 +48,7 @@ def use_case_present(_inst, _attr, uc_name: str):
 class Config:
     exec_module: str = attr.ib(validator=use_case_present)
 
-    root_pli_ms_path: Path = attr.ib(converter=create_dir)
+    bilara_root_path: Path = attr.ib(converter=create_dir)
     pali_canon_path: Path = attr.ib(converter=create_dir)
     ms_yuttadhammo_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)

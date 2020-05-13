@@ -1,6 +1,6 @@
 ---
 exec_module: 'noop'
-root_pli_ms_path: "~/bilara-data/root/pli/ms"
+bilara_root_path: "~/bilara-data/root/pli/ms"
 
 pali_canon_path: "~/ms_palicanon"
 ms_yuttadhammo_path: ""
