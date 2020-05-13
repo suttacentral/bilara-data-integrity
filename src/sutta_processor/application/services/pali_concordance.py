@@ -2,8 +2,8 @@ import json
 import logging
 
 from sutta_processor.application.domain_models import (
+    BilaraRootAggregate,
     PaliCanonAggregate,
-    SuttaCentralAggregate,
 )
 from sutta_processor.application.value_objects import UID, MsId
 from sutta_processor.shared.config import Config
@@ -33,10 +33,10 @@ class PaliConcordanceService:
         self.cfg = cfg
 
     def check_our_and_pali_id(
-        self, sutta_aggregate: SuttaCentralAggregate, pali_aggregate: PaliCanonAggregate
+        self, bilara_root: BilaraRootAggregate, pali_aggregate: PaliCanonAggregate
     ):
         check_callback = self.engine.is_uid_in_keys
-        for sutta_uid in sutta_aggregate.index:
+        for sutta_uid in bilara_root.index:
             is_valid = check_callback(uid=sutta_uid)
             if is_valid:
                 log.debug("Found sutta UID '%s' in corcondance", sutta_uid)

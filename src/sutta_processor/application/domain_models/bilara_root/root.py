@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
-class SuttaCentralAggregate:
+class BilaraRootAggregate:
     sutta: SuttaAggregate
     abhidhamma: AbhidhammaAggregate
     vinaya: VinayaAggregate
@@ -26,7 +26,7 @@ class SuttaCentralAggregate:
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     @classmethod
-    def from_path(cls, root_pth: Path) -> "SuttaCentralAggregate":
+    def from_path(cls, root_pth: Path) -> "BilaraRootAggregate":
         def update_index(aggregate):
             log.debug("** Adding '%s' UIDs to root", aggregate.__class__.__name__)
             len_before = len(index)
