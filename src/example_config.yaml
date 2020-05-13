@@ -6,6 +6,7 @@ pali_canon_path: "~/ms_palicanon"
 bilara_html_path: ""
 bilara_comment_path: ""
 bilara_variant_path: ""
+bilara_translation_path: ""
 ms_yuttadhammo_path: ""
 pali_concordance_filepath: "~/all_pali_concordance.json"
 

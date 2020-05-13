@@ -3,12 +3,12 @@ import pickle
 
 from sutta_processor.application.domain_models import (
     BilaraCommentAggregate,
-    BilaraRootAggregate,
-    PaliCanonAggregate,
-    YuttaAggregate, BilaraVariantAggregate,
-)
-from sutta_processor.application.domain_models.bilara_html.root import (
     BilaraHtmlAggregate,
+    BilaraRootAggregate,
+    BilaraTranslationAggregate,
+    BilaraVariantAggregate,
+    PaliCanonAggregate,
+    YuttaAggregate,
 )
 from sutta_processor.shared.config import Config
 
@@ -64,6 +64,12 @@ class BilaraRepo:
     def get_variant(self) -> BilaraVariantAggregate:
         aggregate = BilaraVariantAggregate.from_path(
             root_pth=self.cfg.bilara_variant_path
+        )
+        return aggregate
+
+    def get_translation(self) -> BilaraTranslationAggregate:
+        aggregate = BilaraTranslationAggregate.from_path(
+            root_pth=self.cfg.bilara_translation_path
         )
         return aggregate
 

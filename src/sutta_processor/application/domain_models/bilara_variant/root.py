@@ -42,8 +42,9 @@ class BilaraVariantFileAggregate:
                 log.trace(e)
                 errors[k] = v
         if not (len(in_dto) == len(index)):
-            msg = "Lost '%s' entries during domain model conversion."
-            log.error(msg, len(in_dto) - len(index))
+            diff = in_dto.keys() - index.keys()
+            msg = "Lost '%s' entries during domain model conversion: %s"
+            log.error(msg, len(diff), diff)
         return cls(index=index, f_pth=f_pth, errors=errors)
 
     @classmethod

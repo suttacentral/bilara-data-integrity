@@ -40,8 +40,10 @@ class FileAggregate:
             mn = Versus(raw_uid=k, raw_verse=v)
             index[mn.uid] = mn
             parts.append(mn)
-        if not (len(in_dto) == len(index) == len(parts)):
-            raise RuntimeError(f"Lost data during domain model conversion.")
+        if not (len(in_dto) == len(index)):
+            diff = in_dto.keys() - index.keys()
+            msg = "Lost '%s' entries during domain model conversion: %s"
+            log.error(msg, len(diff), diff)
         return cls(parts=tuple(parts), index=index, f_pth=f_pth)
 
     @classmethod

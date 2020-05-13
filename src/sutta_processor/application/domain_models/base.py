@@ -22,13 +22,6 @@ class BaseRootAggregate(ABC):
     def _from_path(
         cls, root_pth: Path, glob_pattern: str, file_aggregate_cls
     ) -> Tuple[list, dict]:
-        def update_index(aggregate):
-            len_before = len(index)
-            index.update(aggregate.index)
-            len_after = len(index)
-            if len_after - len_before != len(file_aggregate.index):
-                raise RuntimeError(cls._ERR_MSG.format(f_pth=f_pth))
-
         file_aggregates = []
         index = {}
         all_files = natsorted(root_pth.glob(glob_pattern), alg=ns.PATH)
@@ -36,7 +29,7 @@ class BaseRootAggregate(ABC):
         for i, f_pth in enumerate(all_files):
             try:
                 file_aggregate = file_aggregate_cls.from_file(f_pth=f_pth)
-                update_index(aggregate=file_aggregate)
+                cls._update_index(index=index, file_aggregate=file_aggregate)
                 file_aggregates.append(file_aggregate)
                 c["ok"] += 1
             except Exception as e:
@@ -47,3 +40,11 @@ class BaseRootAggregate(ABC):
         log.info(cls._PROCESS_INFO, cls.__name__, c["all"], c["ok"], c["error"], ratio)
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return file_aggregates, index
+
+    @classmethod
+    def _update_index(cls, index: dict, file_aggregate):
+        len_before = len(index)
+        index.update(file_aggregate.index)
+        len_after = len(index)
+        if len_after - len_before != len(file_aggregate.index):
+            raise RuntimeError(cls._ERR_MSG.format(f_pth=file_aggregate.f_pth))
