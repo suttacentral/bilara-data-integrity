@@ -6,6 +6,9 @@ from sutta_processor.application.domain_models import (
     PaliCanonAggregate,
     YuttaAggregate,
 )
+from sutta_processor.application.domain_models.bilara_html.root import (
+    BilaraHtmlAggregate,
+)
 from sutta_processor.shared.config import Config
 
 log = logging.getLogger(__name__)
@@ -43,9 +46,13 @@ class BilaraRepo:
 
     def get_root(self) -> BilaraRootAggregate:
         root_aggregate = BilaraRootAggregate.from_path(
-            root_pth=self.cfg.root_pli_ms_path
+            root_pth=self.cfg.bilara_root_path
         )
         return root_aggregate
+
+    def get_html(self) -> BilaraHtmlAggregate:
+        aggregate = BilaraHtmlAggregate.from_path(root_pth=self.cfg.bilara_html_path)
+        return aggregate
 
 
 class FileRepository:
