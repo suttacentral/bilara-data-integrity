@@ -71,7 +71,7 @@ class Config:
         from sutta_processor.application.services.sutta_central_reference import (
             SCReferenceService,
         )
-        from sutta_processor.application.services.bilary_data_check import (
+        from sutta_processor.application.services.bilara_data_check import (
             BDataCheckService,
         )
 

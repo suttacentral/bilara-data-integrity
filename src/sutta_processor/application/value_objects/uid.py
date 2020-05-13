@@ -82,6 +82,7 @@ class UidKey:
                     if we == them + 1:
                         return True
                 except TypeError:
+                    # Some are baked: '7-8' and they stay in str
                     return False
             return False
 
