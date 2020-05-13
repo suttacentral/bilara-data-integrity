@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 import attr
 
 from sutta_processor.application.domain_models.base import BaseRootAggregate
-from sutta_processor.application.value_objects import UID, HtmlVerse, RawUID, Verse
+from sutta_processor.application.value_objects import UID, HtmlVerse, RawUID
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 @attr.s(frozen=True, auto_attribs=True)
 class HtmlVersus:
     uid: UID = attr.ib(converter=UID, init=False)
-    verse: HtmlVerse = attr.ib(converter=Verse)
+    verse: HtmlVerse = attr.ib(converter=HtmlVerse)
 
     raw_uid: RawUID = attr.ib(converter=RawUID)
 
