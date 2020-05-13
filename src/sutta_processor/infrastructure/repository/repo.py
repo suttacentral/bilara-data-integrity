@@ -1,3 +1,4 @@
+import json
 import logging
 import pickle
 
@@ -9,6 +10,13 @@ from sutta_processor.application.domain_models import (
     BilaraVariantAggregate,
     PaliCanonAggregate,
     YuttaAggregate,
+)
+from sutta_processor.application.domain_models.base import (
+    BaseFileAggregate,
+    BaseRootAggregate,
+)
+from sutta_processor.application.domain_models.bilara_translation.root import (
+    BilaraTranslationFileAggregate,
 )
 from sutta_processor.shared.config import Config
 
@@ -72,6 +80,11 @@ class BilaraRepo:
             root_pth=self.cfg.bilara_translation_path
         )
         return aggregate
+
+    def save(self, aggregate: BaseRootAggregate):
+        for each_file in aggregate.file_aggregates:  # type: BaseFileAggregate
+            with open(each_file.f_pth, "w") as f:
+                json.dump(each_file.data, f, indent=2, ensure_ascii=False)
 
 
 class FileRepository:

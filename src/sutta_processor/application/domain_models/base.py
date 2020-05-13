@@ -62,8 +62,10 @@ class BaseFileAggregate(ABC):
             data = json.load(f)
         return cls.from_dict(in_dto=data, f_pth=f_pth)
 
-    def changed(self):
-        return True
+    @property
+    def data(self) -> Dict[str, str]:
+        verses = (vers for vers in self.index.values())
+        return {v.uid: v.verse for v in verses}
 
 
 @attr.s(frozen=True, auto_attribs=True)
