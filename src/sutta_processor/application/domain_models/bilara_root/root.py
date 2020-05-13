@@ -1,72 +1,45 @@
 import logging
 from pathlib import Path
-from typing import Dict, Tuple
 
 import attr
 
-from sutta_processor.application.value_objects import UID
-
-from .abhidhamma import AbhidhammaAggregate
-from .base import FileAggregate, Versus
-from .sutta import SuttaAggregate
-from .vinaya import VinayaAggregate
+from sutta_processor.application.domain_models.base import (
+    BaseFileAggregate,
+    BaseRootAggregate,
+    BaseVersus,
+)
+from sutta_processor.application.value_objects import RawVerse
 
 log = logging.getLogger(__name__)
 
 
+@attr.s(frozen=True, auto_attribs=True)
+class Versus(BaseVersus):
+    raw_verse: RawVerse = attr.ib(converter=RawVerse, init=False)
+
+    def __attrs_post_init__(self):
+        super().__attrs_post_init__()
+        object.__setattr__(self, "raw_verse", RawVerse(self.verse))
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class FileAggregate(BaseFileAggregate):
+    versus_class = Versus
+
+    @classmethod
+    def from_dict(cls, in_dto: dict, f_pth: Path) -> "FileAggregate":
+        index, errors = cls._from_dict(in_dto=in_dto)
+        return cls(index=index, f_pth=f_pth, errors=errors)
+
+
 @attr.s(frozen=True, auto_attribs=True, str=False)
-class BilaraRootAggregate:
-    sutta: SuttaAggregate
-    abhidhamma: AbhidhammaAggregate
-    vinaya: VinayaAggregate
-
-    index: Dict[UID, Versus]
-    files_aggregates: Tuple[FileAggregate]
-
-    _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
-
+class BilaraRootAggregate(BaseRootAggregate):
     @classmethod
     def from_path(cls, root_pth: Path) -> "BilaraRootAggregate":
-        def update_index(aggregate):
-            log.debug("** Adding '%s' UIDs to root", aggregate.__class__.__name__)
-            len_before = len(index)
-            index.update(aggregate.index)
-            len_after = len(index)
-            if len_after - len_before != len(aggregate.index):
-                raise RuntimeError(cls._ERR_MSG.format(f_pth=aggregate.part_pth))
-
-        index = {}
-        log.debug("** Loading sutta data")
-        sutta = SuttaAggregate.from_path(root_pth=root_pth)
-        update_index(aggregate=sutta)
-
-        log.debug("** Loading abhidhamma data")
-        abhidhamma = AbhidhammaAggregate.from_path(root_pth=root_pth)
-        update_index(aggregate=abhidhamma)
-
-        log.debug("** Loading vinaya data")
-        vinaya = VinayaAggregate.from_path(root_pth=root_pth)
-        update_index(aggregate=vinaya)
-
-        files_aggregates = (
-            abhidhamma.files_aggregates
-            + sutta.files_aggregates
-            + vinaya.files_aggregates
+        file_aggregates, index, errors = cls._from_path(
+            root_pth=root_pth,
+            glob_pattern="**/*.json",
+            file_aggregate_cls=FileAggregate,
         )
-        log.debug("** Loaded '%s' files", len(files_aggregates))
-        log.debug("** Root: Loaded all '%s' indexes", len(index))
-        kwargs = {
-            "abhidhamma": abhidhamma,
-            "files_aggregates": files_aggregates,
-            "index": index,
-            "sutta": sutta,
-            "vinaya": vinaya,
-        }
-        return cls(**kwargs)
-
-    @classmethod
-    def name(cls) -> str:
-        return cls.__name__
-
-    def __str__(self):
-        return f"<RootAggregate, loaded_UIDs: '{len(self.index):,}'>"
+        log.info(cls._LOAD_INFO, cls.__name__, len(index))
+        return cls(file_aggregates=tuple(file_aggregates), index=index)
