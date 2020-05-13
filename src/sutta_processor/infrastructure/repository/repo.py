@@ -37,18 +37,24 @@ class YuttadhammoRepo:
             save_file(f_aggregate=file_aggregate)
 
 
+class BilaraRepo:
+    def __init__(self, cfg: Config):
+        self.cfg = cfg
+
+    def get_root(self) -> SuttaCentralAggregate:
+        root_aggregate = SuttaCentralAggregate.from_path(
+            root_pth=self.cfg.root_pli_ms_path
+        )
+        return root_aggregate
+
+
 class FileRepository:
     PICKLE_EXTENSION = "pickle"
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
         self.yutta: YuttadhammoRepo = YuttadhammoRepo(cfg=cfg)
-
-    def get_all_sutta_central(self) -> SuttaCentralAggregate:
-        root_aggregate = SuttaCentralAggregate.from_path(
-            root_pth=self.cfg.root_pli_ms_path
-        )
-        return root_aggregate
+        self.bilara: BilaraRepo = BilaraRepo(cfg=cfg)
 
     def get_all_pali_canon(self) -> PaliCanonAggregate:
         root_aggregate = PaliCanonAggregate.from_path(root_pth=self.cfg.pali_canon_path)

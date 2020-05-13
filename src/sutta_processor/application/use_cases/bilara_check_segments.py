@@ -7,5 +7,5 @@ log = logging.getLogger(__name__)
 
 
 def bilara_check_segments(cfg: Config):
-    root_aggregate: SuttaCentralAggregate = cfg.repo.get_all_sutta_central()
+    root_aggregate: SuttaCentralAggregate = cfg.repo.bilara.get_root()
     cfg.bdata_check.check_uid_sequence_in_file(aggregate=root_aggregate)
