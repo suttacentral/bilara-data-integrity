@@ -3,6 +3,7 @@ exec_module: 'noop'
 bilara_root_path: "~/bilara-data/root/pli/ms"
 
 pali_canon_path: "~/ms_palicanon"
+bilara_html_path: ""
 ms_yuttadhammo_path: ""
 pali_concordance_filepath: "~/all_pali_concordance.json"
 
