@@ -2,6 +2,10 @@ class SuttaError(Exception):
     pass
 
 
+class SegmentIdError(SuttaError):
+    pass
+
+
 class MsIdError(SuttaError):
     pass
 

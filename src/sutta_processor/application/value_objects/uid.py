@@ -5,7 +5,7 @@ from typing import Union
 
 import attr
 
-from sutta_processor.shared.exceptions import MsIdError, PaliXmlIdError
+from sutta_processor.shared.exceptions import MsIdError, PaliXmlIdError, SegmentIdError
 
 log = logging.getLogger(__name__)
 
@@ -46,86 +46,6 @@ class UidKey:
     key: str = attr.ib(init=False)
     seq: Sequence = attr.ib(init=False)
 
-    _sequence_key_exceptions = {
-        "dn9:9-10.1",
-        "dn9:11.1",
-        "dn11:9-66.1",
-        "dn11:67.1",
-        "dn11:67.1",
-        "dn12:20-55.1",
-        "dn12:56-62.1",
-        "dn12:63-77.1",
-        "dn12:78.1",
-        "dn13:40-75.0",
-        "dn13:76.1",
-        "mn9:60-62.1",
-        "mn9:59.1",
-        "mn9:56-58.1",
-        "mn9:55.1",
-        "mn9:52-54.1",
-        "mn9:51.1",
-        "mn9:48-50.1",
-        "mn9:47.1",
-        "mn9:44-46.1",
-        "mn9:43.1",
-        "mn9:40-42.1",
-        "mn9:39.1",
-        "mn9:36-38.1",
-        "mn9:35.1",
-        "mn9:32-34.1",
-        "mn9:31.1",
-        "mn9:28-30.1",
-        "mn9:27.1",
-        "mn9:24-26.1",
-        "mn9:23.1",
-        "mn9:21-22.1",
-        "mn9:19.1",
-        "mn9:14-18.1",
-        "mn7:17.1",
-        "mn7:13-16.1",
-        "mn5:28.1",
-        "mn5:26-27.1",
-        "mn5:25.1",
-        "mn5:22-24.1",
-        "mn5:21.1",
-        "mn5:18-20.1",
-        "mn4:27.1",
-        "mn4:22-26.1",
-        "mn4:8.1",
-        "mn4:5-7.1",
-        "mn3:9-15.1",
-        "mn1:172-194.1",
-        "mn1:171.1",
-        "mn1:148-170.1",
-        "mn1:147.1",
-        "mn1:124-146.1",
-        "mn1:123.1",
-        "mn1:100-122.1",
-        "mn1:99.1",
-        "mn1:76-98.1",
-        "mn1:75.1",
-        "mn1:52-74.1",
-        "mn1:50.1",
-        "mn1:28-49.1",
-        "mn19:6.1",
-        "mn19:4-5.1",
-        "mn17:23.1",
-        "mn17:7-22.1",
-        "mn13:36.1",
-        "mn13:33-35.1",
-        "mn13:29.1",
-        "mn13:23-28.1",
-        "mn12:56.1",
-        "mn12:53-55.1",
-        "mn10:29.1",
-        "mn10:26-28.1",
-        "mn10:24.1",
-        "mn10:18-23.1",
-        "mn9:67.1",
-        "mn9:64-66.1",
-        "mn9:63.1",
-    }
-
     def __attrs_post_init__(self):
         key, raw_seq = self.raw.split(":")
         seq = Sequence.from_str(raw_seq=raw_seq)
@@ -158,13 +78,11 @@ class UidKey:
 
         def is_seq_gt():
             for we, them in zip_longest(self.seq, previous.seq):
-                # TODO: except?
-                if isinstance(them, str) or isinstance(we, str):
+                try:
+                    if we == them + 1:
+                        return True
+                except TypeError:
                     return False
-                elif them is None or we is None:
-                    return False
-                elif we == them + 1:
-                    return True
             return False
 
         def is_str_head_in_sequence():
@@ -197,9 +115,6 @@ class UidKey:
             if is_level_lt() and is_last_lt():
                 # sequence should be shorter and start from 0,1
                 return True
-
-        # return self.raw in self._sequence_key_exceptions
-        # TODO: get error: Previous: 'dn26:21.9' current: 'dn26:21.0'
         return is_str_head_in_sequence()
 
 
@@ -208,8 +123,7 @@ class UID(str):
 
     def __new__(cls, content: str):
         if not set(content).issubset(cls.ALLOWED_SET):
-            # TODO: rename exc
-            raise RuntimeError(f"Invalid uid: '{content}'")
+            raise SegmentIdError(f"Invalid uid: '{content}'")
         uid = super().__new__(cls, content)
         uid.key = UidKey(raw=content)
         return uid
