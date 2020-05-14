@@ -1,10 +1,22 @@
+import json
 import logging
 import pickle
 
 from sutta_processor.application.domain_models import (
+    BilaraCommentAggregate,
+    BilaraHtmlAggregate,
+    BilaraRootAggregate,
+    BilaraTranslationAggregate,
+    BilaraVariantAggregate,
     PaliCanonAggregate,
-    SuttaCentralAggregate,
     YuttaAggregate,
+)
+from sutta_processor.application.domain_models.base import (
+    BaseFileAggregate,
+    BaseRootAggregate,
+)
+from sutta_processor.application.domain_models.bilara_translation.root import (
+    BilaraTranslationFileAggregate,
 )
 from sutta_processor.shared.config import Config
 
@@ -37,30 +49,63 @@ class YuttadhammoRepo:
             save_file(f_aggregate=file_aggregate)
 
 
+class BilaraRepo:
+    def __init__(self, cfg: Config):
+        self.cfg = cfg
+
+    def get_root(self) -> BilaraRootAggregate:
+        root_aggregate = BilaraRootAggregate.from_path(
+            root_pth=self.cfg.bilara_root_path
+        )
+        return root_aggregate
+
+    def get_html(self) -> BilaraHtmlAggregate:
+        aggregate = BilaraHtmlAggregate.from_path(root_pth=self.cfg.bilara_html_path)
+        return aggregate
+
+    def get_comment(self) -> BilaraCommentAggregate:
+        aggregate = BilaraCommentAggregate.from_path(
+            root_pth=self.cfg.bilara_comment_path
+        )
+        return aggregate
+
+    def get_variant(self) -> BilaraVariantAggregate:
+        aggregate = BilaraVariantAggregate.from_path(
+            root_pth=self.cfg.bilara_variant_path
+        )
+        return aggregate
+
+    def get_translation(self) -> BilaraTranslationAggregate:
+        aggregate = BilaraTranslationAggregate.from_path(
+            root_pth=self.cfg.bilara_translation_path
+        )
+        return aggregate
+
+    def save(self, aggregate: BaseRootAggregate):
+        for each_file in aggregate.file_aggregates:  # type: BaseFileAggregate
+            with open(each_file.f_pth, "w") as f:
+                json.dump(each_file.data, f, indent=2, ensure_ascii=False)
+
+
 class FileRepository:
     PICKLE_EXTENSION = "pickle"
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
         self.yutta: YuttadhammoRepo = YuttadhammoRepo(cfg=cfg)
-
-    def get_all_sutta_central(self) -> SuttaCentralAggregate:
-        root_aggregate = SuttaCentralAggregate.from_path(
-            root_pth=self.cfg.root_pli_ms_path
-        )
-        return root_aggregate
+        self.bilara: BilaraRepo = BilaraRepo(cfg=cfg)
 
     def get_all_pali_canon(self) -> PaliCanonAggregate:
         root_aggregate = PaliCanonAggregate.from_path(root_pth=self.cfg.pali_canon_path)
         return root_aggregate
 
-    def dump_to_pickle(self, aggregate):
+    def dump_pickle(self, aggregate):
         out_pth = self.cfg.debug_dir / f"{aggregate.name()}.{self.PICKLE_EXTENSION}"
         out_pth.touch(exist_ok=True)
         with open(out_pth, "wb") as f:
             pickle.dump(obj=aggregate, file=f)
 
-    def load_from_pickle(self, aggregate_cls):
+    def load_pickle(self, aggregate_cls):
         out_pth = self.cfg.debug_dir / f"{aggregate_cls.name()}.{self.PICKLE_EXTENSION}"
         out_pth.touch(exist_ok=True)
         with open(out_pth, "rb") as f:

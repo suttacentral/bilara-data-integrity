@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
+    BilaraRootAggregate,
     PaliCanonAggregate,
-    SuttaCentralAggregate,
 )
 from sutta_processor.application.value_objects import UID, MsId
 from sutta_processor.shared.config import Config
@@ -139,13 +139,9 @@ class SCReferenceService:
             log.error(self._MS_REF_MISS, self.__class__.__name__, len(diff))
             log.error(self._MS_WRONG, self.__class__.__name__, diff)
 
-    def log_wrong_uid_in_reference_data(self, sutta_aggregate: SuttaCentralAggregate):
+    def log_wrong_uid_in_reference_data(self, bilara_root: BilaraRootAggregate):
         diff = sorted(
-            {
-                k
-                for k in self.reference_engine.uid_index
-                if k not in sutta_aggregate.index
-            }
+            {k for k in self.reference_engine.uid_index if k not in bilara_root.index}
         )
         if diff:
             log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))
