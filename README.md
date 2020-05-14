@@ -36,7 +36,7 @@ Load 1) Pali, 2) SC root data and 3) SC reference data. Checks:
 
 *How to run*
 * In your configuration file set `exec_module: "check_reference_data"`
-* Make sure `pali_canon_path`, `root_pli_ms_path` and `reference_root_path` are valid
+* Make sure `pali_canon_path`, `bilara_root_path` and `reference_root_path` are valid
 
 
 ## Read data from ms_yuttadhammo source

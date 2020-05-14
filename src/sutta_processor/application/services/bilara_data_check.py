@@ -1,6 +1,6 @@
 import logging
 
-from sutta_processor.application.domain_models import SuttaCentralAggregate
+from sutta_processor.application.domain_models import BilaraRootAggregate
 from sutta_processor.application.value_objects.uid import UidKey
 from sutta_processor.shared.config import Config
 
@@ -11,7 +11,7 @@ class BDataCheckService:
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
-    def check_uid_sequence_in_file(self, aggregate: SuttaCentralAggregate):
+    def check_uid_sequence_in_file(self, aggregate: BilaraRootAggregate):
         error_keys = set()
         previous_elem = UidKey(":")
         for idx in aggregate.index:
