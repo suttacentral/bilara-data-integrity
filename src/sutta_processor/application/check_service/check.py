@@ -1,6 +1,7 @@
 import logging
 
 from sutta_processor.application.domain_models import (
+    BilaraCommentAggregate,
     BilaraHtmlAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
@@ -42,18 +43,6 @@ class CheckHtml(ServiceBase):
             )
             log.error(self._MISSING_UIDS_LIST, self.name, sorted(html_missing))
 
-    def log_surplus_segments(
-        self, html_aggregate: BilaraHtmlAggregate, base_aggregate: BilaraRootAggregate
-    ):
-        base_uids = set(base_aggregate.index.keys())
-        html_uids = set(html_aggregate.index.keys())
-        html_surplus = html_uids - base_uids
-        if html_surplus:
-            log.error(
-                self._SURPLUS_UIDS, self.name, len(html_surplus), base_aggregate.name()
-            )
-            log.error(self._SURPLUS_UIDS_LIST, self.name, sorted(html_surplus))
-
 
 class CheckTranslation(ServiceBase):
     _SURPLUS_UIDS = (
@@ -64,7 +53,7 @@ class CheckTranslation(ServiceBase):
     def log_surplus_segments(
         self,
         translation_aggregate: BilaraTranslationAggregate,
-        base_aggregate: BilaraRootAggregate,
+        base_aggregate: BaseRootAggregate,
     ):
         base_uids = set(base_aggregate.index.keys())
         for lang, lang_index in translation_aggregate.index.items():
@@ -84,12 +73,41 @@ class CheckTranslation(ServiceBase):
 
 
 class CheckService(ServiceBase):
+    _SURPLUS_UIDS = "[%s] There are '%s' uids in '%s' that are not in the '%s' data"
+    _SURPLUS_UIDS_LIST = "[%s] Surplus '%s' UIDs: %s"
+
     def __init__(self, cfg: Config):
         super().__init__(cfg=cfg)
         self.reference = SCReferenceService(cfg=cfg)
         self.concordance = ConcordanceService(cfg=cfg)
         self.html = CheckHtml(cfg=cfg)
         self.translation = CheckTranslation(cfg=cfg)
+
+    def log_surplus_segments(
+        self, check_aggregate: BaseRootAggregate, base_aggregate: BaseRootAggregate,
+    ):
+        if isinstance(base_aggregate, BilaraTranslationAggregate):
+            self.translation.log_surplus_segments(
+                translation_aggregate=check_aggregate, base_aggregate=base_aggregate
+            )
+            return
+        base_uids = set(base_aggregate.index.keys())
+        comm_uids = set(check_aggregate.index.keys())
+        comm_surplus = comm_uids - base_uids
+        if comm_surplus:
+            log.error(
+                self._SURPLUS_UIDS,
+                self.name,
+                len(comm_surplus),
+                check_aggregate.name(),
+                base_aggregate.name(),
+            )
+            log.error(
+                self._SURPLUS_UIDS_LIST,
+                self.name,
+                check_aggregate.name(),
+                sorted(comm_surplus),
+            )
 
     def check_uid_sequence_in_file(self, aggregate: BilaraRootAggregate):
         error_keys = set()

@@ -20,6 +20,6 @@ def bilara_check_html(cfg: Config):
     cfg.check.html.log_missing_segments(
         html_aggregate=bilara_html, base_aggregate=bilara_root
     )
-    cfg.check.html.log_surplus_segments(
-        html_aggregate=bilara_html, base_aggregate=bilara_root
+    cfg.check.log_surplus_segments(
+        check_aggregate=bilara_html, base_aggregate=bilara_root
     )

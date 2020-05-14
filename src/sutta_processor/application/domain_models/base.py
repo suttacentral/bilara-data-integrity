@@ -70,6 +70,8 @@ class BaseFileAggregate(ABC):
 
 @attr.s(frozen=True, auto_attribs=True)
 class BaseRootAggregate(ABC):
+    """Translation aggregate has different index structure."""
+
     index: Dict[UID, BaseVersus]
     file_aggregates: Tuple[BaseFileAggregate]
 
