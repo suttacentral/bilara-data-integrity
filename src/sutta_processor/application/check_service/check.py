@@ -3,6 +3,7 @@ import logging
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
     BilaraRootAggregate,
+    BilaraTranslationAggregate,
 )
 from sutta_processor.application.value_objects.uid import UidKey
 from sutta_processor.shared.config import Config
@@ -29,7 +30,7 @@ class CheckHtml(ServiceBase):
     _SURPLUS_UIDS = "[%s] There are '%s' UIDs that are not in the '%s' data"
     _SURPLUS_UIDS_LIST = "[%s] Surplus UIDs in the html: %s"
 
-    def get_missing_segments(
+    def log_missing_segments(
         self, html_aggregate: BilaraHtmlAggregate, base_aggregate: BaseRootAggregate
     ):
         base_uids = set(base_aggregate.index.keys())
@@ -41,7 +42,7 @@ class CheckHtml(ServiceBase):
             )
             log.error(self._MISSING_UIDS_LIST, self.name, sorted(html_missing))
 
-    def get_surplus_segments(
+    def log_surplus_segments(
         self, html_aggregate: BilaraHtmlAggregate, base_aggregate: BilaraRootAggregate
     ):
         base_uids = set(base_aggregate.index.keys())
@@ -54,12 +55,41 @@ class CheckHtml(ServiceBase):
             log.error(self._SURPLUS_UIDS_LIST, self.name, sorted(html_surplus))
 
 
+class CheckTranslation(ServiceBase):
+    _SURPLUS_UIDS = (
+        "[%s] There are '%s' UIDs in '%s' lang that are not in the '%s' data"
+    )
+    _SURPLUS_UIDS_LIST = "[%s] Surplus UIDs in the '%s' lang: %s"
+
+    def log_surplus_segments(
+        self,
+        translation_aggregate: BilaraTranslationAggregate,
+        base_aggregate: BilaraRootAggregate,
+    ):
+        base_uids = set(base_aggregate.index.keys())
+        for lang, lang_index in translation_aggregate.index.items():
+            tran_uids = set(lang_index.keys())
+            tran_surplus = tran_uids - base_uids
+            if tran_surplus:
+                log.error(
+                    self._SURPLUS_UIDS,
+                    self.name,
+                    len(tran_surplus),
+                    lang,
+                    base_aggregate.name(),
+                )
+                log.error(
+                    self._SURPLUS_UIDS_LIST, self.name, lang, sorted(tran_surplus)
+                )
+
+
 class CheckService(ServiceBase):
     def __init__(self, cfg: Config):
         super().__init__(cfg=cfg)
         self.reference = SCReferenceService(cfg=cfg)
         self.concordance = ConcordanceService(cfg=cfg)
         self.html = CheckHtml(cfg=cfg)
+        self.translation = CheckTranslation(cfg=cfg)
 
     def check_uid_sequence_in_file(self, aggregate: BilaraRootAggregate):
         error_keys = set()
