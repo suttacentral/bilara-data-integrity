@@ -1,8 +1,13 @@
 ---
-exec_module: 'example'
-root_pli_ms_path: "~/bilara-data/root/pli/ms"
+exec_module: 'noop'
+bilara_root_path: "~/bilara-data/root/pli/ms"
 
 pali_canon_path: "~/ms_palicanon"
+bilara_html_path: ""
+bilara_comment_path: ""
+bilara_variant_path: ""
+bilara_translation_path: ""
+ms_yuttadhammo_path: ""
 pali_concordance_filepath: "~/all_pali_concordance.json"
 
 reference_root_path: "~/reference/pli/ms"
