@@ -9,7 +9,6 @@ from sutta_processor.application.domain_models.base import (
     BaseVersus,
 )
 from sutta_processor.application.value_objects import RawVerse
-from sutta_processor.shared.exceptions import SkipFileError
 
 log = logging.getLogger(__name__)
 
@@ -44,9 +43,3 @@ class BilaraRootAggregate(BaseRootAggregate):
         )
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return cls(file_aggregates=tuple(file_aggregates), index=index)
-
-    @classmethod
-    def _update_index(cls, index: dict, file_aggregate: BaseFileAggregate):
-        if "xplayground" in file_aggregate.f_pth.parts:
-            raise SkipFileError()
-        super()._update_index(index=index, file_aggregate=file_aggregate)
