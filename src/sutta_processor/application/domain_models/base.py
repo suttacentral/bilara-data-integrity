@@ -9,7 +9,7 @@ import attr
 from natsort import natsorted, ns
 
 from sutta_processor.application.value_objects import UID, RawUID, Verse
-from sutta_processor.shared.exceptions import SegmentIdError
+from sutta_processor.shared.exceptions import SegmentIdError, SkipFileError
 
 log = logging.getLogger(__name__)
 
@@ -95,6 +95,8 @@ class BaseRootAggregate(ABC):
                 errors.update(file_aggregate.errors)
                 file_aggregates.append(file_aggregate)
                 c["ok"] += 1
+            except SkipFileError:
+                c["all"] -= 1
             except Exception as e:
                 log.warning("Error processing: %s, file: '%s', ", e, f_pth)
                 c["error"] += 1
@@ -106,7 +108,7 @@ class BaseRootAggregate(ABC):
         return tuple(file_aggregates), index, errors
 
     @classmethod
-    def _update_index(cls, index: dict, file_aggregate):
+    def _update_index(cls, index: dict, file_aggregate: BaseFileAggregate):
         len_before = len(index)
         index.update(file_aggregate.index)
         len_after = len(index)
