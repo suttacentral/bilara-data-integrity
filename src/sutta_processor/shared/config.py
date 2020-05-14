@@ -62,27 +62,15 @@ class Config:
     log_level: int = attr.ib(default=logging.INFO)
 
     repo: "FileRepository" = attr.ib(init=False)
-    pali_concordance: "PaliConcordanceService" = attr.ib(init=False)
-    sc_reference: "SCReferenceService" = attr.ib(init=False)
-    bdata_check: "BDataCheckService" = attr.ib(init=False)
+    check: "CheckService" = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         from sutta_processor.infrastructure.repository.repo import FileRepository
 
-        from sutta_processor.application.services.pali_concordance import (
-            PaliConcordanceService,
-        )
-        from sutta_processor.application.services.sutta_central_reference import (
-            SCReferenceService,
-        )
-        from sutta_processor.application.services.bilara_data_check import (
-            BDataCheckService,
-        )
+        from sutta_processor.application.check_service import CheckService
 
-        object.__setattr__(self, "pali_concordance", PaliConcordanceService(cfg=self))
+        object.__setattr__(self, "check", CheckService(cfg=self))
         object.__setattr__(self, "repo", FileRepository(cfg=self))
-        object.__setattr__(self, "sc_reference", SCReferenceService(cfg=self))
-        object.__setattr__(self, "bdata_check", BDataCheckService(cfg=self))
 
     @classmethod
     def from_yaml(cls, f_pth: Union[str, Path] = None) -> "Config":

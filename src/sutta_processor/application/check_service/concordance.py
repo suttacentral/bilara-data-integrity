@@ -26,7 +26,7 @@ class Engine:
         return pali_id in self.other_id_set
 
 
-class PaliConcordanceService:
+class ConcordanceService:
     _engine: Engine = None
 
     def __init__(self, cfg: Config):

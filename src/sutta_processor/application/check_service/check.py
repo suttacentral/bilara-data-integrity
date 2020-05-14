@@ -4,12 +4,17 @@ from sutta_processor.application.domain_models import BilaraRootAggregate
 from sutta_processor.application.value_objects.uid import UidKey
 from sutta_processor.shared.config import Config
 
+from .bd_reference import SCReferenceService
+from .concordance import ConcordanceService
+
 log = logging.getLogger(__name__)
 
 
-class BDataCheckService:
+class CheckService:
     def __init__(self, cfg: Config):
         self.cfg = cfg
+        self.reference = SCReferenceService(cfg=cfg)
+        self.concordance = ConcordanceService(cfg=cfg)
 
     def check_uid_sequence_in_file(self, aggregate: BilaraRootAggregate):
         error_keys = set()
