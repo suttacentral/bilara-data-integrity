@@ -6,7 +6,8 @@ from typing import Dict, Tuple
 import attr
 from natsort import natsorted, ns
 
-from sutta_processor.application.value_objects.uid import PaliMsId
+from sutta_processor.application.domain_models.base import BaseRootAggregate
+from sutta_processor.application.value_objects import MsId
 
 from .base import YuttaFileAggregate, YuttaVersus
 
@@ -14,11 +15,9 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
-class YuttaAggregate:
+class YuttaAggregate(BaseRootAggregate):
     file_aggregates: Tuple[YuttaFileAggregate]
-    index: Dict[PaliMsId, YuttaVersus]
-
-    _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
+    index: Dict[MsId, YuttaVersus]
 
     @classmethod
     def convert_to_html(cls, root_pth: Path) -> "YuttaAggregate":
@@ -39,42 +38,18 @@ class YuttaAggregate:
                 log.warning("Error processing: %s, file: '%s', ", e, f_pth)
                 c["error"] += 1
             log.trace("Processing file: %s/%s", i, c["all"])
-        msg = "* Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
         ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
-        log.info(msg, c["all"], c["ok"], c["error"], ratio)
-        msg = "* Loaded '%s' UIDs for '%s'"
-        log.info(msg, len(index), cls.__name__)
+        log.info(cls._PROCESS_INFO, cls.__name__, c["all"], c["ok"], c["error"], ratio)
+        log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return cls(file_aggregates=tuple(file_aggregates), index=index)
 
     @classmethod
     def from_path(cls, root_pth: Path) -> "YuttaAggregate":
-        def update_index(aggregate):
-            len_before = len(index)
-            index.update(aggregate.index)
-            len_after = len(index)
-            if len_after - len_before != len(file_aggregate.index):
-                raise RuntimeError(cls._ERR_MSG.format(f_pth=f_pth))
-
-        file_aggregates = []
-        index = {}
-        all_files = natsorted(root_pth.glob("**/*.html"), alg=ns.PATH)
-        c: Counter = Counter(ok=0, error=0, all=len(all_files))
-        for i, f_pth in enumerate(all_files):
-            try:
-                file_aggregate = YuttaFileAggregate.from_file(f_pth=f_pth)
-                update_index(aggregate=file_aggregate)
-                file_aggregates.append(file_aggregate)
-                c["ok"] += 1
-            except Exception as e:
-                log.warning("Error processing: %s, file: '%s', ", e, f_pth)
-                c["error"] += 1
-            log.trace("Processing file: %s/%s", i, c["all"])
-
-        msg = "* Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
-        ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
-        log.info(msg, c["all"], c["ok"], c["error"], ratio)
-        msg = "* Loaded '%s' UIDs for '%s'"
-        log.info(msg, len(index), cls.__name__)
+        file_aggregates, index = cls._from_path(
+            root_pth=root_pth,
+            glob_pattern="**/*.html",
+            file_aggregate_cls=YuttaFileAggregate,
+        )
         return cls(file_aggregates=tuple(file_aggregates), index=index)
 
     @classmethod

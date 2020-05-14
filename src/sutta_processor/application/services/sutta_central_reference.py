@@ -4,19 +4,20 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Set
 
-from sutta_processor.application.domain_models import SuttaCentralAggregate
-from sutta_processor.application.domain_models.pali_canon.root import PaliCanonAggregate
-from sutta_processor.application.value_objects import UID
-from sutta_processor.application.value_objects.uid import PaliMsId
+from sutta_processor.application.domain_models import (
+    BilaraRootAggregate,
+    PaliCanonAggregate,
+)
+from sutta_processor.application.value_objects import UID, MsId
 from sutta_processor.shared.config import Config
-from sutta_processor.shared.exceptions import MultipleIdFoundError, PaliMsIdError
+from sutta_processor.shared.exceptions import MsIdError, MultipleIdFoundError
 
 log = logging.getLogger(__name__)
 
 
 class ReferenceEngine:
-    uid_index: Dict[UID, PaliMsId]
-    ms_id_index: Dict[PaliMsId, Set[UID]]
+    uid_index: Dict[UID, MsId]
+    ms_id_index: Dict[MsId, Set[UID]]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
@@ -33,9 +34,7 @@ class ReferenceEngine:
             log.warning(msg, len(self.uid_index), len(self.ms_id_index))
 
     @classmethod
-    def get_ms_id_index(
-        cls, uid_index: Dict[UID, PaliMsId]
-    ) -> Dict[PaliMsId, Set[UID]]:
+    def get_ms_id_index(cls, uid_index: Dict[UID, MsId]) -> Dict[MsId, Set[UID]]:
         pali_id_index = defaultdict(set)
         for k, v in uid_index.items():
             pali_id_index[v].add(k)
@@ -48,20 +47,20 @@ class ReferenceEngine:
         return pali_id_index
 
     @classmethod
-    def get_uid_index(cls, raw_index: dict) -> Dict[UID, PaliMsId]:
-        def get_pali_ms_id(reference_value: str) -> PaliMsId:
+    def get_uid_index(cls, raw_index: dict) -> Dict[UID, MsId]:
+        def get_pali_ms_id(reference_value: str) -> MsId:
             """
             :param reference_value: sc2, pts-cs1.1, pts-vp-en1.1, pts-vp-pli3.1, ms1V_2
             """
             pali_id_set = set()
             for item in reference_value.split(","):
                 try:
-                    pali_id_set.add(PaliMsId(item.strip()))
-                except PaliMsIdError:
-                    # Filter out any non PaliMsIds
+                    pali_id_set.add(MsId(item.strip()))
+                except MsIdError:
+                    # Filter out any non MsIds
                     pass
             if len(pali_id_set) > 1:
-                msg = f"More than one PaliMsId reference found: '{reference_value}'"
+                msg = f"More than one MsId reference found: '{reference_value}'"
                 raise MultipleIdFoundError(msg)
             return pali_id_set.pop()
 
@@ -104,6 +103,14 @@ class ReferenceEngine:
 
 class SCReferenceService:
     _reference_engine: ReferenceEngine = None
+    _MS_REF_MISS_COUNT = (
+        "[%s] There are '%s' MsId that are not found in the reference file"
+    )
+    _MS_REF_MISS = "[%s] Missing MsId from reference: %s"
+    _MS_WRONG_COUNT = "[%s] There are '%s' wrong MsId in the reference data"
+    _MS_WRONG = "[%s] Wrong MsId is the reference data: %s"
+    _UID_WRONG_COUNT = "[%s] There are '%s' wrong SC UID in the reference data"
+    _UID_WRONG = "[%s] Wrong SC UID is the reference data: %s"
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
@@ -117,9 +124,8 @@ class SCReferenceService:
             }
         )
         if diff:
-            msg = "There are '%s' PaliMsID that are not found in the reference file"
-            log.error(msg, len(diff))
-            log.error("Missing PaliMsID from reference: %s", diff)
+            log.error(self._MS_REF_MISS_COUNT, self.__class__.__name__, len(diff))
+            log.error(self._MS_REF_MISS, self.__class__.__name__, diff)
 
     def log_wrong_ms_id_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
         diff = sorted(
@@ -130,16 +136,16 @@ class SCReferenceService:
             }
         )
         if diff:
-            log.error("There are '%s' wrong PaliMsId in the reference data", len(diff))
-            log.error("Wrong PaliMsId is the reference data: %s", diff)
+            log.error(self._MS_REF_MISS, self.__class__.__name__, len(diff))
+            log.error(self._MS_WRONG, self.__class__.__name__, diff)
 
-    def log_wrong_uid_in_reference_data(self, sutta_aggregate: SuttaCentralAggregate):
-        diff = sorted({
-            k for k in self.reference_engine.uid_index if k not in sutta_aggregate.index
-        })
+    def log_wrong_uid_in_reference_data(self, bilara_root: BilaraRootAggregate):
+        diff = sorted(
+            {k for k in self.reference_engine.uid_index if k not in bilara_root.index}
+        )
         if diff:
-            log.error("There are '%s' wrong SC UID in the reference data", len(diff))
-            log.error("Wrong SC UID is the reference data: %s", diff)
+            log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))
+            log.error(self._UID_WRONG, self.__class__.__name__, diff)
 
     @property
     def reference_engine(self) -> ReferenceEngine:

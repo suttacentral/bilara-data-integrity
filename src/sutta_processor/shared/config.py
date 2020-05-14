@@ -48,9 +48,13 @@ def use_case_present(_inst, _attr, uc_name: str):
 class Config:
     exec_module: str = attr.ib(validator=use_case_present)
 
-    root_pli_ms_path: Path = attr.ib(converter=create_dir)
+    bilara_root_path: Path = attr.ib(converter=create_dir)
     pali_canon_path: Path = attr.ib(converter=create_dir)
     ms_yuttadhammo_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    bilara_html_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    bilara_comment_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    bilara_variant_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    bilara_translation_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
@@ -60,6 +64,7 @@ class Config:
     repo: "FileRepository" = attr.ib(init=False)
     pali_concordance: "PaliConcordanceService" = attr.ib(init=False)
     sc_reference: "SCReferenceService" = attr.ib(init=False)
+    bdata_check: "BDataCheckService" = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         from sutta_processor.infrastructure.repository.repo import FileRepository
@@ -70,10 +75,14 @@ class Config:
         from sutta_processor.application.services.sutta_central_reference import (
             SCReferenceService,
         )
+        from sutta_processor.application.services.bilara_data_check import (
+            BDataCheckService,
+        )
 
         object.__setattr__(self, "pali_concordance", PaliConcordanceService(cfg=self))
         object.__setattr__(self, "repo", FileRepository(cfg=self))
         object.__setattr__(self, "sc_reference", SCReferenceService(cfg=self))
+        object.__setattr__(self, "bdata_check", BDataCheckService(cfg=self))
 
     @classmethod
     def from_yaml(cls, f_pth: Union[str, Path] = None) -> "Config":

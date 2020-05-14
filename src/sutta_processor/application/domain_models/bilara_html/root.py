@@ -1,0 +1,47 @@
+import logging
+from pathlib import Path
+from typing import Dict, Tuple
+
+import attr
+
+from sutta_processor.application.domain_models.base import (
+    BaseFileAggregate,
+    BaseRootAggregate,
+    BaseVersus,
+)
+from sutta_processor.application.value_objects import UID, HtmlVerse
+
+log = logging.getLogger(__name__)
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class HtmlVersus(BaseVersus):
+    verse: HtmlVerse = attr.ib(converter=HtmlVerse)
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class BilaraHtmlFileAggregate(BaseFileAggregate):
+    versus_class = HtmlVersus
+
+    @classmethod
+    def from_dict(cls, in_dto: dict, f_pth: Path) -> "BilaraHtmlFileAggregate":
+        index, errors = cls._from_dict(in_dto=in_dto)
+        return cls(index=index, errors=errors, f_pth=f_pth)
+
+
+@attr.s(frozen=True, auto_attribs=True, str=False)
+class BilaraHtmlAggregate(BaseRootAggregate):
+    index: Dict[UID, HtmlVersus]
+    file_aggregates: Tuple[BilaraHtmlFileAggregate]
+
+    _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
+
+    @classmethod
+    def from_path(cls, root_pth: Path) -> "BilaraHtmlAggregate":
+        file_aggregates, index, errors = cls._from_path(
+            root_pth=root_pth,
+            glob_pattern="**/*.json",
+            file_aggregate_cls=BilaraHtmlFileAggregate,
+        )
+        log.info(cls._LOAD_INFO, cls.__name__, len(index))
+        return cls(file_aggregates=file_aggregates, index=index)
