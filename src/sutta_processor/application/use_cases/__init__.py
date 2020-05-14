@@ -1,5 +1,6 @@
 import logging
 
+from .bilara_check_html import bilara_check_html
 from .bilara_check_segments import bilara_check_segments
 from .bilara_cross_reference_uid_check import bilara_cross_reference_uid_check
 from .bilara_load import bilara_load
@@ -16,6 +17,7 @@ def noop(cfg):
 
 
 __all__ = [
+    "bilara_check_html",
     "bilara_check_segments",
     "bilara_cross_reference_uid_check",
     "bilara_load",
