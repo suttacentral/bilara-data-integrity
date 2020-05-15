@@ -28,8 +28,8 @@ class ServiceBase:
 class CheckHtml(ServiceBase):
     _MISSING_UIDS = "[%s] There are '%s' UIDs that are in '%s' but missing in the html"
     _MISSING_UIDS_LIST = "[%s] Missing UIDs from html: %s"
-    _SURPLUS_UIDS = "[%s] There are '%s' UIDs that are not in the '%s' data"
-    _SURPLUS_UIDS_LIST = "[%s] Surplus UIDs in the html: %s"
+    _SURPLUS_UIDS = "[%s] There are '%s' uids in '%s' that are not in the '%s' data"
+    _SURPLUS_UIDS_LIST = "[%s] Surplus '%s' UIDs: %s"
 
     def log_missing_segments(
         self, html_aggregate: BilaraHtmlAggregate, base_aggregate: BaseRootAggregate
@@ -42,6 +42,30 @@ class CheckHtml(ServiceBase):
                 self._MISSING_UIDS, self.name, len(html_missing), base_aggregate.name()
             )
             log.error(self._MISSING_UIDS_LIST, self.name, sorted(html_missing))
+
+    def log_surplus_segments(
+        self, check_aggregate: BilaraHtmlAggregate, base_aggregate: BaseRootAggregate,
+    ):
+        base_uids = set(base_aggregate.index.keys())
+        html_uids = set(check_aggregate.index.keys())
+        html_surplus = html_uids - base_uids
+        # Headings that were added to the translation.
+        # Filter out headings by removing all entries ending with 0.
+        html_wrong = set(uid for uid in html_surplus if 0 not in uid.key.seq)
+        if html_wrong:
+            log.error(
+                self._SURPLUS_UIDS,
+                self.name,
+                len(html_wrong),
+                check_aggregate.name(),
+                base_aggregate.name(),
+            )
+            log.error(
+                self._SURPLUS_UIDS_LIST,
+                self.name,
+                check_aggregate.name(),
+                sorted(html_wrong),
+            )
 
 
 class CheckTranslation(ServiceBase):
@@ -86,11 +110,16 @@ class CheckService(ServiceBase):
     def log_surplus_segments(
         self, check_aggregate: BaseRootAggregate, base_aggregate: BaseRootAggregate,
     ):
-        if isinstance(base_aggregate, BilaraTranslationAggregate):
-            self.translation.log_surplus_segments(
-                translation_aggregate=check_aggregate, base_aggregate=base_aggregate
-            )
-            return
+        cb_mapping = {
+            BilaraTranslationAggregate: self.translation.log_surplus_segments,
+            BilaraHtmlAggregate: self.html.log_surplus_segments,
+        }
+        callback = cb_mapping.get(type(check_aggregate), self._log_surplus_segments)
+        callback(check_aggregate, base_aggregate=base_aggregate)
+
+    def _log_surplus_segments(
+        self, check_aggregate: BaseRootAggregate, base_aggregate: BaseRootAggregate,
+    ):
         base_uids = set(base_aggregate.index.keys())
         comm_uids = set(check_aggregate.index.keys())
         comm_surplus = comm_uids - base_uids
