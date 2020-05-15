@@ -17,6 +17,6 @@ def bilara_check_translation(cfg: Config):
     cfg.check: CheckService
     bilara_root: BilaraRootAggregate = cfg.repo.bilara.get_root()
     bilara_tran: BilaraTranslationAggregate = cfg.repo.bilara.get_translation()
-    cfg.check.log_surplus_segments(
+    cfg.check.get_surplus_segments(
         check_aggregate=bilara_tran, base_aggregate=bilara_root
     )
