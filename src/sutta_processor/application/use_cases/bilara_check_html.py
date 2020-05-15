@@ -17,9 +17,11 @@ def bilara_check_html(cfg: Config):
     cfg.check: CheckService
     bilara_root: BilaraRootAggregate = cfg.repo.bilara.get_root()
     bilara_html: BilaraHtmlAggregate = cfg.repo.bilara.get_html()
-    cfg.check.html.get_missing_segments(
+    diff = cfg.check.html.get_missing_segments(
         html_aggregate=bilara_html, base_aggregate=bilara_root
     )
-    cfg.check.get_surplus_segments(
+    cfg.repo.generate_diff_feedback_file(diff=diff, name="missing")
+    diff = cfg.check.get_surplus_segments(
         check_aggregate=bilara_html, base_aggregate=bilara_root
     )
+    cfg.repo.generate_diff_feedback_file(diff=diff, name="surplus")
