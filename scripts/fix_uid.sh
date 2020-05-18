@@ -13,6 +13,6 @@ while IFS=, read -r in_uid out_uid; do
     [[ -z "${FILES}" ]] && echo "No uid matched for ${in_uid}" >&2
     for f in ${FILES}; do
         echo "** Replacing ${in_uid} in $f"
-        sed -i "s/${in_uid}/${out_uid}/g" "${f}"
+        sed -i "s/${in_uid}\"/${out_uid}\"/g" "${f}"
     done
 done < "${CSV_FILENAME}"
