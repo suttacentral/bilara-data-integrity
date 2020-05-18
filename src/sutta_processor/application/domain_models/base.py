@@ -1,5 +1,6 @@
 import json
 import logging
+import pprint
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
@@ -106,9 +107,11 @@ class BaseRootAggregate(ABC):
                 c["error"] += 1
             log.trace("Processing file: %s/%s", i, c["all"])
         ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
-        log.info(cls._PROCESS_INFO, cls.__name__, c["all"], c["ok"], c["error"], ratio)
+        log.info(cls._PROCESS_INFO, cls.name(), c["all"], c["ok"], c["error"], ratio)
         if errors:
-            log.error("There are '%s' wrong ids: %s", len(errors), errors.keys())
+            msg = "[%s] There are '%s' wrong ids: \n%s"
+            keys = pprint.pformat(sorted(errors.keys()))
+            log.error(msg, cls.name(), len(errors), keys)
         return tuple(file_aggregates), index, errors
 
     @classmethod
