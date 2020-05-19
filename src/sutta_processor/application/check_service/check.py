@@ -173,6 +173,8 @@ class CheckService(ServiceBase):
         prev_versus = ""
         for uid, versus in aggregate.index.items():  # type: UID, BaseVersus
             verse = versus.verse.strip()
+            if not verse:
+                continue
             if verse == prev_versus and uid not in DUPLICATE_OK_IDS:
                 error_keys.add(uid)
                 msg = "[%s] Same versus next to each other. '%s': '%s'"
@@ -187,7 +189,7 @@ class CheckService(ServiceBase):
 
     def get_empty_verses(self, aggregate: BilaraRootAggregate) -> set:
         error_keys = set()
-        pattern = r"(\(\s\)|^\s$|^$)"
+        pattern = r"(\(\s\)|^\s$)"
         prog = re.compile(pattern)
         for uid, versus in aggregate.index.items():  # type: UID, BaseVersus
             result = prog.match(versus.verse)

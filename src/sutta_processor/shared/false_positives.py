@@ -159,4 +159,15 @@ HTML_CHECK_OK_IDS = {
 
 DUPLICATE_OK_IDS = {
     "an2.37:8.1",
+    "pli-tv-bu-vb-pc34:1.1.16",
+    "pli-tv-bu-vb-pc34:1.1.24",
+    "pli-tv-bu-vb-pc34:1.1.9",
+    "pli-tv-bu-vb-pc34:1.2.5",
+    "pli-tv-kd12:6.1.39",
+    "pli-tv-kd7:12.1.12",
+    "pli-tv-kd7:12.1.18",
+    "pli-tv-kd7:12.1.25",
+    "pli-tv-kd7:12.1.32",
+    "pli-tv-kd7:12.1.4",
+    "pli-tv-pvr7:96.21",
 }
