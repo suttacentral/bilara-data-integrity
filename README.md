@@ -58,3 +58,8 @@ Run various tests against the segments. Check `sutta_processor.application.servi
 * `bilara_check_root` - check any and all references are incrementing
 * Sort references alphabetically
 * In MN, SC segments are referenced from `nya*` - check for consistency
+* if two adjacent segments have identical text, then check the original root text
+  [link](https://github.com/suttacentral/bilara-data/commit/8eb4cc80f2457de28d1ffef1ed17529b8ed8e85f)
+* if reference data appears on any segment not found in root,
+  then change reference data to the immediate next segment that appears in the root
+  [link](https://github.com/suttacentral/bilara-data/commit/1aa2bc0d5a362f54b7d93568dc9a33dde42b682b)
