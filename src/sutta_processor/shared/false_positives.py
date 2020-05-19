@@ -156,3 +156,7 @@ HTML_CHECK_OK_IDS = {
     "pli-tv-kd18:12.8.2.3",
     "pli-tv-kd18:12.8.2.4",
 }
+
+DUPLICATE_OK_IDS = {
+    "an2.37:8.1",
+}

@@ -1,14 +1,15 @@
 import logging
+import re
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
 )
-from sutta_processor.application.domain_models.base import BaseRootAggregate
+from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
 from sutta_processor.shared.config import Config
-from sutta_processor.shared.false_positives import HTML_CHECK_OK_IDS
+from sutta_processor.shared.false_positives import DUPLICATE_OK_IDS, HTML_CHECK_OK_IDS
 
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
@@ -155,12 +156,49 @@ class CheckService(ServiceBase):
     def check_uid_sequence_in_file(self, aggregate: BilaraRootAggregate):
         error_keys = set()
         previous_elem = UidKey(":")
-        for idx in aggregate.index:
-            if not idx.key.is_next(previous=previous_elem):
-                error_keys.add(idx)
+        for uid in aggregate.index:
+            if not uid.key.is_next(previous=previous_elem):
+                error_keys.add(uid)
                 msg = "[%s] Sequence error. Previous: '%s' current: '%s'"
-                log.error(msg, self.__class__.__name__, previous_elem.raw, idx)
-            previous_elem = idx.key
+                log.error(msg, self.name, previous_elem.raw, uid)
+            previous_elem = uid.key
         if error_keys:
             msg = "[%s] There are '%s' sequence key errors"
-            log.error(msg, self.__class__.__name__, len(error_keys))
+            log.error(msg, self.name, len(error_keys))
+
+    def get_duplicated_versus_next_to_each_other(
+        self, aggregate: BilaraRootAggregate
+    ) -> set:
+        error_keys = set()
+        prev_versus = ""
+        for uid, versus in aggregate.index.items():  # type: UID, BaseVersus
+            verse = versus.verse.strip()
+            if verse == prev_versus and uid not in DUPLICATE_OK_IDS:
+                error_keys.add(uid)
+                msg = "[%s] Same versus next to each other. '%s': '%s'"
+                log.error(msg, self.name, uid, verse)
+            prev_versus = verse
+        if error_keys:
+            msg = "[%s] There are '%s' duplicated versus error"
+            log.error(msg, self.name, len(error_keys))
+            msg = "[%s] dupes UIDs: %s"
+            log.error(msg, self.name, sorted(error_keys))
+        return error_keys
+
+    def get_empty_verses(self, aggregate: BilaraRootAggregate) -> set:
+        error_keys = set()
+        pattern = r"(\(\s\)|^\s$|^$)"
+        prog = re.compile(pattern)
+        for uid, versus in aggregate.index.items():  # type: UID, BaseVersus
+            result = prog.match(versus.verse)
+            if result:
+                error_keys.add(uid)
+                msg = "[%s] Key has blank value: '%s': '%s'"
+                log.error(msg, self.name, uid, versus.verse)
+
+        if error_keys:
+            msg = "[%s] There are '%s' blank versus error"
+            log.error(msg, self.name, len(error_keys))
+            msg = "[%s] blank UIDs: %s"
+            log.error(msg, self.name, sorted(error_keys))
+        return error_keys
