@@ -1,15 +1,15 @@
 import logging
 
 from sutta_processor.application.domain_models import (
-    BilaraCommentAggregate,
     BilaraHtmlAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
 )
-from sutta_processor.application.value_objects.uid import UidKey
+from sutta_processor.application.domain_models.base import BaseRootAggregate
+from sutta_processor.application.value_objects.uid import UID, UidKey
 from sutta_processor.shared.config import Config
+from sutta_processor.shared.false_positives import HTML_CHECK_OK_IDS
 
-from ..domain_models.base import BaseRootAggregate
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
 
@@ -31,6 +31,8 @@ class CheckHtml(ServiceBase):
     _SURPLUS_UIDS = "[%s] There are '%s' uids in '%s' that are not in the '%s' data"
     _SURPLUS_UIDS_LIST = "[%s] Surplus '%s' UIDs: %s"
 
+    _ignored = HTML_CHECK_OK_IDS
+
     def get_missing_segments(
         self, html_aggregate: BilaraHtmlAggregate, base_aggregate: BaseRootAggregate
     ) -> set:
@@ -50,9 +52,16 @@ class CheckHtml(ServiceBase):
         base_uids = set(base_aggregate.index.keys())
         html_uids = set(check_aggregate.index.keys())
         html_surplus = html_uids - base_uids
-        # Headings that were added to the translation.
-        # Filter out headings by removing all entries ending with 0.
-        html_wrong = set(uid for uid in html_surplus if 0 not in uid.key.seq)
+
+        def is_ignored(uid: UID) -> bool:
+            """
+            Headings that were added to the translation.
+            Filter out headings by removing all entries ending with 0.
+            """
+            is_added_heading = 0 not in uid.key.seq
+            return not is_added_heading or uid in self._ignored
+
+        html_wrong = sorted(uid for uid in html_surplus if not is_ignored(uid=uid))
         if html_wrong:
             log.error(
                 self._SURPLUS_UIDS,
@@ -67,7 +76,7 @@ class CheckHtml(ServiceBase):
                 check_aggregate.name(),
                 sorted(html_wrong),
             )
-        return html_wrong
+        return set(html_wrong)
 
 
 class CheckTranslation(ServiceBase):
