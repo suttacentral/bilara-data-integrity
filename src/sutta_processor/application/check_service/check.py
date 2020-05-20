@@ -118,31 +118,27 @@ class CheckVariant(ServiceBase):
     )
     _SURPLUS_UIDS_LIST = "[%s] Surplus UIDs in the '%s' lang: %s"
 
-    @classmethod
     def get_wrong_uid_with_arrow(
-        cls, aggregate: BilaraVariantAggregate, base_aggregate: BaseRootAggregate,
-    ):
+        self, aggregate: BilaraVariantAggregate, base_aggregate: BaseRootAggregate,
+    ) -> Set[UID]:
         missing_word_keys = set()
-        unknown_keys = set()
+        omg = "[%s] Word '%s' not found in the base verse: '%s'"
+
         for uid, versus in aggregate.index.items():
             word, *rest = versus.verse.split("→")
             if not rest:
-                log.error("No arrow found: '%s'", word)
-                unknown_keys.add(uid)
                 continue
             word = word.strip()
             base_verse: str = base_aggregate.index[uid].verse
+
             if word not in base_verse:
-                log.error(
-                    "Word not found in the base verse! '%s' : '%s'", word, base_verse
-                )
+                log.error(omg, self.name, word, {uid: base_verse})
                 missing_word_keys.add(uid)
 
-        log.error(
-            "Missing arrows count: '%s' not found variant: '%s'",
-            len(unknown_keys),
-            len(missing_word_keys),
-        )
+        if missing_word_keys:
+            omg = "[%s] Wrong word count: '%s' uids: '%s'"
+            log.error(omg, self.name, len(missing_word_keys), missing_word_keys)
+        return missing_word_keys
 
     def get_unknown_variants(self, aggregate: BilaraVariantAggregate) -> Set[UID]:
         unknown_keys = set()
