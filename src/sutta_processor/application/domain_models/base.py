@@ -1,5 +1,6 @@
 import json
 import logging
+import pprint
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
@@ -9,7 +10,7 @@ import attr
 from natsort import natsorted, ns
 
 from sutta_processor.application.value_objects import UID, RawUID, Verse
-from sutta_processor.shared.exceptions import SegmentIdError
+from sutta_processor.shared.exceptions import SegmentIdError, SkipFileError
 
 log = logging.getLogger(__name__)
 
@@ -70,6 +71,8 @@ class BaseFileAggregate(ABC):
 
 @attr.s(frozen=True, auto_attribs=True)
 class BaseRootAggregate(ABC):
+    """Translation aggregate has different index structure."""
+
     index: Dict[UID, BaseVersus]
     file_aggregates: Tuple[BaseFileAggregate]
 
@@ -90,23 +93,29 @@ class BaseRootAggregate(ABC):
         c: Counter = Counter(ok=0, error=0, all=len(all_files))
         for i, f_pth in enumerate(all_files):
             try:
+                if "xplayground" in f_pth.parts:
+                    raise SkipFileError()
                 file_aggregate = file_aggregate_cls.from_file(f_pth=f_pth)
                 cls._update_index(index=index, file_aggregate=file_aggregate)
                 errors.update(file_aggregate.errors)
                 file_aggregates.append(file_aggregate)
                 c["ok"] += 1
+            except SkipFileError:
+                c["all"] -= 1
             except Exception as e:
                 log.warning("Error processing: %s, file: '%s', ", e, f_pth)
                 c["error"] += 1
             log.trace("Processing file: %s/%s", i, c["all"])
         ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
-        log.info(cls._PROCESS_INFO, cls.__name__, c["all"], c["ok"], c["error"], ratio)
+        log.info(cls._PROCESS_INFO, cls.name(), c["all"], c["ok"], c["error"], ratio)
         if errors:
-            log.error("There are '%s' wrong ids: %s", len(errors), errors.keys())
+            msg = "[%s] There are '%s' wrong ids: \n%s"
+            keys = pprint.pformat(sorted(errors.keys()))
+            log.error(msg, cls.name(), len(errors), keys)
         return tuple(file_aggregates), index, errors
 
     @classmethod
-    def _update_index(cls, index: dict, file_aggregate):
+    def _update_index(cls, index: dict, file_aggregate: BaseFileAggregate):
         len_before = len(index)
         index.update(file_aggregate.index)
         len_after = len(index)

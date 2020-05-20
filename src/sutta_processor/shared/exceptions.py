@@ -2,6 +2,10 @@ class SuttaError(Exception):
     pass
 
 
+class SkipFileError(SuttaError):
+    pass
+
+
 class SegmentIdError(SuttaError):
     pass
 

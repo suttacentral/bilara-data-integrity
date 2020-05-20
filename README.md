@@ -50,11 +50,16 @@ First we need to convert xml data to html. Actual data is loaded via parsing tho
 Run various tests against the segments. Check `sutta_processor.application.services.bilara_data_check.BDataCheckService.check_uid_sequence_in_file`.
 
 *How to run*
-* In your configuration file set `exec_module: "bilara_check_segments"` and run the script
+* In your configuration file set `exec_module: "bilara_check_root"` and run the script
 
 ---
 *TODO*
 * Check comments if they got any references to segments/MsId/other id
-* `bilara_check_segments` - check any and all references are incrementing
+* `bilara_check_root` - check any and all references are incrementing
 * Sort references alphabetically
 * In MN, SC segments are referenced from `nya*` - check for consistency
+* if two adjacent segments have identical text, then check the original root text
+  [link](https://github.com/suttacentral/bilara-data/commit/8eb4cc80f2457de28d1ffef1ed17529b8ed8e85f)
+* if reference data appears on any segment not found in root,
+  then change reference data to the immediate next segment that appears in the root
+  [link](https://github.com/suttacentral/bilara-data/commit/1aa2bc0d5a362f54b7d93568dc9a33dde42b682b)

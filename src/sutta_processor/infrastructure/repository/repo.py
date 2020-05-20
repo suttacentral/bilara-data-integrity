@@ -1,6 +1,9 @@
 import json
 import logging
+import os
 import pickle
+import stat
+from typing import Set
 
 from sutta_processor.application.domain_models import (
     BilaraCommentAggregate,
@@ -18,7 +21,7 @@ from sutta_processor.application.domain_models.base import (
 from sutta_processor.application.domain_models.bilara_translation.root import (
     BilaraTranslationFileAggregate,
 )
-from sutta_processor.shared.config import Config
+from sutta_processor.shared.config import NULL_PTH, Config
 
 log = logging.getLogger(__name__)
 
@@ -110,3 +113,34 @@ class FileRepository:
         out_pth.touch(exist_ok=True)
         with open(out_pth, "rb") as f:
             return pickle.load(file=f)
+
+    def generate_diff_feedback_file(self, diff: Set[str], name: str = ""):
+        if self.cfg.debug_dir == NULL_PTH:
+            log.error("To generate diff file, add valid 'debug_dir' to your settings.")
+            return
+        if not diff:
+            return
+
+        f_name = f"grep_for_feedback_{name}.sh" if name else f"grep_for_feedback.sh"
+        exclude_dir_name = "feedback"
+        out_lines = [
+            "#!/bin/sh",
+            f"mkdir -pv {exclude_dir_name}",
+            "",
+        ]
+        echo_templ = f"echo Searching %s/{len(diff)}. UID: '%s'"
+        grep_templ = (
+            f"ack --break --heading -C 2 " f"'%s' --json > ./{exclude_dir_name}/%s.txt"
+        )
+        for i, uid in enumerate(sorted(diff), start=1):
+            out_lines.append(echo_templ % (i, uid))
+            out_lines.append(grep_templ % (uid, uid))
+        out_lines.append("")
+
+        # noinspection PyTypeChecker
+        with open(self.cfg.debug_dir / f_name, "w") as fd:
+            fd.write("\n".join(out_lines))
+            mode = os.fstat(fd.fileno()).st_mode
+            mode |= stat.S_IXUSR
+            os.fchmod(fd.fileno(), stat.S_IMODE(mode))
+        log.info("Saved feedback file in '%s'", self.cfg.debug_dir / f_name)
