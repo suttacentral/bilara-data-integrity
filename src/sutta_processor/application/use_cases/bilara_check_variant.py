@@ -17,6 +17,7 @@ def bilara_check_variant(cfg: Config):
     cfg.check: CheckService
     bilara_root: BilaraRootAggregate = cfg.repo.bilara.get_root()
     bilara_variant: BilaraVariantAggregate = cfg.repo.bilara.get_variant()
-    cfg.check.get_surplus_segments(
-        check_aggregate=bilara_variant, base_aggregate=bilara_root
+    cfg.check.variant.get_wrong_uid_with_arrow(
+        aggregate=bilara_variant, base_aggregate=bilara_root
     )
+    cfg.check.variant.get_unknown_variants(aggregate=bilara_variant)
