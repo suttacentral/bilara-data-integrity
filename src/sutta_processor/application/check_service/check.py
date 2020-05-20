@@ -82,6 +82,19 @@ class CheckHtml(ServiceBase):
             )
         return set(html_wrong)
 
+    def is_0_in_header_uid(self, aggregate: BilaraHtmlAggregate) -> Set[UID]:
+        error_uids = set()
+        prog = re.compile(r"<h\d")
+        for uid, versus in aggregate.index.items():
+            if prog.match(versus.verse) and 0 not in uid.key.seq:
+                omg = "[%s] Possible header not starting the section: '%s'"
+                log.error(omg, self.name, {uid: versus.verse})
+                error_uids.add(uid)
+        if error_uids:
+            omg = "[%s] There are '%s' headers that don't start new section: %s"
+            log.error(omg, self.name, len(error_uids), error_uids)
+        return error_uids
+
 
 class CheckTranslation(ServiceBase):
     _SURPLUS_UIDS = (

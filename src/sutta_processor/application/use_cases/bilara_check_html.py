@@ -15,8 +15,9 @@ log = logging.getLogger(__name__)
 def bilara_check_html(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
-    bilara_root: BilaraRootAggregate = cfg.repo.bilara.get_root()
     bilara_html: BilaraHtmlAggregate = cfg.repo.bilara.get_html()
+    cfg.check.html.is_0_in_header_uid(aggregate=bilara_html)
+    bilara_root: BilaraRootAggregate = cfg.repo.bilara.get_root()
     diff = cfg.check.html.get_missing_segments(
         html_aggregate=bilara_html, base_aggregate=bilara_root
     )
