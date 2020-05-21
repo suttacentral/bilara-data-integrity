@@ -18,3 +18,4 @@ def bilara_check_root(cfg: Config):
     cfg.repo.generate_diff_feedback_file(diff=diff)
     diff = cfg.check.get_empty_verses(aggregate=root_aggregate)
     cfg.repo.generate_diff_feedback_file(diff=diff, name="empty_versus")
+    cfg.check.reference.get_wrong_segments_based_on_nya(bilara=root_aggregate)
