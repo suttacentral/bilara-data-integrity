@@ -1,4 +1,5 @@
 import logging
+import re
 import string
 from itertools import zip_longest
 from typing import Union
@@ -16,6 +17,8 @@ class RawUID(str):
 
 
 class Sequence(tuple):
+    baked_segment = re.compile(r"\d+?-\d+?")
+
     @classmethod
     def from_str(cls, raw_seq: str) -> "Sequence":
         raw_seq = raw_seq.split(".")
@@ -24,7 +27,7 @@ class Sequence(tuple):
             try:
                 args.append(int(segment))
             except ValueError:
-                if "-" not in segment:
+                if not cls.baked_segment.match(segment):
                     raise SegmentIdError(f"Invalid uid seq: {raw_seq}")
                 args.append(segment)
         return cls(args)

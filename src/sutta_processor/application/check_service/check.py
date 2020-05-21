@@ -244,7 +244,7 @@ class CheckService(ServiceBase):
 
     def check_uid_sequence_in_file(self, aggregate: BilaraRootAggregate):
         error_keys = set()
-        previous_elem = UidKey(":")
+        previous_elem = UidKey(":0-0")
         for uid in aggregate.index:
             if not uid.key.is_next(previous=previous_elem):
                 error_keys.add(uid)
