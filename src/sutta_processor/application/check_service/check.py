@@ -56,8 +56,12 @@ class CheckHtml(ServiceBase):
         return html_missing
 
     def get_surplus_segments(
-        self, check_aggregate: BilaraHtmlAggregate, base_aggregate: BaseRootAggregate,
+        self,
+        check_aggregate: BilaraHtmlAggregate,
+        base_aggregate: BaseRootAggregate,
+        false_positive: Set[str] = None,
     ) -> set:
+        false_positive = false_positive or {}
         base_uids = set(base_aggregate.index.keys())
         html_uids = set(check_aggregate.index.keys())
         html_surplus = html_uids - base_uids
@@ -68,7 +72,7 @@ class CheckHtml(ServiceBase):
             Filter out headings by removing all entries ending with 0.
             """
             is_added_heading = 0 not in uid.key.seq
-            return not is_added_heading or uid in self._ignored
+            return not is_added_heading or uid in self._ignored.union(false_positive)
 
         html_wrong = sorted(uid for uid in html_surplus if not is_ignored(uid=uid))
         if html_wrong:
@@ -111,7 +115,9 @@ class CheckTranslation(ServiceBase):
         self,
         translation_aggregate: BilaraTranslationAggregate,
         base_aggregate: BaseRootAggregate,
+        false_positive: Set[str] = None,
     ) -> set:
+        false_positive = false_positive or {}
         base_uids = set(base_aggregate.index.keys())
         for lang, lang_index in translation_aggregate.index.items():
             tran_uids = set(lang_index.keys())
@@ -190,22 +196,33 @@ class CheckService(ServiceBase):
         self.variant = CheckVariant(cfg=cfg)
 
     def get_surplus_segments(
-        self, check_aggregate: BaseRootAggregate, base_aggregate: BaseRootAggregate,
+        self,
+        check_aggregate: BaseRootAggregate,
+        base_aggregate: BaseRootAggregate,
+        false_positive: Set[str] = None,
     ) -> set:
+        false_positive = false_positive or {}
         cb_mapping = {
             BilaraTranslationAggregate: self.translation.get_surplus_segments,
             BilaraHtmlAggregate: self.html.get_surplus_segments,
         }
         callback = cb_mapping.get(type(check_aggregate), self._get_surplus_segments)
-        result = callback(check_aggregate, base_aggregate=base_aggregate)
+        result = callback(
+            check_aggregate,
+            base_aggregate=base_aggregate,
+            false_positive=false_positive,
+        )
         return result
 
     def _get_surplus_segments(
-        self, check_aggregate: BaseRootAggregate, base_aggregate: BaseRootAggregate,
+        self,
+        check_aggregate: BaseRootAggregate,
+        base_aggregate: BaseRootAggregate,
+        false_positive: Set[str],
     ) -> set:
         base_uids = set(base_aggregate.index.keys())
         comm_uids = set(check_aggregate.index.keys())
-        comm_surplus = comm_uids - base_uids
+        comm_surplus = comm_uids - base_uids.union(false_positive)
         if comm_surplus:
             log.error(
                 self._SURPLUS_UIDS,

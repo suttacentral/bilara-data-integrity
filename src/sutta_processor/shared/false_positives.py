@@ -504,3 +504,10 @@ VARIANT_UNKNOWN_OK_IDS = {
     "tha-ap19:9.3",
     "tha-ap3:234.1",
 }
+
+COMMENT_NOT_IN_ROOT_OK = {
+    "pli-tv-bu-vb-sk69:1.27.0",
+    "pli-tv-bu-vb-sk69:1.31.0",
+    "pli-tv-bu-vb-sk69:1.35.0",
+    "pli-tv-bu-vb-ss2:3.4.28.0",
+}
