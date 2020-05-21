@@ -22,7 +22,3 @@ def bilara_check_html(cfg: Config):
         html_aggregate=bilara_html, base_aggregate=bilara_root
     )
     cfg.repo.generate_diff_feedback_file(diff=diff, name="missing")
-    diff = cfg.check.get_surplus_segments(
-        check_aggregate=bilara_html, base_aggregate=bilara_root
-    )
-    cfg.repo.generate_diff_feedback_file(diff=diff, name="surplus")
