@@ -12,7 +12,12 @@ from sutta_processor.application.domain_models import (
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
 from sutta_processor.shared.config import Config
-from sutta_processor.shared.false_positives import DUPLICATE_OK_IDS, HTML_CHECK_OK_IDS
+from sutta_processor.shared.false_positives import (
+    DUPLICATE_OK_IDS,
+    HTML_CHECK_OK_IDS,
+    VARIANT_ARROW_OK_IDS,
+    VARIANT_UNKNOWN_OK_IDS,
+)
 
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
@@ -126,26 +131,28 @@ class CheckTranslation(ServiceBase):
 
 
 class CheckVariant(ServiceBase):
-    _SURPLUS_UIDS = (
-        "[%s] There are '%s' UIDs in '%s' lang that are not in the '%s' data"
-    )
-    _SURPLUS_UIDS_LIST = "[%s] Surplus UIDs in the '%s' lang: %s"
+    _MISSING_WORD = "[%s] Word '%s' not found in the base verse: '%s'"
+    _MISSING_KEY = "[%s] Key '%s' was not found in '%s'"
 
     def get_wrong_uid_with_arrow(
         self, aggregate: BilaraVariantAggregate, base_aggregate: BaseRootAggregate,
     ) -> Set[UID]:
         missing_word_keys = set()
-        omg = "[%s] Word '%s' not found in the base verse: '%s'"
 
         for uid, versus in aggregate.index.items():
             word, *rest = versus.verse.split("→")
             if not rest:
                 continue
             word = word.strip()
-            base_verse: str = base_aggregate.index[uid].verse
+            try:
+                base_verse: str = base_aggregate.index[uid].verse
+            except KeyError:
+                log.error(self._MISSING_KEY, self.name, uid, base_aggregate.name())
+                missing_word_keys.add(uid)
+                continue
 
-            if word not in base_verse:
-                log.error(omg, self.name, word, {uid: base_verse})
+            if (word not in base_verse) and (uid not in VARIANT_ARROW_OK_IDS):
+                log.error(self._MISSING_WORD, self.name, word, {uid: base_verse})
                 missing_word_keys.add(uid)
 
         if missing_word_keys:
@@ -157,9 +164,8 @@ class CheckVariant(ServiceBase):
         unknown_keys = set()
         for uid, versus in aggregate.index.items():
             word, *rest = versus.verse.split("→")
-            if rest:
+            if rest or uid in VARIANT_UNKNOWN_OK_IDS:
                 continue
-            # log.error("No arrow found: '%s'", word)
             unknown_keys.add(uid)
 
         if unknown_keys:
