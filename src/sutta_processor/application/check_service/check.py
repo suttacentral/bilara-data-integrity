@@ -15,6 +15,7 @@ from sutta_processor.shared.config import Config
 from sutta_processor.shared.false_positives import (
     DUPLICATE_OK_IDS,
     HTML_CHECK_OK_IDS,
+    HTML_START_HEADER_OK,
     VARIANT_ARROW_OK_IDS,
     VARIANT_UNKNOWN_OK_IDS,
 )
@@ -95,7 +96,9 @@ class CheckHtml(ServiceBase):
         error_uids = set()
         prog = re.compile(r"<h\d")
         for uid, versus in aggregate.index.items():
-            if prog.match(versus.verse) and 0 not in uid.key.seq:
+            if uid in HTML_START_HEADER_OK:
+                continue
+            elif prog.match(versus.verse) and 0 not in uid.key.seq:
                 omg = "[%s] Possible header not starting the section: '%s'"
                 log.error(omg, self.name, {uid: versus.verse})
                 error_uids.add(uid)

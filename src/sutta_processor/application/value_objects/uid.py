@@ -24,6 +24,8 @@ class Sequence(tuple):
             try:
                 args.append(int(segment))
             except ValueError:
+                if "-" not in segment:
+                    raise SegmentIdError(f"Invalid uid seq: {raw_seq}")
                 args.append(segment)
         return cls(args)
 
