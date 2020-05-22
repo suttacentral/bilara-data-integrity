@@ -1,6 +1,7 @@
 import logging
 import pprint
 import re
+from collections import Counter
 from typing import Set
 
 from sutta_processor.application.domain_models import (
@@ -8,6 +9,7 @@ from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
+    PaliCanonAggregate,
 )
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
@@ -186,6 +188,85 @@ class CheckVariant(ServiceBase):
         return unknown_keys
 
 
+class CheckText(ServiceBase):
+    reference: SCReferenceService
+
+    def __init__(self, cfg):
+        super().__init__(cfg=cfg)
+        self.reference = SCReferenceService(cfg=cfg)
+
+    def get_missing_text(
+        self, root: BilaraRootAggregate, pali: PaliCanonAggregate
+    ) -> Set[UID]:
+        wrong_keys = set()
+        missing_reference_uids = set()
+        missing_sources_ms_id = set()
+
+        c: Counter = Counter(ok=0, error=0, all=0)
+
+        def is_header(uid_: UID):
+            return 0 in uid_.key.seq
+
+        def is_skipped(uid_: UID) -> bool:
+            is_right_text = uid_.startswith("ds")
+            skip_uid = {"ds1.2:200.33"}
+            return not is_right_text or is_header(uid_) or uid_ in skip_uid
+
+        def is_key_missing(uid_: UID) -> bool:
+            try:
+                ms_id_ = self.reference.reference_engine.uid_index[uid_]
+            except KeyError:
+                missing_reference_uids.add(uid_)
+                return True
+            try:
+                pali.index[ms_id_]
+            except KeyError:
+                missing_sources_ms_id.add(ms_id_)
+                return True
+            return False
+
+        for uid, versus in root.index.items():
+            if is_skipped(uid) or is_key_missing(uid):
+                continue
+
+            c["all"] += 1
+            ms_id = self.reference.reference_engine.uid_index[uid]
+            root_tokens = versus.verse.tokens
+            pali_tokens = pali.index[ms_id].verse.tokens
+            if root_tokens != pali_tokens:
+                omg = (
+                    "[%s] Text mismatch for [%s]: root [%s], "
+                    "source: [%s], token_root: [%s], token_source: [%s]"
+                )
+                log.error(
+                    omg,
+                    self.name,
+                    uid,
+                    versus.verse,
+                    pali.index[ms_id].verse,
+                    root_tokens,
+                    pali_tokens,
+                )
+                c["error"] += 1
+                wrong_keys.add(uid)
+            c["ok"] += 1
+        if wrong_keys:
+            ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
+            omg = "[%s] Good lines: '%s', errors: '%s' (ratio: %.2f%%), uids: %s"
+            log.error(omg, self.name, c["ok"], c["error"], ratio, wrong_keys)
+        if missing_reference_uids:
+            omg = "[%s] There are '%s' uids missing from reference. uids: %s"
+            log.error(
+                omg, self.name, len(missing_reference_uids), missing_reference_uids,
+            )
+        if missing_sources_ms_id:
+            omg = "[%s] There are '%s' ms_id missing from source data. ms_ids: %s"
+            log.error(
+                omg, self.name, len(missing_sources_ms_id), missing_sources_ms_id,
+            )
+        return wrong_keys
+
+
 class CheckService(ServiceBase):
     _SURPLUS_UIDS = "[%s] There are '%s' uids in '%s' that are not in the '%s' data"
     _SURPLUS_UIDS_LIST = "[%s] Surplus '%s' UIDs: %s"
@@ -197,6 +278,7 @@ class CheckService(ServiceBase):
         self.html = CheckHtml(cfg=cfg)
         self.translation = CheckTranslation(cfg=cfg)
         self.variant = CheckVariant(cfg=cfg)
+        self.text = CheckText(cfg=cfg)
 
     def get_surplus_segments(
         self,
