@@ -116,11 +116,7 @@ class ReferenceEngine:
 
         index = {}
         for uid, sources in raw_index.items():  # type: str, str
-            # try:
             index[UID(uid)] = get_sources_set(reference_value=sources)
-            # except KeyError:
-            #     No reference found for that UID
-            #     pass
         return index
 
 
