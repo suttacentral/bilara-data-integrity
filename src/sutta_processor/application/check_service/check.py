@@ -298,8 +298,8 @@ class CheckText(ServiceBase):
         )
         for i, items in enumerate(pali.text_index.items()):
             tokens, uids = items
-            if "ms25Cn_738" not in uids:
-                continue
+            # if "ms25Cn_738" not in uids:
+            #     continue
             c["all"] += 1
             try:
                 root.text_head_index[tokens.head_key]

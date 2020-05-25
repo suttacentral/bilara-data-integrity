@@ -1,5 +1,6 @@
 import html
 import logging
+from collections import Counter
 from typing import List
 
 from lxml.etree import _Element, fromstring, tostring
@@ -10,6 +11,8 @@ log = logging.getLogger(__name__)
 
 
 class YuttaExtractor:
+    c = Counter()
+
     @classmethod
     def get_html_from_xml(cls, xml_string: str) -> str:
         data = fromstring(xml_string).xpath("/xml/data")[0]
@@ -41,13 +44,77 @@ class YuttaExtractor:
 
     @classmethod
     def get_verse(cls, node: _Element) -> str:
-        return ""
+        # print('-'*20)
+        # [' ', '\n', '592', '»\xa0 Vīriyaṃ vīriyindriyanti? Āmantā. ', '\n']
+        handlers = {
+            3: cls.handle_len3_verse,
+            5: cls.handle_len5_verse,
+            7: cls.handle_len7_verse,
+        }
+        text_parts = node.xpath(".//text()")
 
-    def get_verse2(cls, paragraph: _Element) -> "MsVerse":
-        text = paragraph.xpath("./text()")
-        text = text[0] if text else ""
-        versus = MsVerse(text.strip())
+        # if len(text_parts) not in [3,5,7]:
+        #     cls.c[len(text_parts)] += 1
+        #     return ""
+        cb = handlers.get(len(text_parts), cls.handle_len7_verse)
+        versus = cb(text_parts=text_parts)
         return versus
+
+    @classmethod
+    def get_str_from_parts(cls, parts: List[str]) -> str:
+        """ Used by handlers to combine parts. """
+        return " ".join(parts)
+
+    @classmethod
+    def clean_up_part(cls, part: str) -> str:
+        """ Clean up things that go to parts. """
+        return part.replace("\xa0", " ")
+
+    @classmethod
+    def handle_len3_verse(cls, text_parts: List[str]) -> str:
+        """
+        :param text_parts: ['\n', '7', '(Pañhāvāraṃ vitthāretabbaṃ.)']
+        :return:
+        """
+        out = []
+        for part in text_parts:
+            part = part.strip()
+            if not part or part.isnumeric():
+                continue
+            out.append(cls.clean_up_part(part))
+        return cls.get_str_from_parts(parts=out)
+
+    @classmethod
+    def handle_len5_verse(cls, text_parts: List[str]) -> str:
+        """
+        :param text_parts: ['\n', '1143', 'Evaṃ duvidhena rūpasaṅgaho.',
+                            ' Sukhumarūpadukaṃ.', ' Dukaṃ.']
+        :return:
+        """
+        out = []
+        for part in text_parts:
+            part = part.strip()
+            if not part or part.isnumeric():
+                continue
+            out.append(cls.clean_up_part(part))
+        return cls.get_str_from_parts(parts=out)
+
+    @classmethod
+    def handle_len7_verse(cls, text_parts: List[str]) -> str:
+        """
+        :param text_parts: ['\n', '1143', 'Evaṃ duvidhena rūpasaṅgaho.',
+                            ' Sukhumarūpadukaṃ.', ' Dukaṃ.']
+        :return:
+        """
+        out = []
+        for part in text_parts:
+            part = part.strip()
+            if not part or part.isnumeric():
+                continue
+            if part.replace(".", "").replace("--", "").isnumeric():
+                continue
+            out.append(cls.clean_up_part(part))
+        return cls.get_str_from_parts(parts=out)
 
     @classmethod
     def clean_html(cls, cleaned_html: str) -> str:

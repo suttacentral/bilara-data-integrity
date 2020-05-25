@@ -10,6 +10,7 @@ class VersetTokenizer:
 
     @classmethod
     def translate(cls, txt: str) -> str:
+        txt = txt.replace("**ti", " ti")
         return txt.translate(str.maketrans(cls.skip_chars))
 
     @classmethod
