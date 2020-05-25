@@ -15,11 +15,12 @@ log = logging.getLogger(__name__)
 def ms_palicanon_load(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
-    # root: BilaraRootAggregate = cfg.repo.bilara.get_root()
+    root: BilaraRootAggregate = cfg.repo.bilara.get_root()
     # cfg.repo.dump_pickle(aggregate=root)
-    # pali: PaliCanonAggregate = cfg.repo.get_all_pali_canon()
+    pali: PaliCanonAggregate = cfg.repo.get_all_pali_canon()
     # cfg.repo.dump_pickle(aggregate=pali)
-    root: BilaraRootAggregate = cfg.repo.load_pickle(aggregate_cls=BilaraRootAggregate)
-    pali: PaliCanonAggregate = cfg.repo.load_pickle(aggregate_cls=PaliCanonAggregate)
 
-    cfg.check.text.get_missing_text(root=root, pali=pali)
+    # root: BilaraRootAggregate = cfg.repo.load_pickle(aggregate_cls=BilaraRootAggregate)
+    # pali: PaliCanonAggregate = cfg.repo.load_pickle(aggregate_cls=PaliCanonAggregate)
+
+    cfg.check.text.get_missing_text_ms_source(root=root, pali=pali)

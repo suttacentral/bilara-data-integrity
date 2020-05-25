@@ -3,7 +3,7 @@ import pprint
 import re
 from collections import Counter
 from itertools import zip_longest
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
@@ -273,6 +273,42 @@ class CheckText(ServiceBase):
             log.error(
                 omg, self.name, len(missing_sources_ms_id), missing_sources_ms_id,
             )
+        return wrong_keys
+
+    def get_missing_text_ms_source(
+        self, root: BilaraRootAggregate, pali: PaliCanonAggregate
+    ) -> List[UID]:
+        wrong_keys = []
+
+        c: Counter = Counter(ok=0, error=0, all=0)
+        # log.error("-" * 80)
+        # p_vers: PaliVersus = pali.index["ms1V_4"]
+        # r_vers: BaseVersus = root.index["pli-tv-bu-vb-pj1:1.2.6"]
+        # log.error("Pali verset: '%s'", p_vers.verse)
+        # log.error("Root verset: '%s'", r_vers.verse)
+        # log.error("Pali tokens: '%s'", p_vers.verse.tokens.head_key)
+        # log.error("Root tokens: '%s'", r_vers.verse.tokens.head_key)
+        # log.error(
+        #     "Root head idx: '%s'",
+        #     root.text_head_index.get(p_vers.verse.tokens.head_key),
+        # )
+        # log.error("-" * 80)
+
+        for i, items in enumerate(pali.text_index.items()):
+            tokens, uids = items
+
+            c["all"] += 1
+            try:
+                root.text_head_index[tokens.head_key]
+            except KeyError:
+                c["error"] += 1
+                wrong_keys.append(uids)
+                continue
+            c["ok"] += 1
+
+        ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
+        omg = "[%s] Found keys: '%s', errors: '%s' (ratio: %.2f%%), wrong_keys: %s"
+        log.error(omg, self.name, c["ok"], c["error"], ratio, wrong_keys)
         return wrong_keys
 
 

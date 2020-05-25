@@ -4,13 +4,18 @@ import pprint
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
 import attr
 from natsort import natsorted, ns
 
 from sutta_processor.application.value_objects import UID, RawUID, Verse
-from sutta_processor.shared.exceptions import SegmentIdError, SkipFileError
+from sutta_processor.application.value_objects.verse import VerseTokens
+from sutta_processor.shared.exceptions import (
+    NoTokensError,
+    SegmentIdError,
+    SkipFileError,
+)
 
 log = logging.getLogger(__name__)
 
@@ -69,8 +74,52 @@ class BaseFileAggregate(ABC):
         return {v.uid: v.verse for v in verses}
 
 
+@attr.s(frozen=True)
+class TextCompareMixin:
+    index: Dict[UID, BaseVersus]
+
+    _text_index: Dict[VerseTokens, Set[UID]]
+    _text_head_index: Dict[VerseTokens.HeadKey, Set[VerseTokens]]
+
+    @property
+    def text_index(self) -> Dict[VerseTokens, Set[UID]]:
+        def get_text_index() -> dict:
+            text_index = {}
+            for uid, verset in self.index.items():
+                try:
+                    tokens = verset.verse.tokens
+                    uids = text_index.get(tokens, set())
+                    uids.add(uid)
+                    text_index[tokens] = uids
+                except NoTokensError as e:
+                    log.trace(e)
+            return text_index
+
+        if getattr(self, "_text_index", None) is None:
+            object.__setattr__(self, "_text_index", get_text_index())
+        return self._text_index
+
+    @property
+    def text_head_index(self) -> Dict[VerseTokens.HeadKey, Set[VerseTokens]]:
+        def get_head_index() -> dict:
+            head_index = {}
+            for uid, verset in self.index.items():
+                try:
+                    tokens = verset.verse.tokens
+                    all_tokens = head_index.get(tokens.head_key, set())
+                    all_tokens.add(tokens)
+                    head_index[tokens.head_key] = all_tokens
+                except NoTokensError as e:
+                    log.trace(e)
+            return head_index
+
+        if getattr(self, "_text_head_index", None) is None:
+            object.__setattr__(self, "_text_head_index", get_head_index())
+        return self._text_head_index
+
+
 @attr.s(frozen=True, auto_attribs=True)
-class BaseRootAggregate(ABC):
+class BaseRootAggregate(ABC, TextCompareMixin):
     """Translation aggregate has different index structure."""
 
     index: Dict[UID, BaseVersus]
