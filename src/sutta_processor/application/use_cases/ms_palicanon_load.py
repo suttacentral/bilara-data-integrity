@@ -4,6 +4,7 @@ from sutta_processor.application.check_service import CheckService
 from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
     PaliCanonAggregate,
+    YuttaAggregate,
 )
 from sutta_processor.infrastructure.repository.repo import FileRepository
 from sutta_processor.shared.config import Config
@@ -17,7 +18,7 @@ def ms_palicanon_load(cfg: Config):
     cfg.check: CheckService
     root: BilaraRootAggregate = cfg.repo.bilara.get_root()
     # cfg.repo.dump_pickle(aggregate=root)
-    pali: PaliCanonAggregate = cfg.repo.get_all_pali_canon()
+    pali: YuttaAggregate = cfg.repo.yutta.get_aggregate()
     # cfg.repo.dump_pickle(aggregate=pali)
 
     # root: BilaraRootAggregate = cfg.repo.load_pickle(aggregate_cls=BilaraRootAggregate)

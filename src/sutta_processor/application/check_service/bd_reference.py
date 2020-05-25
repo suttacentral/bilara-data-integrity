@@ -47,7 +47,7 @@ class ReferenceEngine:
                 msg = "Pali_ms_id '%s' is referencing several SuttaCentral uid: %s"
                 log.error(msg, pali_id, uid_set)
 
-        return pali_id_index
+        return dict(pali_id_index)
 
     @classmethod
     def get_uid_index(cls, raw_index: dict) -> Dict[UID, MsId]:

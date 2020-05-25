@@ -20,6 +20,22 @@ class YuttaAggregate(BaseRootAggregate):
     index: Dict[MsId, YuttaVersus]
 
     @classmethod
+    def from_path(cls, root_pth: Path) -> "YuttaAggregate":
+        file_aggregates, index, errors = cls._from_path(
+            root_pth=root_pth,
+            glob_pattern="**/*.html",
+            file_aggregate_cls=YuttaFileAggregate,
+        )
+        return cls(file_aggregates=tuple(file_aggregates), index=index)
+
+    @classmethod
+    def name(cls) -> str:
+        return cls.__name__
+
+    def __str__(self):
+        return f"<{self.__class__.__name__}, loaded_UIDs: '{len(self.index):,}'>"
+
+    @classmethod
     def convert_to_html(cls, root_pth: Path) -> "YuttaAggregate":
         """
         This will only load xml and extract from it the html content.
@@ -42,19 +58,3 @@ class YuttaAggregate(BaseRootAggregate):
         log.info(cls._PROCESS_INFO, cls.__name__, c["all"], c["ok"], c["error"], ratio)
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return cls(file_aggregates=tuple(file_aggregates), index=index)
-
-    @classmethod
-    def from_path(cls, root_pth: Path) -> "YuttaAggregate":
-        file_aggregates, index = cls._from_path(
-            root_pth=root_pth,
-            glob_pattern="**/*.html",
-            file_aggregate_cls=YuttaFileAggregate,
-        )
-        return cls(file_aggregates=tuple(file_aggregates), index=index)
-
-    @classmethod
-    def name(cls) -> str:
-        return cls.__name__
-
-    def __str__(self):
-        return f"<{self.__class__.__name__}, loaded_UIDs: '{len(self.index):,}'>"

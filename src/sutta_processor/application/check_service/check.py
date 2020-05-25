@@ -3,7 +3,7 @@ import pprint
 import re
 from collections import Counter
 from itertools import zip_longest
-from typing import Dict, List, Set
+from typing import Dict, Optional, Set
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
@@ -11,9 +11,10 @@ from sutta_processor.application.domain_models import (
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
     PaliCanonAggregate,
+    YuttaAggregate,
 )
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
-from sutta_processor.application.value_objects.uid import UID, UidKey
+from sutta_processor.application.value_objects.uid import UID, MsId, UidKey
 from sutta_processor.shared.config import Config
 from sutta_processor.shared.false_positives import (
     DUPLICATE_OK_IDS,
@@ -23,6 +24,7 @@ from sutta_processor.shared.false_positives import (
     VARIANT_UNKNOWN_OK_IDS,
 )
 
+from ..domain_models.ms_palicanon.base import PaliVersus
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
 
@@ -276,40 +278,85 @@ class CheckText(ServiceBase):
         return wrong_keys
 
     def get_missing_text_ms_source(
-        self, root: BilaraRootAggregate, pali: PaliCanonAggregate
-    ) -> List[UID]:
-        wrong_keys = []
+        self, root: BilaraRootAggregate, pali: YuttaAggregate
+    ) -> Set[UID]:
+        wrong_keys = set()
 
-        c: Counter = Counter(ok=0, error=0, all=0)
-        # log.error("-" * 80)
-        # p_vers: PaliVersus = pali.index["ms1V_4"]
-        # r_vers: BaseVersus = root.index["pli-tv-bu-vb-pj1:1.2.6"]
-        # log.error("Pali verset: '%s'", p_vers.verse)
-        # log.error("Root verset: '%s'", r_vers.verse)
-        # log.error("Pali tokens: '%s'", p_vers.verse.tokens.head_key)
-        # log.error("Root tokens: '%s'", r_vers.verse.tokens.head_key)
-        # log.error(
-        #     "Root head idx: '%s'",
-        #     root.text_head_index.get(p_vers.verse.tokens.head_key),
-        # )
-        # log.error("-" * 80)
+        def get_root_versus(ms_id) -> Optional[BaseVersus]:
+            root_ids: set = self.reference.reference_engine.ms_id_index.get(ms_id)
+            if not root_ids:
+                c["missing_in_reference"] += 1
+                return None
+            if len(root_ids) != 1:
+                omg = f"MsId '{ms_id}' referencing more than one segment id:{root_ids}"
+                raise RuntimeError(omg)
+            root_vers: BaseVersus = root.index[root_ids.pop()]
+            return root_vers
 
+        c: Counter = Counter(
+            ok=0, error=0, all=0, missing_in_index=0, missing_in_reference=0
+        )
         for i, items in enumerate(pali.text_index.items()):
             tokens, uids = items
-
+            if "ms25Cn_738" not in uids:
+                continue
             c["all"] += 1
             try:
                 root.text_head_index[tokens.head_key]
             except KeyError:
+                # TODO: Handle empty tokens (check loading)
+                if "EMPTY" in tokens.head_key:
+                    c["all"] -= 1
+                    continue
+
+                # TODO: Make multi id compilant
+                ms_id = uids.pop()
+                try:
+                    root_versus = get_root_versus(ms_id=ms_id)
+                    if root_versus and "EMPTY" in root_versus.verse.tokens.head_key:
+                        # TODO: Handle empty tokens (do more validation with that)
+                        c["all"] -= 1
+                        continue
+                except KeyError:
+                    c["missing_in_index"] += 1
+                    c["all"] -= 1
+                    continue
                 c["error"] += 1
-                wrong_keys.append(uids)
+                wrong_keys.update(uids)
                 continue
             c["ok"] += 1
 
         ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
         omg = "[%s] Found keys: '%s', errors: '%s' (ratio: %.2f%%), wrong_keys: %s"
         log.error(omg, self.name, c["ok"], c["error"], ratio, wrong_keys)
+        for i, ms_id in enumerate(wrong_keys):
+            if i > 10:
+                break
+            self.print_verse_details(ms_id=ms_id, root=root, pali=pali)
         return wrong_keys
+
+    def print_verse_details(
+        self, ms_id: MsId, root: BilaraRootAggregate, pali: PaliCanonAggregate,
+    ):
+        def print_details(uid_):
+            root_vers: BaseVersus = root.index[uid_]
+            log.error("Root verset: '%s'", root_vers.verse)
+            log.error("Root tokens: '%s'", root_vers.verse.tokens.head_key)
+
+        log.error(f"{'='*40} %s {'='*40}", ms_id)
+        pali_vers: PaliVersus = pali.index[ms_id]
+        log.error("Pali verset: '%s'", pali_vers.verse)
+        log.error("Pali tokens: '%s'", pali_vers.verse.tokens.head_key)
+
+        try:
+            root_ids: set = self.reference.reference_engine.ms_id_index[ms_id]
+            for uid in root_ids:
+                print_details(uid_=uid)
+                log.error("-" * 40)
+        except KeyError:
+            log.error("Can't find reference for: '%s'", ms_id)
+
+        log.error(f"{'='*40} %s {'='*40}", ms_id)
 
 
 class CheckService(ServiceBase):
