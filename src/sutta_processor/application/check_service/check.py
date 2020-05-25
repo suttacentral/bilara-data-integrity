@@ -12,7 +12,13 @@ from sutta_processor.application.domain_models import (
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
 from sutta_processor.shared.config import Config
-from sutta_processor.shared.false_positives import DUPLICATE_OK_IDS, HTML_CHECK_OK_IDS
+from sutta_processor.shared.false_positives import (
+    DUPLICATE_OK_IDS,
+    HTML_CHECK_OK_IDS,
+    HTML_START_HEADER_OK,
+    VARIANT_ARROW_OK_IDS,
+    VARIANT_UNKNOWN_OK_IDS,
+)
 
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
@@ -51,8 +57,12 @@ class CheckHtml(ServiceBase):
         return html_missing
 
     def get_surplus_segments(
-        self, check_aggregate: BilaraHtmlAggregate, base_aggregate: BaseRootAggregate,
+        self,
+        check_aggregate: BilaraHtmlAggregate,
+        base_aggregate: BaseRootAggregate,
+        false_positive: Set[str] = None,
     ) -> set:
+        false_positive = false_positive or {}
         base_uids = set(base_aggregate.index.keys())
         html_uids = set(check_aggregate.index.keys())
         html_surplus = html_uids - base_uids
@@ -63,7 +73,7 @@ class CheckHtml(ServiceBase):
             Filter out headings by removing all entries ending with 0.
             """
             is_added_heading = 0 not in uid.key.seq
-            return not is_added_heading or uid in self._ignored
+            return not is_added_heading or uid in self._ignored.union(false_positive)
 
         html_wrong = sorted(uid for uid in html_surplus if not is_ignored(uid=uid))
         if html_wrong:
@@ -82,6 +92,21 @@ class CheckHtml(ServiceBase):
             )
         return set(html_wrong)
 
+    def is_0_in_header_uid(self, aggregate: BilaraHtmlAggregate) -> Set[UID]:
+        error_uids = set()
+        prog = re.compile(r"<h\d")
+        for uid, versus in aggregate.index.items():
+            if uid in HTML_START_HEADER_OK:
+                continue
+            elif prog.match(versus.verse) and 0 not in uid.key.seq:
+                omg = "[%s] Possible header not starting the section: '%s'"
+                log.error(omg, self.name, {uid: versus.verse})
+                error_uids.add(uid)
+        if error_uids:
+            omg = "[%s] There are '%s' headers that don't start new section: %s"
+            log.error(omg, self.name, len(error_uids), error_uids)
+        return error_uids
+
 
 class CheckTranslation(ServiceBase):
     _SURPLUS_UIDS = (
@@ -93,7 +118,9 @@ class CheckTranslation(ServiceBase):
         self,
         translation_aggregate: BilaraTranslationAggregate,
         base_aggregate: BaseRootAggregate,
+        false_positive: Set[str] = None,
     ) -> set:
+        false_positive = false_positive or {}
         base_uids = set(base_aggregate.index.keys())
         for lang, lang_index in translation_aggregate.index.items():
             tran_uids = set(lang_index.keys())
@@ -113,26 +140,28 @@ class CheckTranslation(ServiceBase):
 
 
 class CheckVariant(ServiceBase):
-    _SURPLUS_UIDS = (
-        "[%s] There are '%s' UIDs in '%s' lang that are not in the '%s' data"
-    )
-    _SURPLUS_UIDS_LIST = "[%s] Surplus UIDs in the '%s' lang: %s"
+    _MISSING_WORD = "[%s] Word '%s' not found in the base verse: '%s'"
+    _MISSING_KEY = "[%s] Key '%s' was not found in '%s'"
 
     def get_wrong_uid_with_arrow(
         self, aggregate: BilaraVariantAggregate, base_aggregate: BaseRootAggregate,
     ) -> Set[UID]:
         missing_word_keys = set()
-        omg = "[%s] Word '%s' not found in the base verse: '%s'"
 
         for uid, versus in aggregate.index.items():
             word, *rest = versus.verse.split("→")
             if not rest:
                 continue
             word = word.strip()
-            base_verse: str = base_aggregate.index[uid].verse
+            try:
+                base_verse: str = base_aggregate.index[uid].verse
+            except KeyError:
+                log.error(self._MISSING_KEY, self.name, uid, base_aggregate.name())
+                missing_word_keys.add(uid)
+                continue
 
-            if word not in base_verse:
-                log.error(omg, self.name, word, {uid: base_verse})
+            if (word not in base_verse) and (uid not in VARIANT_ARROW_OK_IDS):
+                log.error(self._MISSING_WORD, self.name, word, {uid: base_verse})
                 missing_word_keys.add(uid)
 
         if missing_word_keys:
@@ -144,9 +173,8 @@ class CheckVariant(ServiceBase):
         unknown_keys = set()
         for uid, versus in aggregate.index.items():
             word, *rest = versus.verse.split("→")
-            if rest:
+            if rest or uid in VARIANT_UNKNOWN_OK_IDS:
                 continue
-            # log.error("No arrow found: '%s'", word)
             unknown_keys.add(uid)
 
         if unknown_keys:
@@ -171,22 +199,33 @@ class CheckService(ServiceBase):
         self.variant = CheckVariant(cfg=cfg)
 
     def get_surplus_segments(
-        self, check_aggregate: BaseRootAggregate, base_aggregate: BaseRootAggregate,
+        self,
+        check_aggregate: BaseRootAggregate,
+        base_aggregate: BaseRootAggregate,
+        false_positive: Set[str] = None,
     ) -> set:
+        false_positive = false_positive or {}
         cb_mapping = {
             BilaraTranslationAggregate: self.translation.get_surplus_segments,
             BilaraHtmlAggregate: self.html.get_surplus_segments,
         }
         callback = cb_mapping.get(type(check_aggregate), self._get_surplus_segments)
-        result = callback(check_aggregate, base_aggregate=base_aggregate)
+        result = callback(
+            check_aggregate,
+            base_aggregate=base_aggregate,
+            false_positive=false_positive,
+        )
         return result
 
     def _get_surplus_segments(
-        self, check_aggregate: BaseRootAggregate, base_aggregate: BaseRootAggregate,
+        self,
+        check_aggregate: BaseRootAggregate,
+        base_aggregate: BaseRootAggregate,
+        false_positive: Set[str],
     ) -> set:
         base_uids = set(base_aggregate.index.keys())
         comm_uids = set(check_aggregate.index.keys())
-        comm_surplus = comm_uids - base_uids
+        comm_surplus = comm_uids - base_uids.union(false_positive)
         if comm_surplus:
             log.error(
                 self._SURPLUS_UIDS,
@@ -205,7 +244,7 @@ class CheckService(ServiceBase):
 
     def check_uid_sequence_in_file(self, aggregate: BilaraRootAggregate):
         error_keys = set()
-        previous_elem = UidKey(":")
+        previous_elem = UidKey(":0-0")
         for uid in aggregate.index:
             if not uid.key.is_next(previous=previous_elem):
                 error_keys.add(uid)

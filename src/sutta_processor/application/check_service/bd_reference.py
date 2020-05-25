@@ -19,6 +19,8 @@ class ReferenceEngine:
     uid_index: Dict[UID, MsId]
     ms_id_index: Dict[MsId, Set[UID]]
 
+    uid_reference: Dict[UID, Set[str]]
+
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     def __init__(self, cfg: Config):
@@ -28,6 +30,7 @@ class ReferenceEngine:
         )
         self.uid_index = self.get_uid_index(raw_index=raw_index)
         self.ms_id_index = self.get_ms_id_index(uid_index=self.uid_index)
+        self.uid_reference = self.get_uid_reference(raw_index=raw_index)
 
         if len(self.uid_index) != len(self.ms_id_index):
             msg = "uid->pali and pali->uid indexes are different lengths. '%s' vs '%s'"
@@ -100,6 +103,26 @@ class ReferenceEngine:
             len_before = len_after
         return raw_index
 
+    @classmethod
+    def get_uid_reference(cls, raw_index: Dict[str, str]) -> Dict[UID, Set[str]]:
+        def get_sources_set(reference_value: str) -> Set[str]:
+            """
+            :param reference_value: sc2, pts-cs1.1, pts-vp-en1.1, pts-vp-pli3.1, ms1V_2
+            """
+            pali_id_set = set()
+            for item in reference_value.split(","):
+                pali_id_set.add(item.strip())
+            return pali_id_set
+
+        index = {}
+        for uid, sources in raw_index.items():  # type: str, str
+            # try:
+            index[UID(uid)] = get_sources_set(reference_value=sources)
+            # except KeyError:
+            #     No reference found for that UID
+            #     pass
+        return index
+
 
 class SCReferenceService:
     _reference_engine: ReferenceEngine = None
@@ -146,6 +169,27 @@ class SCReferenceService:
         if diff:
             log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))
             log.error(self._UID_WRONG, self.__class__.__name__, diff)
+
+    def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
+        wrong_keys = set()
+        for uid in bilara.index.keys():
+            if not uid.startswith("mn") or uid.startswith("mnd"):
+                continue
+            idx = uid.key.seq[0]
+            reference: str = self.reference_engine.uid_reference.get(uid, set())
+            is_to_check = uid.key.seq[-1] == 1 or "nya" in str(reference)
+            if 0 in uid.key.seq or not is_to_check:
+                continue
+            expected_ref = f"nya{idx}"
+
+            if expected_ref not in reference:
+                omg = "[RefEngine] uid '%s' not found in reference: '%s'"
+                log.error(omg, uid, reference)
+                wrong_keys.add(uid)
+        if wrong_keys:
+            omg = "[RefEngine] There are '%s' mn keys not in reference"
+            log.error(omg, len(wrong_keys))
+        return wrong_keys
 
     @property
     def reference_engine(self) -> ReferenceEngine:
