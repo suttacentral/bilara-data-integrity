@@ -17,9 +17,9 @@ def ms_palicanon_load(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
     root: BilaraRootAggregate = cfg.repo.bilara.get_root()
-    # cfg.repo.dump_pickle(aggregate=root)
+    cfg.repo.dump_pickle(aggregate=root)
     pali: YuttaAggregate = cfg.repo.yutta.get_aggregate()
-    # cfg.repo.dump_pickle(aggregate=pali)
+    cfg.repo.dump_pickle(aggregate=pali)
 
     # root: BilaraRootAggregate = cfg.repo.load_pickle(aggregate_cls=BilaraRootAggregate)
     # pali: PaliCanonAggregate = cfg.repo.load_pickle(aggregate_cls=PaliCanonAggregate)
