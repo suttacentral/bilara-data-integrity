@@ -94,7 +94,11 @@ class ReferenceEngine:
         len_before = 0
         for f_pth in reference_root_path.glob("**/*.json"):
             with open(f_pth) as f:
-                data = json.load(f)
+                try:
+                    data = json.load(f)
+                except Exception as e:
+                    log.error("Error loading file '%s'. Error: %s", f_pth, e)
+                    raise
 
             raw_index.update(data)
             len_after = len(raw_index)
