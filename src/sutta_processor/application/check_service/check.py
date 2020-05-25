@@ -209,7 +209,7 @@ class CheckText(ServiceBase):
             return 0 in uid_.key.seq
 
         def is_skipped(uid_: UID) -> bool:
-            is_right_text = uid_.startswith("ds")
+            is_right_text = uid_.startswith("mn10")
             skip_uid = {"ds1.2:200.33"}
             return not is_right_text or is_header(uid_) or uid_ in skip_uid
 
@@ -253,12 +253,20 @@ class CheckText(ServiceBase):
             c["ok"] += 1
         if wrong_keys:
             ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
-            omg = "[%s] Good lines: '%s', errors: '%s' (ratio: %.2f%%), uids: %s"
-            log.error(omg, self.name, c["ok"], c["error"], ratio, wrong_keys)
+            omg = "[%s] Good lines: '%s', errors: '%s' (ratio: %.2f%%), wrong_keys: %s"
+            log.error(omg, self.name, c["ok"], c["error"], ratio, sorted(wrong_keys))
         if missing_reference_uids:
-            omg = "[%s] There are '%s' uids missing from reference. uids: %s"
+            omg = (
+                "[%s] There are '%s' uids which don't have ms_id in the reference. "
+                "processed ids: '%s' "
+                "uids: %s"
+            )
             log.error(
-                omg, self.name, len(missing_reference_uids), missing_reference_uids,
+                omg,
+                self.name,
+                len(missing_reference_uids),
+                c["all"],
+                sorted(missing_reference_uids),
             )
         if missing_sources_ms_id:
             omg = "[%s] There are '%s' ms_id missing from source data. ms_ids: %s"
