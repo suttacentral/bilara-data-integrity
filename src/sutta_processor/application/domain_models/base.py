@@ -140,10 +140,13 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         errors = {}
         all_files = natsorted(root_pth.glob(glob_pattern), alg=ns.PATH)
         c: Counter = Counter(ok=0, error=0, all=len(all_files))
-        for i, f_pth in enumerate(all_files):
+        for i, f_pth in enumerate(all_files):  # type: int, Path
             try:
                 if "xplayground" in f_pth.parts:
                     raise SkipFileError()
+                if not f_pth.name.startswith("mn") and f_pth.name.endswith(".json"):
+                    c["all"] -= 1
+                    continue
                 file_aggregate = file_aggregate_cls.from_file(f_pth=f_pth)
                 cls._update_index(index=index, file_aggregate=file_aggregate)
                 errors.update(file_aggregate.errors)

@@ -124,7 +124,10 @@ class UidKey:
         return is_str_head_in_sequence()
 
 
-class UID(str):
+BaseUID = str
+
+
+class UID(BaseUID):
     ALLOWED_SET = set(string.ascii_letters + string.digits + "-:.")
 
     def __new__(cls, content: str):
@@ -153,7 +156,7 @@ class PaliCrumb(str):
         return self.parts[0]
 
 
-class MsId(str):
+class MsId(BaseUID):
     XML_ID_P = "p_"  # Used in original XML docs
     XML_ID_H = "h_"
     MS_ID = "ms"  # Used everywhere else to reference this source

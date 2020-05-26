@@ -1,7 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
 import attr
 from natsort import natsorted, ns
@@ -9,6 +9,7 @@ from natsort import natsorted, ns
 from sutta_processor.application.domain_models.base import BaseRootAggregate
 from sutta_processor.application.value_objects import MsId
 
+from ...value_objects.verse import VerseTokens
 from .base import YuttaFileAggregate, YuttaVersus
 
 log = logging.getLogger(__name__)
@@ -18,6 +19,9 @@ log = logging.getLogger(__name__)
 class YuttaAggregate(BaseRootAggregate):
     file_aggregates: Tuple[YuttaFileAggregate]
     index: Dict[MsId, YuttaVersus]
+
+    _text_index: Dict[VerseTokens, Set[MsId]]
+    _text_head_index: Dict[VerseTokens.HeadKey, Set[VerseTokens]]
 
     @classmethod
     def from_path(cls, root_pth: Path) -> "YuttaAggregate":

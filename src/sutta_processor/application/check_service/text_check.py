@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
-from typing import Optional, Set
+from dataclasses import dataclass
+from typing import List, Optional, Set
 
 from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
@@ -8,16 +9,103 @@ from sutta_processor.application.domain_models import (
 )
 from sutta_processor.application.domain_models.base import BaseVersus
 from sutta_processor.application.domain_models.ms_yuttadhammo.base import YuttaVersus
-from sutta_processor.application.value_objects import UID, MsId
+from sutta_processor.application.value_objects import UID, BaseUID, MsId, VerseTokens
 
+from ...shared.exceptions import NoTokensError
 from .base import ServiceBase
 from .bd_reference import SCReferenceService
 
 log = logging.getLogger(__name__)
 
 
-class TextMatcher(ServiceBase):
-    pass
+@dataclass
+class KeyToken:
+    uid: BaseUID
+    token: str
+
+
+class TextMatcher:
+    # TODO: Check which ids were not matched in root
+    # TODO: Check which ms_ids didn't found a match
+    # TODO: Check which...
+    def __init__(self, root: BilaraRootAggregate, pali: YuttaAggregate):
+        def get_unmatched_root_index() -> List[KeyToken]:
+            unmatched_index = []
+            for uid, versus in root.index.items():
+                try:
+                    for token in versus.verse.tokens:
+                        unmatched_index.append(KeyToken(uid, token))
+                except NoTokensError:
+                    pass
+            return unmatched_index
+
+        self.c: Counter = Counter(
+            ok=0, error=0, all=0, missing_in_index=0, missing_in_reference=0
+        )
+        self.wrong_keys = set()
+        self.root = root
+        self.pali = pali
+
+        self.unmatched_index: List[KeyToken] = get_unmatched_root_index()
+
+    def get_missing_root_text_from_ms(self) -> set:
+
+        for i, items in enumerate(self.pali.text_index.items()):
+            tokens, ms_ids = items
+            # if "ms25Cn_738" not in uids:
+            #     continue
+            try:
+                self.process_yutta_verse(i=i, yutta_verse_tokens=tokens, ms_ids=ms_ids)
+            except Exception as e:
+                log.exception(e)
+        return self.wrong_keys
+
+    def process_yutta_verse(
+        self, i: int, yutta_verse_tokens: VerseTokens, ms_ids: Set[MsId]
+    ):
+        def get_starting_match_index():
+            yutta_idx = 0
+            yutta_len = len(yutta_verse_tokens)
+            for i, key_token in enumerate(self.unmatched_index):
+                if key_token.token == yutta_verse_tokens[yutta_idx]:
+                    if yutta_idx == 2:
+                        print(key_token.token)
+                        print("yutta tokens:", yutta_verse_tokens)
+                        print("root tokens:", self.unmatched_index[i : i + yutta_len])
+                        print()
+                    yutta_idx += 1
+                    if yutta_idx == yutta_len:
+                        return i
+                yutta_idx = 0
+            else:
+                raise RuntimeError("No tokens match found")
+
+        self.c["all"] += 1
+        try:
+            start_idx = get_starting_match_index()
+            end_idx = len(yutta_verse_tokens)
+            log.error("Token match found! %s, %s", start_idx, yutta_verse_tokens)
+            self.unmatched_index[start_idx:end_idx] = []
+        except Exception:
+            # log.exception(e)
+            return
+        self.c["ok"] += 1
+
+    def handle_missing(self):
+        ...
+
+    def print_summary(self):
+        ratio = (self.c["error"] / self.c["all"]) * 100 if self.c["all"] else 0
+        omg = "[%s] Found keys: '%s', errors: '%s' (ratio: %.2f%%), wrong_keys: %s"
+        log.error(omg, self.name, self.c["ok"], self.c["error"], ratio, self.wrong_keys)
+        # for i, ms_id in enumerate(self.wrong_keys):
+        #     if i > 10:
+        #         break
+        #     self.print_verse_details(ms_id=ms_id, root=self.root, pali=self.pali)
+
+    @property
+    def name(self):
+        return self.__class__.__name__
 
 
 class CheckText(ServiceBase):
@@ -105,6 +193,12 @@ class CheckText(ServiceBase):
                 omg, self.name, len(missing_sources_ms_id), missing_sources_ms_id,
             )
         return wrong_keys
+
+    def get_missing_root_text_from_ms(
+        self, root: BilaraRootAggregate, pali: YuttaAggregate
+    ):
+        result = TextMatcher(root=root, pali=pali).get_missing_root_text_from_ms()
+        return result
 
     def get_missing_text_ms_source(
         self, root: BilaraRootAggregate, pali: YuttaAggregate
