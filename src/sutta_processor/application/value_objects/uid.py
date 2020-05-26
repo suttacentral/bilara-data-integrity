@@ -124,14 +124,22 @@ class UidKey:
         return is_str_head_in_sequence()
 
 
-class UID(str):
+BaseUID = str
+RootUID = str
+
+
+class UID(BaseUID):
     ALLOWED_SET = set(string.ascii_letters + string.digits + "-:.")
+
+    root: RootUID  # uid: mn143:20.3 -> base: mn143:20
 
     def __new__(cls, content: str):
         if not set(content).issubset(cls.ALLOWED_SET):
             raise SegmentIdError(f"Invalid uid: '{content}'")
         uid = super().__new__(cls, content)
-        uid.key = UidKey(raw=content)
+        key = UidKey(raw=content)
+        uid.key = key
+        uid.root = f"{key.key}{key.seq.head}"
         return uid
 
 
@@ -153,7 +161,7 @@ class PaliCrumb(str):
         return self.parts[0]
 
 
-class MsId(str):
+class MsId(BaseUID):
     XML_ID_P = "p_"  # Used in original XML docs
     XML_ID_H = "h_"
     MS_ID = "ms"  # Used everywhere else to reference this source

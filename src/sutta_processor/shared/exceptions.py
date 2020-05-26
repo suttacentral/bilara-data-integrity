@@ -10,6 +10,10 @@ class SegmentIdError(SuttaError):
     pass
 
 
+class NoTokensError(SuttaError):
+    pass
+
+
 class MsIdError(SuttaError):
     pass
 

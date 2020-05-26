@@ -1,13 +1,15 @@
 import logging
 import pprint
 import re
-from typing import Set
+from itertools import zip_longest
+from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
+    YuttaAggregate,
 )
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
@@ -20,19 +22,12 @@ from sutta_processor.shared.false_positives import (
     VARIANT_UNKNOWN_OK_IDS,
 )
 
+from .base import ServiceBase
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
+from .text_check import CheckText
 
 log = logging.getLogger(__name__)
-
-
-class ServiceBase:
-    def __init__(self, cfg: Config):
-        self.cfg = cfg
-
-    @property
-    def name(self) -> str:
-        return self.__class__.__name__
 
 
 class CheckHtml(ServiceBase):
@@ -197,6 +192,8 @@ class CheckService(ServiceBase):
         self.html = CheckHtml(cfg=cfg)
         self.translation = CheckTranslation(cfg=cfg)
         self.variant = CheckVariant(cfg=cfg)
+        self.text = CheckText(cfg=cfg)
+        self.sequence = SequenceCheck(cfg=cfg)
 
     def get_surplus_segments(
         self,
@@ -293,3 +290,103 @@ class CheckService(ServiceBase):
             msg = "[%s] blank UIDs: %s"
             log.error(msg, self.name, sorted(error_keys))
         return error_keys
+
+    def get_unordered_segments(
+        self, aggregate: BaseRootAggregate, false_positive: Set[str] = None
+    ):
+        if isinstance(aggregate, BilaraTranslationAggregate):
+            wrong_uids = set()
+            for lang, lang_index in aggregate.index.items():
+                unordered_seg = self.sequence.get_unordered_segments(index=lang_index)
+
+                if unordered_seg:
+                    omg = "[%s] There are '%s' unordered segments for lang: '%s'"
+                    log.error(omg, self.name, len(unordered_seg), lang)
+                wrong_uids.update(unordered_seg)
+            return wrong_uids
+
+        unordered_seg = self.sequence.get_unordered_segments(index=aggregate.index)
+        if unordered_seg:
+            omg = "[%s] There are '%s' unordered segments: %s"
+            log.error(omg, self.name, len(unordered_seg), sorted(unordered_seg))
+        return unordered_seg
+
+
+class SequenceCheck(ServiceBase):
+    def get_unordered_segments(self, index: Dict[UID, BaseVersus]) -> Set[UID]:
+        wrong_uid = set()
+        previous = UidKey(":0-0")
+        for uid in index:
+            current = uid.key
+            if not self.is_key_in_seq(previous, current):
+                omg = "[%s] Sequence error. Previous: '%s' current: '%s"
+                log.error(omg, self.name, previous.raw, current.raw)
+                wrong_uid.add(uid)
+            previous = uid.key
+        return wrong_uid
+
+    @classmethod
+    def is_key_in_seq(cls, previous: UidKey, current: UidKey) -> bool:
+        def is_new_file():
+            """ Reset sequence when new file. """
+            return current.key != previous.key
+
+        def is_same_level():
+            return len(current.seq) == len(previous.seq)
+
+        def is_last_gt():
+            return current.seq.last > previous.seq.last
+
+        def is_last_lt():
+            """When jumping to next, shorter, block."""
+            return current.seq.last < previous.seq.last
+
+        def is_second_last_1gt():
+            try:
+                return current.seq.second_last == previous.seq.second_last + 1
+            except ValueError:
+                return False
+
+        def is_level_lt():
+            return len(current.seq) < len(previous.seq)
+
+        def is_seq_gt():
+            for we, them in zip_longest(current.seq, previous.seq):
+                try:
+                    if we > them:
+                        return True
+                except TypeError:
+                    # Some are baked: '7-8' and they stay in str
+                    return False
+            return False
+
+        def is_str_head_in_sequence():
+            """ Resolve:
+            previous: 'mn13:23-28.6' current: 'mn13:29.1'
+            Previous: 'mn13:32.5' current: 'mn13:33-35.1'
+            Previous: 'mn28:33-34.1' current: 'mn28:35-36.1'
+            """
+            current_sequence_number = current.seq.head
+            previous_sequence_number = previous.seq.head
+            if isinstance(current_sequence_number, str):
+                current_sequence_number = int(current_sequence_number.split("-")[0])
+            if isinstance(previous_sequence_number, str):
+                previous_sequence_number = int(previous_sequence_number.split("-")[-1])
+            return current_sequence_number == previous_sequence_number + 1
+
+        if is_new_file():
+            return True
+        elif is_same_level():
+            if is_last_gt():
+                return True
+            if is_second_last_1gt():
+                return True
+            if is_seq_gt():
+                return True
+        else:
+            if is_seq_gt():
+                return True
+            if is_level_lt() and is_last_lt():
+                # sequence should be shorter and start from 0,1
+                return True
+        return is_str_head_in_sequence()

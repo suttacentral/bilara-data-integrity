@@ -7,23 +7,27 @@ from lxml.etree import _Element
 
 from sutta_processor.application.value_objects import MsId, MsVerse
 
+from ..base import BaseFileAggregate, BaseVersus
 from .extractors import YuttaExtractor
 
 log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class YuttaVersus:
+class YuttaVersus(BaseVersus):
     ms_id: MsId
-    verse: MsVerse
+    verse: MsVerse = attr.ib(converter=MsVerse)
+    raw_uid: None = attr.ib(init=False, default=None)
+
+    def __attrs_post_init__(self):
+        pass
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class YuttaFileAggregate:
+class YuttaFileAggregate(BaseFileAggregate):
     versets: Tuple[YuttaVersus]
     index: Dict[MsId, YuttaVersus]
 
-    f_pth: Path
     raw_xml: str
     raw_html: str
 
@@ -32,26 +36,10 @@ class YuttaFileAggregate:
     extractor = YuttaExtractor
 
     @classmethod
-    def convert_to_html(cls, f_pth: Path) -> "YuttaFileAggregate":
-        """ When doing the conversion there won't be any indexes loaded. """
-        index = {}
-        raw_xml = cls.get_raw_source(f_pth=f_pth)
-        raw_html = cls.extractor.get_html_from_xml(xml_string=raw_xml)
-        kwargs = {
-            "f_pth": f_pth,
-            "index": index,
-            "raw_xml": raw_xml,
-            "raw_html": raw_html,
-            "versets": tuple(index.values()),
-        }
-        return cls(**kwargs)
-
-    @classmethod
     def from_file(cls, f_pth: Path) -> "YuttaFileAggregate":
         """
         :param f_pth: Must be path to cleaned html file
         """
-        index = {}
         raw_html = cls.get_raw_source(f_pth=f_pth)
         page = cls.extractor.get_page_from_html(html=raw_html)
         index: Dict[MsId, YuttaVersus] = cls.get_index(page=page)
@@ -62,8 +50,13 @@ class YuttaFileAggregate:
             "raw_html": raw_html,
             "raw_xml": "",
             "versets": tuple(index.values()),
+            "errors": tuple(),
         }
         return cls(**kwargs)
+
+    @classmethod
+    def from_dict(cls, in_dto: dict, f_pth: Path) -> "YuttaFileAggregate":
+        return cls(**in_dto)
 
     @classmethod
     def get_index(cls, page: _Element) -> Dict[MsId, YuttaVersus]:
@@ -98,3 +91,19 @@ class YuttaFileAggregate:
     def get_raw_source(cls, f_pth: Path) -> str:
         with open(f_pth) as f:
             return f.read()
+
+    @classmethod
+    def convert_to_html(cls, f_pth: Path) -> "YuttaFileAggregate":
+        """ When doing the conversion there won't be any indexes loaded. """
+        index = {}
+        raw_xml = cls.get_raw_source(f_pth=f_pth)
+        raw_html = cls.extractor.get_html_from_xml(xml_string=raw_xml)
+        kwargs = {
+            "f_pth": f_pth,
+            "index": index,
+            "raw_xml": raw_xml,
+            "raw_html": raw_html,
+            "versets": tuple(index.values()),
+            "errors": tuple(),
+        }
+        return cls.from_dict(in_dto=kwargs, f_pth=f_pth)

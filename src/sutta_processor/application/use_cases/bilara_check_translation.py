@@ -20,3 +20,4 @@ def bilara_check_translation(cfg: Config):
     cfg.check.get_surplus_segments(
         check_aggregate=bilara_tran, base_aggregate=bilara_html
     )
+    cfg.check.get_unordered_segments(aggregate=bilara_tran)

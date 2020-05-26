@@ -24,3 +24,4 @@ def bilara_check_comment(cfg: Config):
         base_aggregate=bilara_root,
         false_positive=COMMENT_NOT_IN_ROOT_OK,
     )
+    cfg.check.get_unordered_segments(aggregate=bilara_comm)
