@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 # noinspection PyDataclass
-def ms_palicanon_load(cfg: Config):
+def ms_yuttadhammo_match_root_text(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
     root: BilaraRootAggregate = cfg.repo.bilara.get_root()
