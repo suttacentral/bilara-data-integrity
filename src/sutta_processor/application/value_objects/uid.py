@@ -125,16 +125,21 @@ class UidKey:
 
 
 BaseUID = str
+RootUID = str
 
 
 class UID(BaseUID):
     ALLOWED_SET = set(string.ascii_letters + string.digits + "-:.")
 
+    root: RootUID  # uid: mn143:20.3 -> base: mn143:20
+
     def __new__(cls, content: str):
         if not set(content).issubset(cls.ALLOWED_SET):
             raise SegmentIdError(f"Invalid uid: '{content}'")
         uid = super().__new__(cls, content)
-        uid.key = UidKey(raw=content)
+        key = UidKey(raw=content)
+        uid.key = key
+        uid.root = f"{key.key}{key.seq.head}"
         return uid
 
 

@@ -25,6 +25,7 @@ from sutta_processor.shared.false_positives import (
 from .base import ServiceBase
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
+from .text_check import CheckText
 
 log = logging.getLogger(__name__)
 
@@ -191,8 +192,6 @@ class CheckService(ServiceBase):
         self.html = CheckHtml(cfg=cfg)
         self.translation = CheckTranslation(cfg=cfg)
         self.variant = CheckVariant(cfg=cfg)
-        from .text_check import CheckText
-
         self.text = CheckText(cfg=cfg)
         self.sequence = SequenceCheck(cfg=cfg)
 

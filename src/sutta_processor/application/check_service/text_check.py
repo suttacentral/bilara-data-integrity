@@ -1,7 +1,8 @@
 import logging
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import List, Optional, Set
+from difflib import SequenceMatcher
+from typing import Dict, List, Optional, Set
 
 from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
@@ -9,35 +10,54 @@ from sutta_processor.application.domain_models import (
 )
 from sutta_processor.application.domain_models.base import BaseVersus
 from sutta_processor.application.domain_models.ms_yuttadhammo.base import YuttaVersus
-from sutta_processor.application.value_objects import UID, BaseUID, MsId, VerseTokens
+from sutta_processor.application.value_objects import (
+    UID,
+    BaseUID,
+    MsId,
+    RootUID,
+    Verse,
+    VerseTokens,
+)
+from sutta_processor.shared.exceptions import NoTokensError
 
-from ...shared.exceptions import NoTokensError
+from ..domain_models.bilara_root.root import Versus
 from .base import ServiceBase
 from .bd_reference import SCReferenceService
+from .tokenizer import VersetTokenizer
 
 log = logging.getLogger(__name__)
 
 
 @dataclass
-class KeyToken:
-    uid: BaseUID
-    token: str
+class RootUidTokens:
+    uid: RootUID
+    tokens: VerseTokens
 
 
 class TextMatcher:
     # TODO: Check which ids were not matched in root
     # TODO: Check which ms_ids didn't found a match
     # TODO: Check which...
+
+    roots_uid_tokens_index: Dict[RootUID, RootUidTokens]
+
     def __init__(self, root: BilaraRootAggregate, pali: YuttaAggregate):
-        def get_unmatched_root_index() -> List[KeyToken]:
-            unmatched_index = []
+        def get_unmatched_root_index() -> Dict[RootUID, RootUidTokens]:
+            index_combined: Dict[RootUID, List[Versus]] = defaultdict(list)
+            index_text_combined: Dict[RootUID, RootUidTokens] = {}
             for uid, versus in root.index.items():
+                if 0 in uid.key.seq:
+                    continue
+                index_combined[uid.root].append(versus)
+
+            for root_uid, versus_list in index_combined.items():
                 try:
-                    for token in versus.verse.tokens:
-                        unmatched_index.append(KeyToken(uid, token))
-                except NoTokensError:
-                    pass
-            return unmatched_index
+                    txt = " ".join((versus.verse for versus in versus_list))
+                    tokens = VersetTokenizer.get_tokens(txt)
+                    index_text_combined[root_uid] = RootUidTokens(root_uid, tokens)
+                except NoTokensError as e:
+                    log.error(e)
+            return index_text_combined
 
         self.c: Counter = Counter(
             ok=0, error=0, all=0, missing_in_index=0, missing_in_reference=0
@@ -46,53 +66,49 @@ class TextMatcher:
         self.root = root
         self.pali = pali
 
-        self.unmatched_index: List[KeyToken] = get_unmatched_root_index()
+        self.roots_uid_tokens_index = get_unmatched_root_index()
 
     def get_missing_root_text_from_ms(self) -> set:
 
-        for i, items in enumerate(self.pali.text_index.items()):
-            tokens, ms_ids = items
+        for i, versus in enumerate(self.pali.index.values()):
+            # ms_id, versus = item  # type: MsId, YuttaVersus
             # if "ms25Cn_738" not in uids:
             #     continue
+            if i > 30:
+                break
             try:
-                self.process_yutta_verse(i=i, yutta_verse_tokens=tokens, ms_ids=ms_ids)
+                self.process_yutta_verse(i=i, versus=versus)
             except Exception as e:
                 log.exception(e)
+        log.error("-" * 80)
+        log.error("-" * 80)
         return self.wrong_keys
 
-    def process_yutta_verse(
-        self, i: int, yutta_verse_tokens: VerseTokens, ms_ids: Set[MsId]
-    ):
-        def get_starting_match_index():
-            yutta_idx = 0
-            yutta_len = len(yutta_verse_tokens)
-            for i, key_token in enumerate(self.unmatched_index):
-                if key_token.token == yutta_verse_tokens[yutta_idx]:
-                    if yutta_idx == 2:
-                        print(key_token.token)
-                        print("yutta tokens:", yutta_verse_tokens)
-                        print("root tokens:", self.unmatched_index[i : i + yutta_len])
-                        print()
-                    yutta_idx += 1
-                    if yutta_idx == yutta_len:
-                        return i
-                yutta_idx = 0
-            else:
-                raise RuntimeError("No tokens match found")
+    def process_yutta_verse(self, i: int, versus: YuttaVersus):
+        def get_ratio():
+            ratio_map = {}
+            matcher = SequenceMatcher()
+            matcher.set_seq1(versus.verse.tokens)
+            for root_tokens in self.roots_uid_tokens_index.values():
+                matcher.set_seq2(root_tokens.tokens)
+                ratio = matcher.quick_ratio()
+                if ratio > 0.7:
+                    omg = "Ratio for yt: '%s' root: '%s', ratio: %s"
+                    log.error(omg, versus.ms_id, root_tokens.uid, ratio)
+                    ratio_map[root_tokens.uid] = ratio
+            if not ratio_map:
+                omg = "Couldn't find a match ms_uid: '%s' tokes: %s"
+                log.error(omg, versus.ms_id, versus.verse.tokens)
+            return ratio_map
 
+        self.ratios: Dict[MsId, Dict[RootUID, float]] = defaultdict(dict)
         self.c["all"] += 1
         try:
-            start_idx = get_starting_match_index()
-            end_idx = len(yutta_verse_tokens)
-            log.error("Token match found! %s, %s", start_idx, yutta_verse_tokens)
-            self.unmatched_index[start_idx:end_idx] = []
-        except Exception:
-            # log.exception(e)
+            self.ratios[versus.ms_id] = get_ratio()
+        except Exception as e:
+            log.exception(e)
             return
         self.c["ok"] += 1
-
-    def handle_missing(self):
-        ...
 
     def print_summary(self):
         ratio = (self.c["error"] / self.c["all"]) * 100 if self.c["all"] else 0
