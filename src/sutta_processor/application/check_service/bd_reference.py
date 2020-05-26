@@ -7,6 +7,7 @@ from typing import Dict, Set
 from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
     PaliCanonAggregate,
+    YuttaAggregate,
 )
 from sutta_processor.application.value_objects import UID, MsId
 from sutta_processor.shared.config import Config
@@ -138,33 +139,26 @@ class SCReferenceService:
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
-    def log_missing_ms_id_from_reference(self, pali_aggregate: PaliCanonAggregate):
+    def get_missing_ms_id_from_reference(self, aggregate: YuttaAggregate):
         diff = sorted(
-            {
-                k
-                for k in pali_aggregate.index
-                if k not in self.reference_engine.ms_id_index
-            }
+            {k for k in aggregate.index if k not in self.reference_engine.ms_id_index}
         )
         if diff:
             log.error(self._MS_REF_MISS_COUNT, self.__class__.__name__, len(diff))
             log.error(self._MS_REF_MISS, self.__class__.__name__, diff)
+        return diff
 
-    def log_wrong_ms_id_in_reference_data(self, pali_aggregate: PaliCanonAggregate):
+    def log_wrong_ms_id_in_reference_data(self, aggregate: YuttaAggregate):
         diff = sorted(
-            {
-                k
-                for k in self.reference_engine.ms_id_index
-                if k not in pali_aggregate.index
-            }
+            {k for k in self.reference_engine.ms_id_index if k not in aggregate.index}
         )
         if diff:
             log.error(self._MS_REF_MISS, self.__class__.__name__, len(diff))
             log.error(self._MS_WRONG, self.__class__.__name__, diff)
 
-    def log_wrong_uid_in_reference_data(self, bilara_root: BilaraRootAggregate):
+    def log_wrong_uid_in_reference_data(self, bilara: BilaraRootAggregate):
         diff = sorted(
-            {k for k in self.reference_engine.uid_index if k not in bilara_root.index}
+            {k for k in self.reference_engine.uid_index if k not in bilara.index}
         )
         if diff:
             log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))

@@ -144,9 +144,6 @@ class BaseRootAggregate(ABC, TextCompareMixin):
             try:
                 if "xplayground" in f_pth.parts:
                     raise SkipFileError()
-                if not f_pth.name.startswith("mn") and f_pth.name.endswith(".json"):
-                    c["all"] -= 1
-                    continue
                 file_aggregate = file_aggregate_cls.from_file(f_pth=f_pth)
                 cls._update_index(index=index, file_aggregate=file_aggregate)
                 errors.update(file_aggregate.errors)

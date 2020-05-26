@@ -20,8 +20,8 @@ class YuttaAggregate(BaseRootAggregate):
     file_aggregates: Tuple[YuttaFileAggregate]
     index: Dict[MsId, YuttaVersus]
 
-    _text_index: Dict[VerseTokens, Set[MsId]]
-    _text_head_index: Dict[VerseTokens.HeadKey, Set[VerseTokens]]
+    _text_index: Dict[VerseTokens, Set[MsId]] = attr.ib(init=False)
+    _text_head_index: Dict[VerseTokens.HeadKey, Set[VerseTokens]] = attr.ib(init=False)
 
     @classmethod
     def from_path(cls, root_pth: Path) -> "YuttaAggregate":
