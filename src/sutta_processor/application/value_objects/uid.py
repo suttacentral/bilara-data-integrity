@@ -6,14 +6,17 @@ from typing import Union
 
 import attr
 
-from sutta_processor.shared.exceptions import MsIdError, PaliXmlIdError, SegmentIdError
+from sutta_processor.shared.exceptions import (
+    MsIdError,
+    PaliXmlIdError,
+    ScIdError,
+    SegmentIdError,
+)
 
 log = logging.getLogger(__name__)
 
 
-class RawUID(str):
-    def __new__(cls, content: str):
-        return super().__new__(cls, content)
+RawUID = str
 
 
 class Sequence(tuple):
@@ -126,6 +129,16 @@ class UidKey:
 
 BaseUID = str
 RootUID = str
+
+
+class ScID(BaseUID):
+    sc_segment = re.compile(r"sc\d+?")
+
+    def __new__(cls, content: str):
+        if not cls.sc_segment.match(content):
+            raise ScIdError(f"'{content}' is not sc id")
+        sc_id = super().__new__(cls, content)
+        return sc_id
 
 
 class UID(BaseUID):

@@ -8,7 +8,7 @@ from sutta_processor.application.domain_models.base import (
     BaseRootAggregate,
     BaseVersus,
 )
-from sutta_processor.application.value_objects import UID, Verse, References
+from sutta_processor.application.value_objects import UID, References, Verse
 
 log = logging.getLogger(__name__)
 

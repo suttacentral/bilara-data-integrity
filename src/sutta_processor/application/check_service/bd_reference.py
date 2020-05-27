@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
+    BilaraReferenceAggregate,
     BilaraRootAggregate,
     PaliCanonAggregate,
     YuttaAggregate,
-    BilaraReferenceAggregate,
 )
 from sutta_processor.application.value_objects import UID, MsId
 from sutta_processor.shared.config import Config
@@ -168,6 +168,10 @@ class SCReferenceService:
     def update_references_from_concordance(
         self, reference: BilaraReferenceAggregate, text_filter="mn1"
     ):
+        for uid in reference.index:
+            if uid.key.key != text_filter:
+                continue
+            print("Doing", uid)
         print("Here we will update the corcondance!")
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):

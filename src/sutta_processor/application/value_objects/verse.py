@@ -1,7 +1,9 @@
 from abc import ABC
 from collections import namedtuple
 
-from sutta_processor.shared.exceptions import NoTokensError
+from sutta_processor.shared.exceptions import ScIdError
+
+from .uid import ScID
 
 
 class RawVerse(str):
@@ -9,14 +11,26 @@ class RawVerse(str):
         return super().__new__(cls, content)
 
 
-class References(list):
-    def __new__(cls, *a):
-        if len(a) == 1:
-            parts = a[0].split(',')
-            # if parts
+class References(set):
+    sc_id: ScID
 
-        print('a', a, 'kw', kw)
-        return super().__new__(cls, *a, **kw)
+    def __new__(cls, *a):
+        sc_id = ""
+        if len(a) == 1:
+            parts = set()
+            for part in a[0].split(","):
+                try:
+                    part = ScID(part)
+                    sc_id = part
+                except ScIdError:
+                    pass
+                parts.add(part)
+        else:
+            parts = a
+
+        references = super().__new__(cls, *parts)
+        references.sc_id = sc_id
+        return references
 
 
 class VerseTokens(tuple):

@@ -319,10 +319,10 @@ class CheckService(ServiceBase):
         # log.error("senta len: %s", len(sentences_a))
         # log.error("sentb: len: %s", len(sentences_b))
         # log.error("sentences_a == sentences_b: %s", sentences_a == sentences_b)
-        log.error("id that were and are no longer: %s",
-                  len(set(bilara_begin.index)-
-                  set(bilara.index)),
-                  )
+        log.error(
+            "id that were and are no longer: %s",
+            len(set(bilara_begin.index) - set(bilara.index)),
+        )
 
 
 class SequenceCheck(ServiceBase):

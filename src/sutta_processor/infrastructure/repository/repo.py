@@ -9,12 +9,12 @@ from typing import Set
 from sutta_processor.application.domain_models import (
     BilaraCommentAggregate,
     BilaraHtmlAggregate,
+    BilaraReferenceAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
     PaliCanonAggregate,
     YuttaAggregate,
-    BilaraReferenceAggregate,
 )
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
