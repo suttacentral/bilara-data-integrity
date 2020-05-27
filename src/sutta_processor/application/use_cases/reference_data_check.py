@@ -43,11 +43,13 @@ def reference_data_check(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
     # yutta_aggregate: YuttaAggregate = cfg.repo.yutta.get_aggregate()
-    reference: BilaraReferenceAggregate = cfg.repo.bilara.get_reference()
+    # reference: BilaraReferenceAggregate = cfg.repo.bilara.get_reference()
     concordance: ConcordanceAggregate = cfg.repo.bilara.get_concordance()
-    cfg.check.reference.update_references_from_concordance(
-        reference=reference, concordance=concordance
-    )
+    # cfg.check.reference.update_references_from_concordance(
+    #     reference=reference, concordance=concordance
+    # )
+    # cfg.repo.bilara.save(aggregate=reference)
+    cfg.repo.bilara.save(aggregate=concordance)
 
     # cfg.check.save_csv_diff(bilara=bilara_root, bilara_begin=bilara_root_begin)
     # cfg.check.reference.get_missing_ms_id_from_reference(aggregate=yutta_aggregate)

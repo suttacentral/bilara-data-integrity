@@ -30,11 +30,17 @@ class ReferenceVersus(BaseVersus):
 @attr.s(frozen=True, auto_attribs=True)
 class BilaraReferenceFileAggregate(BaseFileAggregate):
     versus_class = ReferenceVersus
+    index: Dict[UID, ReferenceVersus]
 
     @classmethod
     def from_dict(cls, in_dto: dict, f_pth: Path) -> "BilaraReferenceFileAggregate":
         index, errors = cls._from_dict(in_dto=in_dto)
         return cls(index=index, errors=errors, f_pth=f_pth)
+
+    @property
+    def data(self) -> Dict[str, str]:
+        verses = (vers for vers in self.index.values())
+        return {v.uid: v.references.data for v in verses}
 
 
 @attr.s(frozen=True, auto_attribs=True, str=False)

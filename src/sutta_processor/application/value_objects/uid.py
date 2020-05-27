@@ -48,16 +48,19 @@ class Sequence(tuple):
         return int(self[-2])
 
 
+BaseTextKey = str
+
+
 @attr.s(frozen=True, auto_attribs=True)
 class UidKey:
     raw: str
-    key: str = attr.ib(init=False)
+    key: BaseTextKey = attr.ib(init=False)
     seq: Sequence = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         key, raw_seq = self.raw.split(":")
         seq = Sequence.from_str(raw_seq=raw_seq)
-        object.__setattr__(self, "key", key)
+        object.__setattr__(self, "key", BaseTextKey(key))
         object.__setattr__(self, "seq", seq)
 
     def is_next(self, previous: "UidKey"):

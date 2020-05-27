@@ -11,7 +11,7 @@ class RawVerse(str):
         return super().__new__(cls, content)
 
 
-class References(set):
+class References(tuple):
     sc_id: ScID
 
     def __new__(cls, *a):
@@ -24,7 +24,10 @@ class References(set):
             parts = set()
             ids = a[0]
             if isinstance(ids, str):
-                ids = ids.split(",")
+                if "," in ids:
+                    ids = ids.split(",")
+                else:
+                    ids = [ids]
             for part in ids:
                 part = part.strip()
                 try:
@@ -35,10 +38,19 @@ class References(set):
                 parts.add(part)
         else:
             parts = a
-
-        references = super().__new__(cls, *parts)
+        references = super().__new__(cls, parts)
         references.sc_id = sc_id
         return references
+
+    @property
+    def data(self) -> str:
+        return ", ".join(sorted(set(self)))
+
+
+class ReferencesConcordance(References):
+    @property
+    def data(self) -> list:
+        return list(sorted(set(self)))
 
 
 class VerseTokens(tuple):

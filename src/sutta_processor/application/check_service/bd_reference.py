@@ -11,7 +11,7 @@ from sutta_processor.application.domain_models import (
     PaliCanonAggregate,
     YuttaAggregate,
 )
-from sutta_processor.application.value_objects import UID, MsId
+from sutta_processor.application.value_objects import UID, BaseTextKey, MsId
 from sutta_processor.shared.config import Config
 from sutta_processor.shared.exceptions import MsIdError, MultipleIdFoundError
 
@@ -170,16 +170,17 @@ class SCReferenceService:
         self,
         reference: BilaraReferenceAggregate,
         concordance: ConcordanceAggregate,
-        text_filter="mn1",
+        text_filter: BaseTextKey = "mn1",
     ):
         for uid, root_ref in reference.index.items():
             if uid.key.key != text_filter:
                 continue
             if not root_ref.references.sc_id:
                 continue
-            # con_uid = concordance.ref_index.get(uid.key.key, {})
-            print()
+            sc_index = concordance.ref_index[uid.key.key]
+            new_refs = sc_index[root_ref.references.sc_id]
             print("Doing", uid)
+            print("Adding new refs", new_refs)
         print("Here we will update the corcondance!")
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
