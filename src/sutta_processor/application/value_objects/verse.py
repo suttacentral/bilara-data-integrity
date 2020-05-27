@@ -15,10 +15,18 @@ class References(set):
     sc_id: ScID
 
     def __new__(cls, *a):
+        """
+        From root_reference: ('sc38, pts-vp-pli11, ms24Mn_38',)
+        From concordance: (['sc91', 'ms24Mn_767', 'cck26.187', 'bj33.276'],)
+        """
         sc_id = ""
         if len(a) == 1:
             parts = set()
-            for part in a[0].split(","):
+            ids = a[0]
+            if isinstance(ids, str):
+                ids = ids.split(",")
+            for part in ids:
+                part = part.strip()
                 try:
                     part = ScID(part)
                     sc_id = part

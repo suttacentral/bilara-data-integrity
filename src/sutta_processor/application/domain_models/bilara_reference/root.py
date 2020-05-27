@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import Dict
 
 import attr
 
@@ -38,6 +39,8 @@ class BilaraReferenceFileAggregate(BaseFileAggregate):
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class BilaraReferenceAggregate(BaseRootAggregate):
+    index: Dict[UID, ReferenceVersus]
+
     @classmethod
     def from_path(cls, root_pth: Path) -> "BilaraReferenceAggregate":
         file_aggregates, index, errors = cls._from_path(

@@ -7,6 +7,7 @@ from typing import Dict, Set
 from sutta_processor.application.domain_models import (
     BilaraReferenceAggregate,
     BilaraRootAggregate,
+    ConcordanceAggregate,
     PaliCanonAggregate,
     YuttaAggregate,
 )
@@ -166,11 +167,18 @@ class SCReferenceService:
             log.error(self._UID_WRONG, self.__class__.__name__, diff)
 
     def update_references_from_concordance(
-        self, reference: BilaraReferenceAggregate, text_filter="mn1"
+        self,
+        reference: BilaraReferenceAggregate,
+        concordance: ConcordanceAggregate,
+        text_filter="mn1",
     ):
-        for uid in reference.index:
+        for uid, root_ref in reference.index.items():
             if uid.key.key != text_filter:
                 continue
+            if not root_ref.references.sc_id:
+                continue
+            # con_uid = concordance.ref_index.get(uid.key.key, {})
+            print()
             print("Doing", uid)
         print("Here we will update the corcondance!")
 

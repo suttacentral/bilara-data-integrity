@@ -4,6 +4,7 @@ from sutta_processor.application.check_service import CheckService
 from sutta_processor.application.domain_models import (
     BilaraReferenceAggregate,
     BilaraRootAggregate,
+    ConcordanceAggregate,
 )
 from sutta_processor.application.value_objects import UID
 from sutta_processor.infrastructure.repository.repo import FileRepository
@@ -43,7 +44,10 @@ def reference_data_check(cfg: Config):
     cfg.check: CheckService
     # yutta_aggregate: YuttaAggregate = cfg.repo.yutta.get_aggregate()
     reference: BilaraReferenceAggregate = cfg.repo.bilara.get_reference()
-    cfg.check.reference.update_references_from_concordance(reference=reference)
+    concordance: ConcordanceAggregate = cfg.repo.bilara.get_concordance()
+    cfg.check.reference.update_references_from_concordance(
+        reference=reference, concordance=concordance
+    )
 
     # cfg.check.save_csv_diff(bilara=bilara_root, bilara_begin=bilara_root_begin)
     # cfg.check.reference.get_missing_ms_id_from_reference(aggregate=yutta_aggregate)

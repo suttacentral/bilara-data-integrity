@@ -311,19 +311,6 @@ class CheckService(ServiceBase):
             log.error(omg, self.name, len(unordered_seg), sorted(unordered_seg))
         return unordered_seg
 
-    def save_csv_diff(
-        self, bilara: BilaraRootAggregate, bilara_begin: BilaraRootAggregate
-    ):
-        # sentences_a = tuple(bilara_begin.index.values())
-        # sentences_b = tuple(bilara.index.values())
-        # log.error("senta len: %s", len(sentences_a))
-        # log.error("sentb: len: %s", len(sentences_b))
-        # log.error("sentences_a == sentences_b: %s", sentences_a == sentences_b)
-        log.error(
-            "id that were and are no longer: %s",
-            len(set(bilara_begin.index) - set(bilara.index)),
-        )
-
 
 class SequenceCheck(ServiceBase):
     def get_unordered_segments(self, index: Dict[UID, BaseVersus]) -> Set[UID]:

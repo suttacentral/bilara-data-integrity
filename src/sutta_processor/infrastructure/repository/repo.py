@@ -20,6 +20,10 @@ from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
 )
+from sutta_processor.application.domain_models.bilara_concordance.root import (
+    ConcordanceAggregate,
+    ConcordanceFileAggregate,
+)
 from sutta_processor.application.domain_models.bilara_translation.root import (
     BilaraTranslationFileAggregate,
 )
@@ -96,6 +100,12 @@ class BilaraRepo:
     def get_reference(self) -> BilaraReferenceAggregate:
         aggregate = BilaraReferenceAggregate.from_path(
             root_pth=self.cfg.reference_root_path
+        )
+        return aggregate
+
+    def get_concordance(self) -> ConcordanceAggregate:
+        aggregate = ConcordanceAggregate.from_path(
+            root_pth=self.cfg.pali_concordance_filepath
         )
         return aggregate
 
