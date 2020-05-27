@@ -1,7 +1,10 @@
 import logging
 
 from sutta_processor.application.check_service import CheckService
-from sutta_processor.application.domain_models import BilaraRootAggregate
+from sutta_processor.application.domain_models import (
+    BilaraRootAggregate,
+    BilaraReferenceAggregate,
+)
 from sutta_processor.application.domain_models.ms_yuttadhammo.root import YuttaAggregate
 from sutta_processor.application.value_objects import UID
 from sutta_processor.infrastructure.repository.repo import FileRepository
@@ -40,10 +43,10 @@ def reference_data_check(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
     # yutta_aggregate: YuttaAggregate = cfg.repo.yutta.get_aggregate()
-    bilara_root: BilaraRootAggregate = cfg.repo.bilara.get_root()
-    bilara_root_begin: BilaraRootAggregate = cfg.repo.bilara.get_root_begin()
-    dg = DiffGenerator(aggregate_t1=bilara_root_begin, aggregate_t2=bilara_root)
-    dg.save_diff_csv()
+    reference: BilaraReferenceAggregate = cfg.repo.bilara.get_reference()
+    cfg.check.reference.update_references_from_concordance(reference=reference)
+
+
     # cfg.check.save_csv_diff(bilara=bilara_root, bilara_begin=bilara_root_begin)
     # cfg.check.reference.get_missing_ms_id_from_reference(aggregate=yutta_aggregate)
     # cfg.check.reference.log_wrong_ms_id_in_reference_data(aggregate=yutta_aggregate)

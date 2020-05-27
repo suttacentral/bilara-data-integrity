@@ -14,6 +14,7 @@ from sutta_processor.application.domain_models import (
     BilaraVariantAggregate,
     PaliCanonAggregate,
     YuttaAggregate,
+    BilaraReferenceAggregate,
 )
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
@@ -64,10 +65,10 @@ class BilaraRepo:
         return root_aggregate
 
     def get_root_begin(self) -> BilaraRootAggregate:
-        root_pth = str(self.cfg.bilara_root_path).replace('bilara-data', 'bilara-data_begin')
-        root_aggregate = BilaraRootAggregate.from_path(
-            root_pth=Path(root_pth)
+        root_pth = str(self.cfg.bilara_root_path).replace(
+            "bilara-data", "bilara-data_begin"
         )
+        root_aggregate = BilaraRootAggregate.from_path(root_pth=Path(root_pth))
         return root_aggregate
 
     def get_html(self) -> BilaraHtmlAggregate:
@@ -89,6 +90,12 @@ class BilaraRepo:
     def get_translation(self) -> BilaraTranslationAggregate:
         aggregate = BilaraTranslationAggregate.from_path(
             root_pth=self.cfg.bilara_translation_path
+        )
+        return aggregate
+
+    def get_reference(self) -> BilaraReferenceAggregate:
+        aggregate = BilaraReferenceAggregate.from_path(
+            root_pth=self.cfg.reference_root_path
         )
         return aggregate
 

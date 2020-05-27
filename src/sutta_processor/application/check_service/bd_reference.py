@@ -8,6 +8,7 @@ from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
     PaliCanonAggregate,
     YuttaAggregate,
+    BilaraReferenceAggregate,
 )
 from sutta_processor.application.value_objects import UID, MsId
 from sutta_processor.shared.config import Config
@@ -163,6 +164,11 @@ class SCReferenceService:
         if diff:
             log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))
             log.error(self._UID_WRONG, self.__class__.__name__, diff)
+
+    def update_references_from_concordance(
+        self, reference: BilaraReferenceAggregate, text_filter="mn1"
+    ):
+        print("Here we will update the corcondance!")
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
         wrong_keys = set()

@@ -9,6 +9,16 @@ class RawVerse(str):
         return super().__new__(cls, content)
 
 
+class References(list):
+    def __new__(cls, *a):
+        if len(a) == 1:
+            parts = a[0].split(',')
+            # if parts
+
+        print('a', a, 'kw', kw)
+        return super().__new__(cls, *a, **kw)
+
+
 class VerseTokens(tuple):
     HEAD_KEY_LEN = 3
 
