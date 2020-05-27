@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 import stat
+from pathlib import Path
 from typing import Set
 
 from sutta_processor.application.domain_models import (
@@ -59,6 +60,13 @@ class BilaraRepo:
     def get_root(self) -> BilaraRootAggregate:
         root_aggregate = BilaraRootAggregate.from_path(
             root_pth=self.cfg.bilara_root_path
+        )
+        return root_aggregate
+
+    def get_root_begin(self) -> BilaraRootAggregate:
+        root_pth = str(self.cfg.bilara_root_path).replace('bilara-data', 'bilara-data_begin')
+        root_aggregate = BilaraRootAggregate.from_path(
+            root_pth=Path(root_pth)
         )
         return root_aggregate
 

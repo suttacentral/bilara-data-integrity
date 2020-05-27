@@ -16,8 +16,8 @@ class VerseTokens(tuple):
 
     def __new__(cls, *a, **kw):
         tokens = super().__new__(cls, *a, **kw)
-        if not tokens:
-            raise NoTokensError(f"No tokens from args: '{a}', kwargs: '{kw}'")
+        # if not tokens:
+        #     raise NoTokensError(f"No tokens from args: '{a}', kwargs: '{kw}'")
         return tokens
 
     def is_subverse(self, other: "VerseTokens") -> bool:
