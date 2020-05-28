@@ -32,7 +32,11 @@ class References(set):
                 part = part.strip()
                 try:
                     part = ScID(part)
-                    sc_id = part
+                    if not sc_id:
+                        # It might happen that there are several sc_ids in
+                        # references. That will set the first as the reference
+                        # eg. "mn10:34.1": "msdiv114, sc39, sc48,.." will set sc39
+                        sc_id = part
                 except ScIdError:
                     pass
                 parts.add(part)

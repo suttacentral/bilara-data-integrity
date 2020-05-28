@@ -170,7 +170,7 @@ class SCReferenceService:
         self,
         reference: BilaraReferenceAggregate,
         concordance: ConcordanceAggregate,
-        filter_keys: BaseTextKey = "",
+        filter_keys: BaseTextKey = "mn10",
     ):
         filter_keys = filter_keys or set(filter_keys)
         duplicated_scs = set()
@@ -203,7 +203,7 @@ class SCReferenceService:
                     "[%s] Key '%s' missing in concordance. "
                     "Probably already used with ref: '%s'"
                 )
-                log.error(omg, new_refs.uid, new_refs)
+                log.error(omg, self.__class__.__name__, new_refs.uid, new_refs)
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
         wrong_keys = set()
