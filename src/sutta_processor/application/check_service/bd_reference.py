@@ -170,18 +170,19 @@ class SCReferenceService:
         self,
         reference: BilaraReferenceAggregate,
         concordance: ConcordanceAggregate,
-        text_filter: BaseTextKey = "mn1",
+        filter_keys: BaseTextKey = "",
     ):
+        filter_keys = filter_keys or set(filter_keys)
         for uid, root_ref in reference.index.items():
-            if uid.key.key != text_filter:
+            if uid.key.key in filter_keys:
                 continue
-            if not root_ref.references.sc_id:
+            elif not root_ref.references.sc_id:
                 continue
             sc_index = concordance.ref_index[uid.key.key]
             new_refs = sc_index[root_ref.references.sc_id]
-            print("Doing", uid)
-            print("Adding new refs", new_refs)
-        print("Here we will update the corcondance!")
+            log.info("Updating references for uid: %s", uid)
+            root_ref.references.update(new_refs)
+            concordance.index.pop(new_refs.uid)
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
         wrong_keys = set()

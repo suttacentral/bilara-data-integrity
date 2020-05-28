@@ -30,9 +30,11 @@ class ConcordanceVersus(BaseVersus):
     references: ReferencesConcordance = attr.ib(init=False)
 
     def __attrs_post_init__(self):
-        object.__setattr__(self, "references", ReferencesConcordance(self.verse))
-        object.__setattr__(self, "verse", Verse(self.verse))
         object.__setattr__(self, "uid", UID(self.raw_uid))
+        object.__setattr__(
+            self, "references", ReferencesConcordance(self.verse, uid=self.uid)
+        )
+        object.__setattr__(self, "verse", Verse(self.verse))
 
 
 @attr.s(frozen=True, auto_attribs=True)
@@ -61,19 +63,18 @@ class ConcordanceFileAggregate(BaseFileAggregate):
 class ConcordanceAggregate(BaseRootAggregate):
     # cs are counted from the first paragraph, but are not unique through whole texts,
     # that's wy we need BaseTextKey to see which sutta it is.
-    ref_index: Dict[BaseTextKey, Dict[ScID, list]]
+    ref_index: Dict[BaseTextKey, Dict[ScID, ReferencesConcordance]]
 
     @classmethod
     def from_path(cls, root_pth: Path) -> "ConcordanceAggregate":
-        index = {}
         f_aggregate = ConcordanceFileAggregate.from_file(root_pth)
-        cls._update_index(index=index, file_aggregate=f_aggregate)
+        index = f_aggregate.index
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
 
         ref_index = defaultdict(dict)
         for uid, versus in index.items():  # type: UID, ConcordanceVersus
             if not versus.references.sc_id:
-                log.error("Concordance uid: '%s' des not have sc ref", uid)
+                log.trace("Concordance uid: '%s' des not have sc ref", uid)
                 continue
             ref_index[uid.key.key][versus.references.sc_id] = versus.references
         return cls(

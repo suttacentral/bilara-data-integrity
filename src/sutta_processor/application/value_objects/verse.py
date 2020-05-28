@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from sutta_processor.shared.exceptions import ScIdError
 
-from .uid import ScID
+from .uid import UID, ScID
 
 
 class RawVerse(str):
@@ -11,10 +11,10 @@ class RawVerse(str):
         return super().__new__(cls, content)
 
 
-class References(tuple):
+class References(set):
     sc_id: ScID
 
-    def __new__(cls, *a):
+    def __init__(self, *a):
         """
         From root_reference: ('sc38, pts-vp-pli11, ms24Mn_38',)
         From concordance: (['sc91', 'ms24Mn_767', 'cck26.187', 'bj33.276'],)
@@ -38,16 +38,21 @@ class References(tuple):
                 parts.add(part)
         else:
             parts = a
-        references = super().__new__(cls, parts)
-        references.sc_id = sc_id
-        return references
+        super().__init__(parts)
+        self.sc_id = sc_id
 
     @property
     def data(self) -> str:
-        return ", ".join(sorted(set(self)))
+        return ", ".join(sorted(self))
 
 
 class ReferencesConcordance(References):
+    uid: UID
+
+    def __init__(self, *a, uid: UID):
+        super().__init__(*a)
+        self.uid = uid
+
     @property
     def data(self) -> list:
         return list(sorted(set(self)))
