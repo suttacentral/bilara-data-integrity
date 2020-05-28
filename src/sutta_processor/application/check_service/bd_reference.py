@@ -174,11 +174,17 @@ class SCReferenceService:
     ):
         filter_keys = filter_keys or set(filter_keys)
         for uid, root_ref in reference.index.items():
-            if uid.key.key in filter_keys:
+            if uid.key.key not in filter_keys:
                 continue
             elif not root_ref.references.sc_id:
                 continue
-            sc_index = concordance.ref_index[uid.key.key]
+            try:
+                sc_index = concordance.ref_index[uid.key.key]
+            except KeyError:
+                # omg = "[%s] No concordance ref found for reference '%s' and key %s"
+                omg = "[%s] No concordance data missing uid: '%s' Already precessed?"
+                log.error(omg, self.__class__.__name__, uid)
+                continue
             new_refs = sc_index[root_ref.references.sc_id]
             log.info("Updating references for uid: %s", uid)
             root_ref.references.update(new_refs)
