@@ -173,22 +173,37 @@ class SCReferenceService:
         filter_keys: BaseTextKey = "",
     ):
         filter_keys = filter_keys or set(filter_keys)
+        duplicated_scs = set()
         for uid, root_ref in reference.index.items():
-            if uid.key.key not in filter_keys:
+            if filter_keys and uid.key.key not in filter_keys:
                 continue
-            elif not root_ref.references.sc_id:
+            if not root_ref.references.sc_id:
                 continue
+
             try:
                 sc_index = concordance.ref_index[uid.key.key]
             except KeyError:
-                # omg = "[%s] No concordance ref found for reference '%s' and key %s"
-                omg = "[%s] No concordance data missing uid: '%s' Already precessed?"
-                log.error(omg, self.__class__.__name__, uid)
+                omg = "[%s] Concordance data missing for uid: '%s' Already precessed?"
+                log.info(omg, self.__class__.__name__, uid)
                 continue
-            new_refs = sc_index[root_ref.references.sc_id]
-            log.info("Updating references for uid: %s", uid)
+
+            try:
+                new_refs = sc_index[root_ref.references.sc_id]
+            except KeyError:
+                omg = "[%s] No concordance ref found for reference '%s' and key '%s'"
+                log.error(omg, self.__class__.__name__, uid, root_ref.references.sc_id)
+                continue
+
             root_ref.references.update(new_refs)
-            concordance.index.pop(new_refs.uid)
+            try:
+                concordance.index.pop(new_refs.uid)
+            except KeyError:
+                duplicated_scs.add(new_refs.uid)
+                omg = (
+                    "[%s] Key '%s' missing in concordance. "
+                    "Probably already used with ref: '%s'"
+                )
+                log.error(omg, new_refs.uid, new_refs)
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
         wrong_keys = set()
