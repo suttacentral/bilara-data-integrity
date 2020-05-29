@@ -170,29 +170,25 @@ class SCReferenceService:
         self,
         reference: BilaraReferenceAggregate,
         concordance: ConcordanceAggregate,
-        filter_keys: BaseTextKey = "mn10",
+        filter_keys: BaseTextKey = "an",
     ):
-        filter_keys = filter_keys or set(filter_keys)
-        duplicated_scs = set()
-        for uid, root_ref in reference.index.items():
-            if filter_keys and uid.key.key not in filter_keys:
-                continue
+        def match_sc_index():
             if not root_ref.references.sc_id:
-                continue
+                return
 
             try:
                 sc_index = concordance.ref_index[uid.key.key]
             except KeyError:
                 omg = "[%s] Concordance data missing for uid: '%s' Already precessed?"
-                log.info(omg, self.__class__.__name__, uid)
-                continue
+                log.trace(omg, self.name, uid)
+                return
 
             try:
                 new_refs = sc_index[root_ref.references.sc_id]
             except KeyError:
                 omg = "[%s] No concordance ref found for reference '%s' and key '%s'"
-                log.error(omg, self.__class__.__name__, uid, root_ref.references.sc_id)
-                continue
+                log.error(omg, self.name, uid, root_ref.references.sc_id)
+                return
 
             root_ref.references.update(new_refs)
             try:
@@ -203,7 +199,15 @@ class SCReferenceService:
                     "[%s] Key '%s' missing in concordance. "
                     "Probably already used with ref: '%s'"
                 )
-                log.error(omg, self.__class__.__name__, new_refs.uid, new_refs)
+                log.error(omg, self.name, new_refs.uid, new_refs)
+
+        filter_keys = filter_keys or set(filter_keys)
+        duplicated_scs = set()
+        for uid, root_ref in reference.index.items():
+            if filter_keys and uid.key.key not in filter_keys:
+                continue
+            # Choose how to match. From most reliant to most generic
+            match_sc_index(uid_=uid, root_ref_=root_ref)
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
         wrong_keys = set()
@@ -231,3 +235,7 @@ class SCReferenceService:
         if not self._reference_engine:
             self._reference_engine = ReferenceEngine(cfg=self.cfg)
         return self._reference_engine
+
+    @property
+    def name(self):
+        return self.__class__.__name__
