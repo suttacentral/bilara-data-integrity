@@ -64,6 +64,7 @@ class ConcordanceAggregate(BaseRootAggregate):
     # cs are counted from the first paragraph, but are not unique through whole texts,
     # that's wy we need BaseTextKey to see which sutta it is.
     ref_index: Dict[BaseTextKey, Dict[ScID, ReferencesConcordance]]
+    index: Dict[UID, ConcordanceVersus]
 
     @classmethod
     def from_path(cls, root_pth: Path) -> "ConcordanceAggregate":

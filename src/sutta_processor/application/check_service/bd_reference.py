@@ -11,6 +11,9 @@ from sutta_processor.application.domain_models import (
     PaliCanonAggregate,
     YuttaAggregate,
 )
+from sutta_processor.application.domain_models.bilara_concordance.root import (
+    ConcordanceVersus,
+)
 from sutta_processor.application.value_objects import UID, BaseTextKey, MsId
 from sutta_processor.shared.config import Config
 from sutta_processor.shared.exceptions import MsIdError, MultipleIdFoundError
@@ -170,7 +173,7 @@ class SCReferenceService:
         self,
         reference: BilaraReferenceAggregate,
         concordance: ConcordanceAggregate,
-        filter_keys: BaseTextKey = "an",
+        filter_keys: BaseTextKey = "",
     ):
         def match_sc_index():
             if not root_ref.references.sc_id:
@@ -201,13 +204,24 @@ class SCReferenceService:
                 )
                 log.error(omg, self.name, new_refs.uid, new_refs)
 
+        def match_uid():
+            try:
+                new_refs = concordance.index[uid].references
+            except KeyError:
+                omg = "[%s] No concordance ref found for key '%s'"
+                log.trace(omg, self.name, uid)
+                return
+            root_ref.references.update(new_refs)
+            concordance.index.pop(uid)
+
         filter_keys = filter_keys or set(filter_keys)
         duplicated_scs = set()
         for uid, root_ref in reference.index.items():
             if filter_keys and uid.key.key not in filter_keys:
                 continue
             # Choose how to match. From most reliant to most generic
-            match_sc_index(uid_=uid, root_ref_=root_ref)
+            # match_sc_index(uid_=uid, root_ref_=root_ref)
+            match_uid()
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
         wrong_keys = set()
