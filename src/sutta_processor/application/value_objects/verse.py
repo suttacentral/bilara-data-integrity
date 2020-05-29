@@ -1,9 +1,9 @@
 from abc import ABC
 from collections import namedtuple
 
-from sutta_processor.shared.exceptions import ScIdError
+from sutta_processor.shared.exceptions import PtsPliError, ScIdError
 
-from .uid import UID, ScID
+from .uid import UID, PtsPli, ScID
 
 
 class RawVerse(str):
@@ -13,6 +13,7 @@ class RawVerse(str):
 
 class References(set):
     sc_id: ScID
+    sc_id: PtsPli
 
     def __init__(self, *a):
         """
@@ -20,6 +21,7 @@ class References(set):
         From concordance: (['sc91', 'ms24Mn_767', 'cck26.187', 'bj33.276'],)
         """
         sc_id = ""
+        pts_pli = ""
         if len(a) == 1:
             parts = set()
             ids = a[0]
@@ -39,11 +41,21 @@ class References(set):
                         sc_id = part
                 except ScIdError:
                     pass
+                try:
+                    part = PtsPli(part)
+                    if not pts_pli:
+                        # It might happen that there are several sc_ids in
+                        # references. That will set the first as the reference
+                        # eg. "mn10:34.1": "msdiv114, sc39, sc48,.." will set sc39
+                        pts_pli = part
+                except PtsPliError:
+                    pass
                 parts.add(part)
         else:
             parts = a
         super().__init__(parts)
         self.sc_id = sc_id
+        self.pts_pli = pts_pli
 
     @property
     def data(self) -> str:

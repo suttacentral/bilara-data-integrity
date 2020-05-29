@@ -22,6 +22,10 @@ class ScIdError(IdError):
     pass
 
 
+class PtsPliError(IdError):
+    pass
+
+
 class MsIdError(IdError):
     pass
 

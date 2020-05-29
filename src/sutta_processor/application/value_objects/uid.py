@@ -9,6 +9,7 @@ import attr
 from sutta_processor.shared.exceptions import (
     MsIdError,
     PaliXmlIdError,
+    PtsPliError,
     ScIdError,
     SegmentIdError,
 )
@@ -48,7 +49,13 @@ class Sequence(tuple):
         return int(self[-2])
 
 
-BaseTextKey = str
+class BaseTextKey(str):
+    head: str
+
+    def __new__(cls, content: str):
+        base_text_key = super().__new__(cls, content)
+        base_text_key.head = base_text_key.split(".")[0]
+        return base_text_key
 
 
 @attr.s(frozen=True, auto_attribs=True)
@@ -142,6 +149,16 @@ class ScID(BaseUID):
             raise ScIdError(f"'{content}' is not sc id")
         sc_id = super().__new__(cls, content)
         return sc_id
+
+
+class PtsPli(BaseUID):
+    pts_pli_start = "pts-vp-pli"
+
+    def __new__(cls, content: str):
+        if not content.startswith(cls.pts_pli_start):
+            raise PtsPliError(f"'{content}' is not pts_pli id")
+        pts_pli = super().__new__(cls, content)
+        return pts_pli
 
 
 class UID(BaseUID):

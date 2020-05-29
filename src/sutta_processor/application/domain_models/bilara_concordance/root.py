@@ -14,6 +14,7 @@ from sutta_processor.application.domain_models.base import (
 from sutta_processor.application.value_objects import (
     UID,
     BaseTextKey,
+    PtsPli,
     ReferencesConcordance,
     ScID,
     Verse,
@@ -63,7 +64,7 @@ class ConcordanceFileAggregate(BaseFileAggregate):
 class ConcordanceAggregate(BaseRootAggregate):
     # cs are counted from the first paragraph, but are not unique through whole texts,
     # that's wy we need BaseTextKey to see which sutta it is.
-    sc_index: Dict[BaseTextKey, Dict[ScID, ReferencesConcordance]]
+    ref_index: Dict[BaseTextKey, Dict[ScID, ReferencesConcordance]]
     index: Dict[UID, ConcordanceVersus]
 
     @classmethod
@@ -74,10 +75,12 @@ class ConcordanceAggregate(BaseRootAggregate):
 
         ref_index = defaultdict(dict)
         for uid, versus in index.items():  # type: UID, ConcordanceVersus
-            if not versus.references.sc_id:
-                log.trace("Concordance uid: '%s' des not have sc ref", uid)
-                continue
-            ref_index[uid.key.key][versus.references.sc_id] = versus.references
+            if versus.references.sc_id:
+                ref_index[uid.key.key][versus.references.sc_id] = versus.references
+            elif versus.references.pts_pli:
+                ref_index[uid.key.key.head][
+                    versus.references.pts_pli
+                ] = versus.references
         return cls(
-            file_aggregates=(f_aggregate,), index=index, ref_index=dict(ref_index)
+            file_aggregates=(f_aggregate,), index=index, ref_index=dict(ref_index),
         )

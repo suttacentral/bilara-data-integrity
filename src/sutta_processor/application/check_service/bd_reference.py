@@ -180,7 +180,7 @@ class SCReferenceService:
                 return
 
             try:
-                sc_index = concordance.sc_index[uid.key.key]
+                sc_index = concordance.ref_index[uid.key.key]
             except KeyError:
                 omg = "[%s] Concordance data missing for uid: '%s' Already precessed?"
                 log.trace(omg, self.name, uid)
@@ -204,6 +204,27 @@ class SCReferenceService:
                 )
                 log.error(omg, self.name, new_refs.uid, new_refs)
 
+        def match_pts_pli_index():
+            if not root_ref.references.pts_pli:
+                return
+
+            try:
+                pts_pli_index = concordance.ref_index[uid.key.key.head]
+            except KeyError:
+                omg = "[%s] Concordance data missing for uid: '%s' Already precessed?"
+                log.trace(omg, self.name, uid)
+                return
+
+            try:
+                new_refs = pts_pli_index[root_ref.references.pts_pli]
+            except KeyError:
+                omg = "[%s] No concordance ref found for reference '%s' and key '%s'"
+                log.error(omg, self.name, uid, root_ref.references.pts_pli)
+                return
+
+            root_ref.references.update(new_refs)
+            concordance.index.pop(new_refs.uid)
+
         def match_uid():
             try:
                 new_refs = concordance.index[uid].references
@@ -221,6 +242,7 @@ class SCReferenceService:
                 continue
             # Choose how to match. From most reliant to most generic
             # match_sc_index(uid_=uid, root_ref_=root_ref)
+            # match_pts_pli_index()
             match_uid()
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
