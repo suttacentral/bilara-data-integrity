@@ -180,7 +180,7 @@ class SCReferenceService:
                 return
 
             try:
-                sc_index = concordance.ref_index[uid.key.key]
+                sc_index = concordance.sc_index[uid.key.key]
             except KeyError:
                 omg = "[%s] Concordance data missing for uid: '%s' Already precessed?"
                 log.trace(omg, self.name, uid)

@@ -63,7 +63,7 @@ class ConcordanceFileAggregate(BaseFileAggregate):
 class ConcordanceAggregate(BaseRootAggregate):
     # cs are counted from the first paragraph, but are not unique through whole texts,
     # that's wy we need BaseTextKey to see which sutta it is.
-    ref_index: Dict[BaseTextKey, Dict[ScID, ReferencesConcordance]]
+    sc_index: Dict[BaseTextKey, Dict[ScID, ReferencesConcordance]]
     index: Dict[UID, ConcordanceVersus]
 
     @classmethod
