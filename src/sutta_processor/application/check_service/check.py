@@ -6,6 +6,7 @@ from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
+    BilaraReferenceAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,

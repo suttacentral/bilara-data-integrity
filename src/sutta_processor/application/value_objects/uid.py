@@ -236,6 +236,7 @@ class MsId(BaseUID):
 
     @property
     def stem(self) -> str:
+        """Get pure reference number without prefix."""
         return self.replace(self.MS_ID, "", 1)
 
 

@@ -1,9 +1,14 @@
 from abc import ABC
 from collections import namedtuple
 
-from sutta_processor.shared.exceptions import PtsCsError, PtsPliError, ScIdError
+from sutta_processor.shared.exceptions import (
+    MsIdError,
+    PtsCsError,
+    PtsPliError,
+    ScIdError,
+)
 
-from .uid import UID, PtsCs, PtsPli, ScID
+from .uid import UID, MsId, PtsCs, PtsPli, ScID
 
 
 class RawVerse(str):
@@ -56,6 +61,11 @@ class References(set):
                     part = PtsCs(part)
                     pts_cs = part
                 except PtsCsError:
+                    pass
+                try:
+                    part = MsId(part)
+                    pts_cs = part
+                except MsIdError:
                     pass
                 parts.add(part)
         else:
