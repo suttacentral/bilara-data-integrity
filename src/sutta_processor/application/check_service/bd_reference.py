@@ -1,6 +1,6 @@
 import json
 import logging
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, Set
 
@@ -145,6 +145,37 @@ class SCReferenceService:
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
+
+    def get_duplicated_ms_id(self, reference: BilaraReferenceAggregate):
+        def get_reference_counts() -> Counter:
+            c: Counter = Counter()
+            for verse in reference.index.values():
+                for ref in verse.references:
+                    if not isinstance(ref, MsId):
+                        continue
+                    c[ref] += 1
+            return c
+
+        def get_surplus_ref(c: Counter) -> dict:
+            """
+            :return: {count: ms_ref_list]
+            """
+            duplicates = defaultdict(list)
+            for ms_id, count in c.items():
+                duplicates[count].append(ms_id)
+            duplicates.pop(1)
+            return duplicates
+
+        counter = get_reference_counts()
+        duplicated_ms_id = get_surplus_ref(c=counter)
+
+        if duplicated_ms_id:
+            omg = "[%s] There are '%s' duplicated ms_id in bilara references: %s"
+            log.error(omg, self.name, len(duplicated_ms_id[2]), duplicated_ms_id[2])
+            duplicated_ms_id.pop(2)
+            if duplicated_ms_id:
+                omg = "[%s] There are multiple ms_id in bilara references: %s"
+                log.error(omg, self.name, duplicated_ms_id)
 
     def get_wrong_pts_cs_no(self, reference: BilaraReferenceAggregate):
         ignore = {"pts-cs75", "pts-cs1.10", "pts-cs7", "pts-cs8", "pts-cs12"}
