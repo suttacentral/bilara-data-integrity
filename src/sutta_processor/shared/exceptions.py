@@ -26,6 +26,10 @@ class PtsPliError(IdError):
     pass
 
 
+class PtsCsError(IdError):
+    pass
+
+
 class MsIdError(IdError):
     pass
 

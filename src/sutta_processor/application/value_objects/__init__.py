@@ -5,6 +5,7 @@ from .uid import (
     MsId,
     PaliCrumb,
     PaliMsDivId,
+    PtsCs,
     PtsPli,
     RawUID,
     RootUID,

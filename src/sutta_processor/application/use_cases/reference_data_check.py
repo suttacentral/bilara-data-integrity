@@ -15,6 +15,10 @@ log = logging.getLogger(__name__)
 def reference_data_check(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
+
+    def check_pts_cs_numbers():
+        cfg.check.reference.get_wrong_pts_cs_no(reference=reference)
+
     # yutta_aggregate: YuttaAggregate = cfg.repo.yutta.get_aggregate()
     reference: BilaraReferenceAggregate = cfg.repo.bilara.get_reference()
     concordance: ConcordanceAggregate = cfg.repo.bilara.get_concordance()

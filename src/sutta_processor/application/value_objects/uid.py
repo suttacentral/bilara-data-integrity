@@ -9,6 +9,7 @@ import attr
 from sutta_processor.shared.exceptions import (
     MsIdError,
     PaliXmlIdError,
+    PtsCsError,
     PtsPliError,
     ScIdError,
     SegmentIdError,
@@ -22,19 +23,22 @@ RawUID = str
 
 class Sequence(tuple):
     baked_segment = re.compile(r"\d+?-\d+?")
+    raw: str
 
     @classmethod
     def from_str(cls, raw_seq: str) -> "Sequence":
-        raw_seq = raw_seq.split(".")
+        parts = raw_seq.split(".")
         args = []
-        for segment in raw_seq:
+        for segment in parts:
             try:
                 args.append(int(segment))
             except ValueError:
                 if not cls.baked_segment.match(segment):
                     raise SegmentIdError(f"Invalid uid seq: {raw_seq}")
                 args.append(segment)
-        return cls(args)
+        seq = cls(args)
+        seq.raw = raw_seq
+        return seq
 
     @property
     def last(self) -> int:
@@ -149,6 +153,19 @@ class ScID(BaseUID):
             raise ScIdError(f"'{content}' is not sc id")
         sc_id = super().__new__(cls, content)
         return sc_id
+
+
+class PtsCs(BaseUID):
+    pts_no: str = None
+
+    pts_cs_start = "pts-cs"
+
+    def __new__(cls, content: str):
+        if not content.startswith(cls.pts_cs_start):
+            raise PtsCsError(f"'{content}' is not pts_cs id")
+        pts_cs = super().__new__(cls, content)
+        pts_cs.pts_no = content.replace(cls.pts_cs_start, "")
+        return pts_cs
 
 
 class PtsPli(BaseUID):

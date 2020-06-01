@@ -8,11 +8,13 @@ from sutta_processor.application.domain_models import (
     BilaraReferenceAggregate,
     BilaraRootAggregate,
     ConcordanceAggregate,
-    PaliCanonAggregate,
     YuttaAggregate,
 )
 from sutta_processor.application.domain_models.bilara_concordance.root import (
     ConcordanceVersus,
+)
+from sutta_processor.application.domain_models.bilara_reference.root import (
+    ReferenceVersus,
 )
 from sutta_processor.application.value_objects import UID, BaseTextKey, MsId
 from sutta_processor.shared.config import Config
@@ -144,6 +146,24 @@ class SCReferenceService:
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
+    def get_wrong_pts_cs_no(self, reference: BilaraReferenceAggregate):
+        ignore = {"pts-cs75", "pts-cs1.10", "pts-cs7", "pts-cs8", "pts-cs12"}
+        for versus in reference.index.values():  # type: ReferenceVersus
+            if not versus.uid.key.raw.startswith("dn"):
+                continue
+            elif not versus.references.pts_cs:
+                # No pts_cs reference in the reference list so skip it
+                continue
+            elif versus.references.pts_cs in ignore:
+                continue
+            if not versus.uid.key.seq.raw.startswith(versus.references.pts_cs.pts_no):
+                log.error(
+                    "[%s] wrong uid '%s' for pts_cs number: %s",
+                    self.name,
+                    versus.uid,
+                    versus.references.pts_cs,
+                )
+
     def get_missing_ms_id_from_reference(self, aggregate: YuttaAggregate):
         diff = sorted(
             {k for k in aggregate.index if k not in self.reference_engine.ms_id_index}
@@ -237,6 +257,9 @@ class SCReferenceService:
 
         filter_keys = filter_keys or set(filter_keys)
         duplicated_scs = set()
+        for uid in concordance.index:
+            if uid.key.key.startswith("m"):
+                log.error(uid)
         for uid, root_ref in reference.index.items():
             if filter_keys and uid.key.key not in filter_keys:
                 continue
