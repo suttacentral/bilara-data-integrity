@@ -4,7 +4,7 @@ from sutta_processor.application.value_objects.verse import VerseTokens
 
 
 class VersetTokenizer:
-    chars_list = set("""“”‘’"'.:;,?!*()—☑๐×☒""")
+    chars_list = set("""“”‘’"'.:;,?!*()—☑๐×☒$""")
     skip_chars = {ch: None for ch in chars_list}
     skip_chars["…"] = " "
 

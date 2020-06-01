@@ -3,11 +3,13 @@ import logging
 import os
 import pickle
 import stat
+from pathlib import Path
 from typing import Set
 
 from sutta_processor.application.domain_models import (
     BilaraCommentAggregate,
     BilaraHtmlAggregate,
+    BilaraReferenceAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
@@ -17,6 +19,10 @@ from sutta_processor.application.domain_models import (
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
+)
+from sutta_processor.application.domain_models.bilara_concordance.root import (
+    ConcordanceAggregate,
+    ConcordanceFileAggregate,
 )
 from sutta_processor.application.domain_models.bilara_translation.root import (
     BilaraTranslationFileAggregate,
@@ -62,6 +68,13 @@ class BilaraRepo:
         )
         return root_aggregate
 
+    def get_root_begin(self) -> BilaraRootAggregate:
+        root_pth = str(self.cfg.bilara_root_path).replace(
+            "bilara-data", "bilara-data_begin"
+        )
+        root_aggregate = BilaraRootAggregate.from_path(root_pth=Path(root_pth))
+        return root_aggregate
+
     def get_html(self) -> BilaraHtmlAggregate:
         aggregate = BilaraHtmlAggregate.from_path(root_pth=self.cfg.bilara_html_path)
         return aggregate
@@ -81,6 +94,18 @@ class BilaraRepo:
     def get_translation(self) -> BilaraTranslationAggregate:
         aggregate = BilaraTranslationAggregate.from_path(
             root_pth=self.cfg.bilara_translation_path
+        )
+        return aggregate
+
+    def get_reference(self) -> BilaraReferenceAggregate:
+        aggregate = BilaraReferenceAggregate.from_path(
+            root_pth=self.cfg.reference_root_path
+        )
+        return aggregate
+
+    def get_concordance(self) -> ConcordanceAggregate:
+        aggregate = ConcordanceAggregate.from_path(
+            root_pth=self.cfg.pali_concordance_filepath
         )
         return aggregate
 

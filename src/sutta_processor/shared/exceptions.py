@@ -14,11 +14,27 @@ class NoTokensError(SuttaError):
     pass
 
 
-class MsIdError(SuttaError):
+class IdError(SuttaError):
     pass
 
 
-class PaliXmlIdError(SuttaError):
+class ScIdError(IdError):
+    pass
+
+
+class PtsPliError(IdError):
+    pass
+
+
+class PtsCsError(IdError):
+    pass
+
+
+class MsIdError(IdError):
+    pass
+
+
+class PaliXmlIdError(IdError):
     pass
 
 

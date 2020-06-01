@@ -6,31 +6,39 @@ from typing import Union
 
 import attr
 
-from sutta_processor.shared.exceptions import MsIdError, PaliXmlIdError, SegmentIdError
+from sutta_processor.shared.exceptions import (
+    MsIdError,
+    PaliXmlIdError,
+    PtsCsError,
+    PtsPliError,
+    ScIdError,
+    SegmentIdError,
+)
 
 log = logging.getLogger(__name__)
 
 
-class RawUID(str):
-    def __new__(cls, content: str):
-        return super().__new__(cls, content)
+RawUID = str
 
 
 class Sequence(tuple):
     baked_segment = re.compile(r"\d+?-\d+?")
+    raw: str
 
     @classmethod
     def from_str(cls, raw_seq: str) -> "Sequence":
-        raw_seq = raw_seq.split(".")
+        parts = raw_seq.split(".")
         args = []
-        for segment in raw_seq:
+        for segment in parts:
             try:
                 args.append(int(segment))
             except ValueError:
                 if not cls.baked_segment.match(segment):
                     raise SegmentIdError(f"Invalid uid seq: {raw_seq}")
                 args.append(segment)
-        return cls(args)
+        seq = cls(args)
+        seq.raw = raw_seq
+        return seq
 
     @property
     def last(self) -> int:
@@ -45,16 +53,25 @@ class Sequence(tuple):
         return int(self[-2])
 
 
+class BaseTextKey(str):
+    head: str
+
+    def __new__(cls, content: str):
+        base_text_key = super().__new__(cls, content)
+        base_text_key.head = base_text_key.split(".")[0]
+        return base_text_key
+
+
 @attr.s(frozen=True, auto_attribs=True)
 class UidKey:
     raw: str
-    key: str = attr.ib(init=False)
+    key: BaseTextKey = attr.ib(init=False)
     seq: Sequence = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         key, raw_seq = self.raw.split(":")
         seq = Sequence.from_str(raw_seq=raw_seq)
-        object.__setattr__(self, "key", key)
+        object.__setattr__(self, "key", BaseTextKey(key))
         object.__setattr__(self, "seq", seq)
 
     def is_next(self, previous: "UidKey"):
@@ -126,6 +143,39 @@ class UidKey:
 
 BaseUID = str
 RootUID = str
+
+
+class ScID(BaseUID):
+    sc_segment = re.compile(r"sc\d+?")
+
+    def __new__(cls, content: str):
+        if not cls.sc_segment.match(content):
+            raise ScIdError(f"'{content}' is not sc id")
+        sc_id = super().__new__(cls, content)
+        return sc_id
+
+
+class PtsCs(BaseUID):
+    pts_no: str = None
+
+    pts_cs_start = "pts-cs"
+
+    def __new__(cls, content: str):
+        if not content.startswith(cls.pts_cs_start):
+            raise PtsCsError(f"'{content}' is not pts_cs id")
+        pts_cs = super().__new__(cls, content)
+        pts_cs.pts_no = content.replace(cls.pts_cs_start, "")
+        return pts_cs
+
+
+class PtsPli(BaseUID):
+    pts_pli_start = "pts-vp-pli"
+
+    def __new__(cls, content: str):
+        if not content.startswith(cls.pts_pli_start):
+            raise PtsPliError(f"'{content}' is not pts_pli id")
+        pts_pli = super().__new__(cls, content)
+        return pts_pli
 
 
 class UID(BaseUID):

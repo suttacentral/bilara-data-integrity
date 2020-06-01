@@ -5,11 +5,18 @@ from pathlib import Path
 from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
+    BilaraReferenceAggregate,
     BilaraRootAggregate,
-    PaliCanonAggregate,
+    ConcordanceAggregate,
     YuttaAggregate,
 )
-from sutta_processor.application.value_objects import UID, MsId
+from sutta_processor.application.domain_models.bilara_concordance.root import (
+    ConcordanceVersus,
+)
+from sutta_processor.application.domain_models.bilara_reference.root import (
+    ReferenceVersus,
+)
+from sutta_processor.application.value_objects import UID, BaseTextKey, MsId
 from sutta_processor.shared.config import Config
 from sutta_processor.shared.exceptions import MsIdError, MultipleIdFoundError
 
@@ -139,6 +146,24 @@ class SCReferenceService:
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
+    def get_wrong_pts_cs_no(self, reference: BilaraReferenceAggregate):
+        ignore = {"pts-cs75", "pts-cs1.10", "pts-cs7", "pts-cs8", "pts-cs12"}
+        for versus in reference.index.values():  # type: ReferenceVersus
+            if not versus.uid.key.raw.startswith("dn"):
+                continue
+            elif not versus.references.pts_cs:
+                # No pts_cs reference in the reference list so skip it
+                continue
+            elif versus.references.pts_cs in ignore:
+                continue
+            if not versus.uid.key.seq.raw.startswith(versus.references.pts_cs.pts_no):
+                log.error(
+                    "[%s] wrong uid '%s' for pts_cs number: %s",
+                    self.name,
+                    versus.uid,
+                    versus.references.pts_cs,
+                )
+
     def get_missing_ms_id_from_reference(self, aggregate: YuttaAggregate):
         diff = sorted(
             {k for k in aggregate.index if k not in self.reference_engine.ms_id_index}
@@ -163,6 +188,85 @@ class SCReferenceService:
         if diff:
             log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))
             log.error(self._UID_WRONG, self.__class__.__name__, diff)
+
+    def update_references_from_concordance(
+        self,
+        reference: BilaraReferenceAggregate,
+        concordance: ConcordanceAggregate,
+        filter_keys: BaseTextKey = "",
+    ):
+        def match_sc_index():
+            if not root_ref.references.sc_id:
+                return
+
+            try:
+                sc_index = concordance.ref_index[uid.key.key]
+            except KeyError:
+                omg = "[%s] Concordance data missing for uid: '%s' Already precessed?"
+                log.trace(omg, self.name, uid)
+                return
+
+            try:
+                new_refs = sc_index[root_ref.references.sc_id]
+            except KeyError:
+                omg = "[%s] No concordance ref found for reference '%s' and key '%s'"
+                log.error(omg, self.name, uid, root_ref.references.sc_id)
+                return
+
+            root_ref.references.update(new_refs)
+            try:
+                concordance.index.pop(new_refs.uid)
+            except KeyError:
+                duplicated_scs.add(new_refs.uid)
+                omg = (
+                    "[%s] Key '%s' missing in concordance. "
+                    "Probably already used with ref: '%s'"
+                )
+                log.error(omg, self.name, new_refs.uid, new_refs)
+
+        def match_pts_pli_index():
+            if not root_ref.references.pts_pli:
+                return
+
+            try:
+                pts_pli_index = concordance.ref_index[uid.key.key.head]
+            except KeyError:
+                omg = "[%s] Concordance data missing for uid: '%s' Already precessed?"
+                log.trace(omg, self.name, uid)
+                return
+
+            try:
+                new_refs = pts_pli_index[root_ref.references.pts_pli]
+            except KeyError:
+                omg = "[%s] No concordance ref found for reference '%s' and key '%s'"
+                log.error(omg, self.name, uid, root_ref.references.pts_pli)
+                return
+
+            root_ref.references.update(new_refs)
+            concordance.index.pop(new_refs.uid)
+
+        def match_uid():
+            try:
+                new_refs = concordance.index[uid].references
+            except KeyError:
+                omg = "[%s] No concordance ref found for key '%s'"
+                log.trace(omg, self.name, uid)
+                return
+            root_ref.references.update(new_refs)
+            concordance.index.pop(uid)
+
+        filter_keys = filter_keys or set(filter_keys)
+        duplicated_scs = set()
+        for uid in concordance.index:
+            if uid.key.key.startswith("m"):
+                log.error(uid)
+        for uid, root_ref in reference.index.items():
+            if filter_keys and uid.key.key not in filter_keys:
+                continue
+            # Choose how to match. From most reliant to most generic
+            # match_sc_index(uid_=uid, root_ref_=root_ref)
+            # match_pts_pli_index()
+            match_uid()
 
     def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
         wrong_keys = set()
@@ -190,3 +294,7 @@ class SCReferenceService:
         if not self._reference_engine:
             self._reference_engine = ReferenceEngine(cfg=self.cfg)
         return self._reference_engine
+
+    @property
+    def name(self):
+        return self.__class__.__name__
