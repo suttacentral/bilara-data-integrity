@@ -9,7 +9,10 @@ from sutta_processor.application.domain_models import (
     ConcordanceAggregate,
     YuttaAggregate,
 )
-from sutta_processor.application.domain_models.bilara_html.root import HtmlVersus
+from sutta_processor.application.domain_models.bilara_html.root import (
+    BilaraHtmlFileAggregate,
+    HtmlVersus,
+)
 from sutta_processor.application.domain_models.bilara_root.root import FileAggregate
 from sutta_processor.application.value_objects import UID
 
@@ -36,28 +39,57 @@ class UidRenumber(ServiceBase):
                 new_index[new_uid] = versus
             file_aggregate._replace_index(index=new_index)
 
+        def update_html_file_index(next_uid):
+            html_f_aggregate: BilaraHtmlFileAggregate = self.html.file_index[next_uid]
+            new_index = {}
+            prev_uid = None
+            for uid, versus in html_f_aggregate.index.items():
+                if uid == next_uid:
+                    verse = HtmlVersus(
+                        raw_uid=foo_uid_to_replace,
+                        verse="<p class='uddana-intro'>{}</p>",
+                    )
+                    prev_verse = new_index.pop(prev_uid)
+                    new_index[foo_uid_to_replace] = verse
+                    new_index[prev_uid] = prev_verse
+
+                new_index[uid] = versus
+                prev_uid = uid
+            html_f_aggregate._replace_index(index=new_index)
+
         foo_found = False
         foo_uid_to_replace = None
+        handle_foo_not_in_html = False
         for uid in file_aggregate.index:
-            if foo_found:
+            if handle_foo_not_in_html:
+                foo_uid_to_replace = uid.get_header_uid()
+                if not foo_uid_to_replace:
+                    # Uid is in the middle of sequence so need to be manualy renumbered
+                    return
+                update_html_file_index(next_uid=uid)
+                update_root_file_index()
+                return
+
+            elif foo_found:
                 # Verset form html data that is just before the foo
                 prev_html_verse: HtmlVersus = self.get_prev_html_line(uid_after_foo=uid)
                 if "uddana-intro" in prev_html_verse.verse:
                     foo_uid_to_replace = prev_html_verse.uid
                     # We can auto fix foo by assigning uid from prev verse of html file
-                    break
-                # TODO: handle it
-                return
-
+                    # We know that previous line in html file is 'uddana-intro' so
+                    #  the only missing piece is to update root file aggregate (and
+                    #  html) with correct uid
+                    update_root_file_index()
+                    return
+                # If foo not in html we need to get next segment so that we can
+                #  zero it out to make it to a header
+                handle_foo_not_in_html = True
+                continue
             elif uid.key.key.startswith("foo"):
                 foo_found = True
         else:
             # No foo was found in this file
             return
-
-        # We know that previous line in html file is 'uddana-intro' so the only missing
-        #  piece is to update root file aggregate (and html) with correct uid
-        update_root_file_index()
 
     def get_prev_html_line(self, uid_after_foo: UID) -> Optional[HtmlVersus]:
 

@@ -2,7 +2,7 @@ import logging
 import re
 import string
 from itertools import zip_longest
-from typing import Union
+from typing import Optional, Union
 
 import attr
 
@@ -227,6 +227,15 @@ class UID(BaseUID):
         uid.key = key
         uid.root = f"{key.key}{key.seq.head}"
         return uid
+
+    def get_header_uid(self) -> Optional["UID"]:
+        """
+        Only get header when you are at the beginning of the seq.
+        Could be better, sigh..
+        """
+        if self.key.seq.last != 2:
+            return None
+        return UID(f"{self.key.key}:{self.key.seq.head}.0")
 
 
 class PaliCrumb(str):

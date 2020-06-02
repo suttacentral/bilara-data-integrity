@@ -23,6 +23,7 @@ def renumber_uids(cfg: Config):
     cfg.check.renumber.add_aggregates(bilara=bilara, html=html)
     cfg.check.renumber.fix_missing_tassudanam()
     cfg.repo.bilara.save(aggregate=bilara)
+    cfg.repo.bilara.save(aggregate=html)
 
     # yutta_aggregate: YuttaAggregate = cfg.repo.yutta.get_aggregate()
     # reference: BilaraReferenceAggregate = cfg.repo.bilara.get_reference()
