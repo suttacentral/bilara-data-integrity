@@ -308,25 +308,20 @@ class SCReferenceService:
             # match_pts_pli_index()
             match_uid()
 
-    def get_wrong_segments_based_on_nya(self, bilara: BilaraRootAggregate):
+    def get_wrong_segments_based_on_nya(
+        self, reference: BilaraReferenceAggregate
+    ):
         wrong_keys = set()
-        for uid in bilara.index.keys():
-            if not uid.startswith("mn") or uid.startswith("mnd"):
+        for uid, ref_versus in reference.index.items():
+            nya_id = ref_versus.references.nya
+            if not nya_id:
                 continue
-            idx = uid.key.seq[0]
-            reference: str = self.reference_engine.uid_reference.get(uid, set())
-            is_to_check = uid.key.seq[-1] == 1 or "nya" in str(reference)
-            if 0 in uid.key.seq or not is_to_check:
-                continue
-            expected_ref = f"nya{idx}"
-
-            if expected_ref not in reference:
-                omg = "[RefEngine] uid '%s' not found in reference: '%s'"
-                log.error(omg, uid, reference)
+            is_uid_ok = nya_id == f"nya{uid.key.seq[0]}"
+            if not is_uid_ok:
                 wrong_keys.add(uid)
         if wrong_keys:
-            omg = "[RefEngine] There are '%s' mn keys not in reference"
-            log.error(omg, len(wrong_keys))
+            omg = "[RefEngine] There are '%s' nya ref not aligned with uid: %s"
+            log.error(omg, len(wrong_keys), wrong_keys)
         return wrong_keys
 
     @property

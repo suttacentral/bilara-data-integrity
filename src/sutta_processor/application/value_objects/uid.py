@@ -2,12 +2,14 @@ import logging
 import re
 import string
 from itertools import zip_longest
+from random import randint
 from typing import Union
 
 import attr
 
 from sutta_processor.shared.exceptions import (
     MsIdError,
+    NyaError,
     PaliXmlIdError,
     PtsCsError,
     PtsPliError,
@@ -69,7 +71,12 @@ class UidKey:
     seq: Sequence = attr.ib(init=False)
 
     def __attrs_post_init__(self):
-        key, raw_seq = self.raw.split(":")
+        try:
+            key, raw_seq = self.raw.split(":")
+        except Exception:
+            log.error("Wrong key: '%s'", self.raw)
+            key = f"foo-{randint(0,1000)}"
+            raw_seq = "0-0"
         seq = Sequence.from_str(raw_seq=raw_seq)
         object.__setattr__(self, "key", BaseTextKey(key))
         object.__setattr__(self, "seq", seq)
@@ -196,6 +203,16 @@ class PtsPli(BaseUID):
             raise PtsPliError(f"'{content}' is not pts_pli id")
         pts_pli = super().__new__(cls, content)
         return pts_pli
+
+
+class Nya(BaseUID):
+    nya_start = "nya"
+
+    def __new__(cls, content: str):
+        if not content.startswith(cls.nya_start):
+            raise NyaError(f"'{content}' is not nya id")
+        nya = super().__new__(cls, content)
+        return nya
 
 
 class UID(BaseUID):
