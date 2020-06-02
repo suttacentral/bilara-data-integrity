@@ -68,10 +68,17 @@ class BaseFileAggregate(ABC):
             data = json.load(f)
         return cls.from_dict(in_dto=data, f_pth=f_pth)
 
+    def _replace_index(self, index: Dict[UID, BaseVersus]):
+        """
+        Insecure - won't update the aggregate index. Use only to update file once, and
+          then reload the whole thing.
+        It will also desynchronize uid&verse.uid
+        """
+        object.__setattr__(self, "index", index)
+
     @property
     def data(self) -> Dict[str, str]:
-        verses = (vers for vers in self.index.values())
-        return {v.uid: v.verse for v in verses}
+        return {uid: vers.verse for uid, vers in self.index.items()}
 
 
 @attr.s(frozen=True)

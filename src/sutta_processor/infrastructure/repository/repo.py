@@ -110,6 +110,7 @@ class BilaraRepo:
         return aggregate
 
     def save(self, aggregate: BaseRootAggregate):
+        log.info("Saving '%s'", aggregate.name())
         for each_file in aggregate.file_aggregates:  # type: BaseFileAggregate
             with open(each_file.f_pth, "w") as f:
                 json.dump(each_file.data, f, indent=2, ensure_ascii=False)
