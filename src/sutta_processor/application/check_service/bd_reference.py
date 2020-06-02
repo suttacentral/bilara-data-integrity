@@ -177,6 +177,15 @@ class SCReferenceService:
                 omg = "[%s] There are multiple ms_id in bilara references: %s"
                 log.error(omg, self.name, duplicated_ms_id)
 
+    @classmethod
+    def get_references_stem(cls, reference: BilaraReferenceAggregate) -> list:
+        stems = set()
+        for verse in reference.index.values():  # type: ReferenceVersus
+            stems.update((v.reference_root for v in verse.references))
+        reference_stems = list(sorted(stems))
+        log.error("Reference stems: %s", reference_stems)
+        return reference_stems
+
     def get_wrong_pts_cs_no(self, reference: BilaraReferenceAggregate):
         ignore = {"pts-cs75", "pts-cs1.10", "pts-cs7", "pts-cs8", "pts-cs12"}
         for versus in reference.index.values():  # type: ReferenceVersus

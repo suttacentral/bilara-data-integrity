@@ -8,7 +8,7 @@ from sutta_processor.shared.exceptions import (
     ScIdError,
 )
 
-from .uid import UID, MsId, PtsCs, PtsPli, ScID
+from .uid import UID, BaseUID, MsId, PtsCs, PtsPli, ScID
 
 
 class RawVerse(str):
@@ -38,7 +38,9 @@ class References(set):
                 else:
                     ids = [ids]
             for part in ids:
-                part = part.strip()
+                part = BaseUID(part.strip())
+                if not part:
+                    continue
                 try:
                     part = ScID(part)
                     if not sc_id:

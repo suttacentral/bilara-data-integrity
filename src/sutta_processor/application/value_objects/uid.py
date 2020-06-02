@@ -141,8 +141,28 @@ class UidKey:
         return is_str_head_in_sequence()
 
 
-BaseUID = str
 RootUID = str
+
+
+class BaseUID(str):
+    get_key_stem = re.compile(r".+?(?=\d)")
+
+    def __new__(cls, content: str):
+        return super().__new__(cls, content)
+
+    @property
+    def reference_root(self) -> str:
+        """'pts-vp-pli11' -> 'pts-vp-pli'"""
+        if not self:
+            log.warning("There is empty reference or uid")
+            return ""
+        elif self == "scuddana":
+            return self
+        try:
+            return self.get_key_stem.findall(self)[0]
+        except Exception:
+            log.error("Can't find root in ref: %s", self)
+            return ""
 
 
 class ScID(BaseUID):
