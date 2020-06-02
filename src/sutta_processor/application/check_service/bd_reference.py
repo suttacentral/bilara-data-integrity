@@ -308,9 +308,7 @@ class SCReferenceService:
             # match_pts_pli_index()
             match_uid()
 
-    def get_wrong_segments_based_on_nya(
-        self, reference: BilaraReferenceAggregate
-    ):
+    def get_wrong_segments_based_on_nya(self, reference: BilaraReferenceAggregate):
         wrong_keys = set()
         for uid, ref_versus in reference.index.items():
             nya_id = ref_versus.references.nya

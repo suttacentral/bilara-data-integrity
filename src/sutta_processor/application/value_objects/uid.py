@@ -2,7 +2,6 @@ import logging
 import re
 import string
 from itertools import zip_longest
-from random import randint
 from typing import Union
 
 import attr
@@ -74,8 +73,8 @@ class UidKey:
         try:
             key, raw_seq = self.raw.split(":")
         except Exception:
-            log.error("Wrong key: '%s'", self.raw)
-            key = f"foo-{randint(0,1000)}"
+            log.debug("Wrong key: '%s'", self.raw)
+            key = "foo"
             raw_seq = "0-0"
         seq = Sequence.from_str(raw_seq=raw_seq)
         object.__setattr__(self, "key", BaseTextKey(key))
