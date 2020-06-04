@@ -172,11 +172,11 @@ class BaseRootAggregate(ABC, TextCompareMixin):
 
     @classmethod
     def _update_index(cls, index: dict, file_aggregate: BaseFileAggregate):
-        len(index)
+        len_before = len(index)
         index.update(file_aggregate.index)
-        len(index)
-        # if len_after - len_before != len(file_aggregate.index):
-        #     raise RuntimeError(cls._ERR_MSG.format(f_pth=file_aggregate.f_pth))
+        len_after = len(index)
+        if len_after - len_before != len(file_aggregate.index):
+            raise RuntimeError(cls._ERR_MSG.format(f_pth=file_aggregate.f_pth))
 
     @classmethod
     def name(cls) -> str:

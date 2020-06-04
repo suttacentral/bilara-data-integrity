@@ -70,12 +70,7 @@ class UidKey:
     seq: Sequence = attr.ib(init=False)
 
     def __attrs_post_init__(self):
-        try:
-            key, raw_seq = self.raw.split(":")
-        except Exception:
-            log.debug("Wrong key: '%s'", self.raw)
-            key = "foo"
-            raw_seq = "0-0"
+        key, raw_seq = self.raw.split(":")
         seq = Sequence.from_str(raw_seq=raw_seq)
         object.__setattr__(self, "key", BaseTextKey(key))
         object.__setattr__(self, "seq", seq)
