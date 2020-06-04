@@ -5,11 +5,13 @@ from pathlib import Path
 from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
+    BilaraHtmlAggregate,
     BilaraReferenceAggregate,
     BilaraRootAggregate,
     ConcordanceAggregate,
     YuttaAggregate,
 )
+from sutta_processor.application.domain_models.base import BaseFileAggregate
 from sutta_processor.application.domain_models.bilara_concordance.root import (
     ConcordanceVersus,
 )
@@ -229,6 +231,55 @@ class SCReferenceService:
             log.error(self._UID_WRONG_COUNT, self.__class__.__name__, len(diff))
             log.error(self._UID_WRONG, self.__class__.__name__, diff)
 
+    def update_ref_based_on_html_uids(
+        self,
+        concordance: ConcordanceAggregate,
+        reference: BilaraReferenceAggregate,
+        html: BilaraHtmlAggregate,
+    ):
+        f_name_reference_index = {fa.f_pth.name: fa for fa in reference.file_aggregates}
+        root_path = (
+            Path("~/case/projects/sutra_central/bilara-data").expanduser().resolve()
+        )
+        root_html_path = root_path / "html"
+        root_ref_path = root_path / "reference"
+        paths = set()
+        for concordance_verse in concordance.index.values():
+            html_file_aggr = html.file_index.get(concordance_verse.uid)
+            if not html_file_aggr:
+                # uids_to_remove.append(concordance_verse.uid)
+                # log.error("No html found for uid: %s", concordance_verse.uid)
+                continue
+            f_name = html_file_aggr.f_pth.name.replace("html", "reference")
+            f_aggr: BaseFileAggregate = f_name_reference_index.get(f_name)
+            if not f_aggr:
+                relative_path = html_file_aggr.f_pth.relative_to(root_html_path)
+                relative_path = root_ref_path / relative_path
+                paths.add(relative_path)
+                omg = "Missing reference file: %s"
+                log.error(omg, relative_path)
+            # if f_aggr.index:
+            #     uids_to_remove.append(concordance_verse.uid)
+            #     # TODO: Find soring mechanism
+            # continue
+            # else:
+            #     log.error("Empty index for file: %s", f_aggr.f_pth)
+            # f_aggr.index[concordance_verse.uid] = ReferenceVersus(
+            #     raw_uid=concordance_verse.raw_uid,
+            #     verse=",".join(concordance_verse.references),
+            # )
+            # uids_to_remove.append(concordance_verse.uid)
+        # [concordance.index.pop(uid) for uid in uids_to_remove]
+
+        for p in paths:
+            new_f_name = p.name.replace("html", "reference")
+            p = p.parent / new_f_name
+            log.error("creating: %s", p)
+
+            p.parent.mkdir(exist_ok=True)
+            with open(p, "w") as f:
+                f.write("{}")
+
     def update_references_from_concordance(
         self,
         reference: BilaraReferenceAggregate,
@@ -297,9 +348,9 @@ class SCReferenceService:
 
         filter_keys = filter_keys or set(filter_keys)
         duplicated_scs = set()
-        for uid in concordance.index:
-            if uid.key.key.startswith("m"):
-                log.error(uid)
+        # for uid in concordance.index:
+        #     if uid.key.key.startswith("m"):
+        #         log.error(uid)
         for uid, root_ref in reference.index.items():
             if filter_keys and uid.key.key not in filter_keys:
                 continue
