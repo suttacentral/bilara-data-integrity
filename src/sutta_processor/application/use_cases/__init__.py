@@ -11,6 +11,7 @@ from .ms_yuttadhammo_convert_to_html import ms_yuttadhammo_convert_to_html
 from .ms_yuttadhammo_load import ms_yuttadhammo_load
 from .ms_yuttadhammo_match_root_text import ms_yuttadhammo_match_root_text
 from .reference_data_check import reference_data_check
+from .renumber_uids import renumber_uids
 from .run_all_checks import run_all_checks
 
 log = logging.getLogger(__name__)
@@ -33,5 +34,6 @@ __all__ = [
     "ms_yuttadhammo_match_root_text",
     "noop",
     "reference_data_check",
+    "renumber_uids",
     "run_all_checks",
 ]

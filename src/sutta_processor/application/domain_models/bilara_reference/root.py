@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict
 
 import attr
+from natsort import natsorted
 
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
@@ -40,6 +41,12 @@ class BilaraReferenceFileAggregate(BaseFileAggregate):
     @property
     def data(self) -> Dict[str, str]:
         verses = (vers for vers in self.index.values())
+        return {v.uid: v.references.data for v in verses}
+
+    @property
+    def data_sorted(self) -> Dict[str, str]:
+        key_order = natsorted(self.index)
+        verses = (self.index[uid] for uid in key_order)
         return {v.uid: v.references.data for v in verses}
 
 

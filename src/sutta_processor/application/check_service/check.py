@@ -27,6 +27,7 @@ from .base import ServiceBase
 from .bd_reference import SCReferenceService
 from .concordance import ConcordanceService
 from .text_check import CheckText
+from .uid_renumber import UidRenumber
 
 log = logging.getLogger(__name__)
 
@@ -195,6 +196,7 @@ class CheckService(ServiceBase):
         self.variant = CheckVariant(cfg=cfg)
         self.text = CheckText(cfg=cfg)
         self.sequence = SequenceCheck(cfg=cfg)
+        self.renumber = UidRenumber(cfg=cfg)
 
     def get_surplus_segments(
         self,

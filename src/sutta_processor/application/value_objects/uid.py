@@ -2,12 +2,13 @@ import logging
 import re
 import string
 from itertools import zip_longest
-from typing import Union
+from typing import Optional, Union
 
 import attr
 
 from sutta_processor.shared.exceptions import (
     MsIdError,
+    NyaError,
     PaliXmlIdError,
     PtsCsError,
     PtsPliError,
@@ -141,8 +142,28 @@ class UidKey:
         return is_str_head_in_sequence()
 
 
-BaseUID = str
 RootUID = str
+
+
+class BaseUID(str):
+    get_key_stem = re.compile(r".+?(?=\d)")
+
+    def __new__(cls, content: str):
+        return super().__new__(cls, content)
+
+    @property
+    def reference_root(self) -> str:
+        """'pts-vp-pli11' -> 'pts-vp-pli'"""
+        if not self:
+            log.warning("There is empty reference or uid")
+            return ""
+        elif self == "scuddana":
+            return self
+        try:
+            return self.get_key_stem.findall(self)[0]
+        except Exception:
+            log.error("Can't find root in ref: %s", self)
+            return ""
 
 
 class ScID(BaseUID):
@@ -178,6 +199,16 @@ class PtsPli(BaseUID):
         return pts_pli
 
 
+class Nya(BaseUID):
+    nya_start = "nya"
+
+    def __new__(cls, content: str):
+        if not content.startswith(cls.nya_start):
+            raise NyaError(f"'{content}' is not nya id")
+        nya = super().__new__(cls, content)
+        return nya
+
+
 class UID(BaseUID):
     ALLOWED_SET = set(string.ascii_letters + string.digits + "-:.")
 
@@ -191,6 +222,15 @@ class UID(BaseUID):
         uid.key = key
         uid.root = f"{key.key}{key.seq.head}"
         return uid
+
+    def get_header_uid(self) -> Optional["UID"]:
+        """
+        Only get header when you are at the beginning of the seq.
+        Could be better, sigh..
+        """
+        if self.key.seq.last != 2:
+            return None
+        return UID(f"{self.key.key}:{self.key.seq.head}.0")
 
 
 class PaliCrumb(str):

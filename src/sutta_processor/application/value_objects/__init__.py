@@ -3,6 +3,7 @@ from .uid import (
     BaseTextKey,
     BaseUID,
     MsId,
+    Nya,
     PaliCrumb,
     PaliMsDivId,
     PtsCs,

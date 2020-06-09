@@ -3,12 +3,13 @@ from collections import namedtuple
 
 from sutta_processor.shared.exceptions import (
     MsIdError,
+    NyaError,
     PtsCsError,
     PtsPliError,
     ScIdError,
 )
 
-from .uid import UID, MsId, PtsCs, PtsPli, ScID
+from .uid import UID, BaseUID, MsId, Nya, PtsCs, PtsPli, ScID
 
 
 class RawVerse(str):
@@ -20,6 +21,7 @@ class References(set):
     sc_id: ScID
     sc_id: PtsPli
     pts_cs: PtsCs
+    nya: Nya
 
     def __init__(self, *a):
         """
@@ -29,6 +31,7 @@ class References(set):
         sc_id = ""
         pts_pli = ""
         pts_cs = ""
+        nya = ""
         if len(a) == 1:
             parts = set()
             ids = a[0]
@@ -38,7 +41,9 @@ class References(set):
                 else:
                     ids = [ids]
             for part in ids:
-                part = part.strip()
+                part = BaseUID(part.strip())
+                if not part:
+                    continue
                 try:
                     part = ScID(part)
                     if not sc_id:
@@ -62,6 +67,13 @@ class References(set):
                     pts_cs = part
                 except PtsCsError:
                     pass
+
+                try:
+                    part = Nya(part)
+
+                    nya = part
+                except NyaError:
+                    pass
                 try:
                     part = MsId(part)
                     pts_cs = part
@@ -74,6 +86,7 @@ class References(set):
         self.sc_id = sc_id
         self.pts_pli = pts_pli
         self.pts_cs = pts_cs
+        self.nya = nya
 
     @property
     def data(self) -> str:

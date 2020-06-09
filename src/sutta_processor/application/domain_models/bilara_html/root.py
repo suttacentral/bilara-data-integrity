@@ -34,6 +34,8 @@ class BilaraHtmlAggregate(BaseRootAggregate):
     index: Dict[UID, HtmlVersus]
     file_aggregates: Tuple[BilaraHtmlFileAggregate]
 
+    file_index: Dict[UID, BilaraHtmlFileAggregate]
+
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     @classmethod
@@ -44,4 +46,12 @@ class BilaraHtmlAggregate(BaseRootAggregate):
             file_aggregate_cls=BilaraHtmlFileAggregate,
         )
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
-        return cls(file_aggregates=file_aggregates, index=index)
+        file_index = {
+            uid: file_aggregate
+            for file_aggregate in file_aggregates
+            for uid in file_aggregate.index
+        }
+        # for file_aggregate in file_aggregates:
+        #     for uid in file_aggregate.index:
+        #         file_index[uid] = file_aggregate
+        return cls(file_aggregates=file_aggregates, index=index, file_index=file_index)
