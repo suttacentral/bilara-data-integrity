@@ -1,8 +1,10 @@
 import json
 import logging
+import operator
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Set
+from functools import reduce
 
 from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
@@ -135,6 +137,9 @@ class SCReferenceService:
     _MS_WRONG = "[%s] Wrong MsId is the reference data: %s"
     _UID_WRONG_COUNT = "[%s] There are '%s' wrong SC UID in the reference data"
     _UID_WRONG = "[%s] Wrong SC UID is the reference data: %s"
+    _MS_REF_MATCH_COUNT = (
+        "[%s] There are '%s' MsId that were found in both bilara data and in ms_yuttadhamo"
+    )
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
@@ -143,10 +148,139 @@ class SCReferenceService:
         diff = sorted(
             {k for k in aggregate.index if k not in self.reference_engine.ms_id_index}
         )
+        match = sorted(
+            {k for k in aggregate.index if k in self.reference_engine.ms_id_index}
+        )
         if diff:
             log.error(self._MS_REF_MISS_COUNT, self.__class__.__name__, len(diff))
             log.error(self._MS_REF_MISS, self.__class__.__name__, diff)
-        return diff
+        if match:
+            log.error(self._MS_REF_MATCH_COUNT, self.__class__.__name__, len(match))
+        return diff, match
+    
+    def validate_text_based_on_references(self, yutta_aggregate: YuttaAggregate, bilara_aggregate: BilaraRootAggregate):
+        # CAVEAT: list that contains ms_ids that were found both in bilara-data and in ms_yuttadhamo
+        match = sorted(
+            {k for k in yutta_aggregate.index if k in self.reference_engine.ms_id_index}
+        )
+        # CAVEAT: extracting uids for matched ms_ids
+        matched_uids = {ms_id: [uid] for uid, ms_id in self.reference_engine.uid_index.items() if ms_id in match}
+        #log.error(f"Matched uids:\n{matched_uids}\n\n")
+        log.error(f"UIDs that were correctly matched: {matched_uids.values()}")
+        # TODO: check for gaps in between matched_uids
+        set_matched_uids = set(reduce(operator.add, matched_uids.values()))
+        log.error(f"Number of UIDS in matched_uids prior to  filling the gaps: {len(set_matched_uids)}")
+        log.error(f"set_matched_uids: {set_matched_uids}")
+        log.error(f"UIDS checked:")
+        for ms_id, uid in matched_uids.items():
+            # CAVEAT: since at this point uids have always one entry, I can just access the first element of uid here
+            uid = uid[0]
+            if '.' in uid:
+                try:
+                    uid_colon_separated = uid.split(':')
+                    # CAVEAT: reversing the list at the point of its initialization; needs to be reversed back prior to
+                    # any lookups in other data structures
+                    original_subsections_numbers = uid_colon_separated[-1].split('.')[::-1]
+                    # CAVEAT: implement counter how may elements after split('.') there is in a list and iterate over all of them
+                    for i in range(len(original_subsections_numbers)):
+                        initial_subsections_numbers = [x for x in original_subsections_numbers]
+                        temp_subsections_numbers = initial_subsections_numbers
+                        # FIXME: increment further numbers in the original subsections ONLY if for a given UID there are no further numbers:
+                        # FIXME: mn26:33.1 should be checked ONLY if mn26:32.x search has exhausted the maximum number from 32 subsection
+                        # TODO: get the maximum number for a given subsection from a list of valid UIDS
+                        # mn26:32.2
+                        #['2', '32']
+                        while True:
+                            # CAVEAT: if not the first subsection is checked, numbers in previous subsections are 1
+                            if i > 0:
+                                for j in range(i):
+                                    temp_subsections_numbers[j] = '1'
+                                log.error(f"temp_subsections_numbers: {temp_subsections_numbers}; initial_subsections_numbers : {initial_subsections_numbers}")
+                            number_incremented = int(temp_subsections_numbers[i]) + 1
+                            temp_subsections_numbers[i] = str(number_incremented)
+                            # CAVEAT: reversing back numbers so they can be looked up
+                            temp_subsections_numbers_reversed = temp_subsections_numbers[::-1]
+                            uid_incremented = []
+                            uid_incremented.append(uid_colon_separated[0])
+                            uid_incremented.append('.'.join(temp_subsections_numbers_reversed))
+                            uid_incremented = ':'.join(uid_incremented)
+                            log.error(f"UID: {uid}; incremented_uid: {uid_incremented}")
+                            if uid_incremented not in matched_uids[ms_id]:
+                                log.error(f"{uid_incremented} not in matched_uid.keys()")
+                                if uid_incremented not in set_matched_uids:
+                                    log.error(f"{uid_incremented} not in set_matched_uids")
+                                    if uid_incremented in bilara_aggregate.index.keys():
+                                        set_matched_uids.add(uid_incremented)
+                                        matched_uids[ms_id].append(uid_incremented)
+                                        uid = uid_incremented
+                                        log.error(f"Following uid was added to no_references_uids: {uid_incremented}")
+                                    else:
+                                        log.error(f"{uid_incremented} not in self.bilara_aggregate.index.keys()")
+                                        break
+                                else:
+                                    break
+                            else:
+                                break
+                        if i > len(original_subsections_numbers):
+                            # TODO: check if there is any bigger number in a given subsection
+                            # TODO: get the number for a given subsection from uid_incremented and check if it is equal or bigger than the
+                            # TODO: biggest number in a current subsection
+                            uid_incremented_colon_separated = uid.split(':')
+                            temp_subsections_numbers = uid_incremented_colon_separated[-1].split('.')[::-1]
+                            considered_number = temp_subsections_numbers[i]
+                except Exception as e:
+                    log.error(e)
+            else:
+                while True:
+                    try:
+                        last_element = str(int(uid.split(":")[-1]) + 1)
+                        uid_incremented = last_element.join(uid.rsplit(uid.rsplit(':', 1)[-1], 1))
+                        if uid_incremented not in matched_uids[ms_id]:
+                            log.error(f"{uid_incremented} not in matched_uid.keys()")
+                            if uid_incremented not in set_matched_uids:
+                                log.error(f"{uid_incremented} not in set_matched_uids")
+                                if uid_incremented in bilara_aggregate.index.keys():
+                                    set_matched_uids.add(uid_incremented)
+                                    matched_uids[ms_id].append(uid_incremented)
+                                    uid = uid_incremented
+                                    log.error(f"Following uid was added to no_references_uids: {uid_incremented}")
+                                else:
+                                    log.error(f"{uid_incremented} not in self.bilara_aggregate.index.keys()")
+                                    break
+                            else:
+                                break
+                        else:
+                            break
+                    except Exception as e:
+                        log.error(f"No colon in uid and exception occured: {e}")
+        # FIXME: count it realiably; currently it checks the amount of lists in lists
+        log.error(f"Number of UIDS in matched_uids after filling the gaps: {len(matched_uids.values())}")
+
+
+        # CAVEAT: Verses from bilara-data should be values in a dict, where keys are corresponding ms_ids
+        bilara_verses = defaultdict(list)
+        invalid_uids = []
+        for ms_id, uid in matched_uids.items():
+            log.error(f"{ms_id}: {uid}")
+            try:
+                for single_uid in uid:
+                    bilara_verses[ms_id].append(bilara_aggregate.index[single_uid].verse)
+            except Exception as e:
+                # CAVEAT: if error happens it means that there were no verse for this uid
+                invalid_uids.append(uid)
+        if len(invalid_uids) > 0:
+            log.error(f"There were {len(invalid_uids)} UIDs that were found in references but do not exist in bilara-data.")
+
+
+        # CAVEAT: print Verses from ms yuttadhamo and bilara next to each other
+        for id in match:
+            try:
+                log.error(f"\nPair for ms_id: {id}, UID: {matched_uids[id]}:")
+                log.error(f"Yutta:\n{yutta_aggregate.index[id].verse}")
+                log.error(f"Bilara:\n{bilara_verses[id]}")
+            except Exception as e:
+                 log.error(e)
+        
 
     def log_wrong_ms_id_in_reference_data(self, aggregate: YuttaAggregate):
         diff = sorted(
