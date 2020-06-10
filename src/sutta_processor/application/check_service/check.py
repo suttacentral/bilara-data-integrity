@@ -100,8 +100,10 @@ class CheckHtml(ServiceBase):
                 is_section_jump = (
                     uid.strip_last_parts() != candidate_uid.strip_last_parts()
                 )
-                is_next_seq_one = uid.key.seq[-1] == 1
-                if is_section_jump and is_next_seq_one:
+                if not is_section_jump:
+                    log.error("Skipping uid: %s", candidate_uid)
+                    error_uids[candidate_uid] = ""
+                if is_section_jump:
                     omg = "[%s] Possible header not starting the section: '%s'"
                     # log.error(omg, self.name, candidate_uid)
                     new_uid = f"{uid.strip_last_parts()}.0"
