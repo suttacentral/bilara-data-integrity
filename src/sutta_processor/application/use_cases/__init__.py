@@ -7,6 +7,7 @@ from .bilara_check_root import bilara_check_root
 from .bilara_check_translation import bilara_check_translation
 from .bilara_check_variant import bilara_check_variant
 from .bilara_load import bilara_load
+from .fix_headers_uid import fix_headers_uid
 from .ms_yuttadhammo_convert_to_html import ms_yuttadhammo_convert_to_html
 from .ms_yuttadhammo_load import ms_yuttadhammo_load
 from .ms_yuttadhammo_match_root_text import ms_yuttadhammo_match_root_text
@@ -29,6 +30,7 @@ __all__ = [
     "bilara_check_translation",
     "bilara_check_variant",
     "bilara_load",
+    "fix_headers_uid",
     "ms_yuttadhammo_convert_to_html",
     "ms_yuttadhammo_load",
     "ms_yuttadhammo_match_root_text",

@@ -223,6 +223,18 @@ class UID(BaseUID):
         uid.root = f"{key.key}{key.seq.head}"
         return uid
 
+    def strip_last_parts(self, parts_to_skip: int = 1) -> str:
+        """
+        Help with creating new uids.
+
+        :param parts_to_skip: Number of parts to skip
+            # parts_to_skip = 1
+            pli-tv-bi-vb-pc1:2.3.9 -> pli-tv-bi-vb-pc1:2.3
+            # parts_to_skip = 2
+            pli-tv-bi-vb-pc1:2.3.9 -> pli-tv-bi-vb-pc1:2
+        """
+        return self.rsplit(".", parts_to_skip)[0]
+
     def get_header_uid(self) -> Optional["UID"]:
         """
         Only get header when you are at the beginning of the seq.

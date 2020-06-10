@@ -2,7 +2,7 @@ import logging
 import pprint
 import re
 from itertools import zip_longest
-from typing import Dict, Set
+from typing import Dict, Optional, Set
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
@@ -90,19 +90,44 @@ class CheckHtml(ServiceBase):
         return set(html_wrong)
 
     def is_0_in_header_uid(self, aggregate: BilaraHtmlAggregate) -> Set[UID]:
-        error_uids = set()
+        error_uids = {}
         prog = re.compile(r"<h\d")
+        # We fix only headers which are at the end of segment switch
+        candidate_uid: Optional[UID] = None
         for uid, versus in aggregate.index.items():
+            if len(uid.key.seq) != 2:
+                # Incremental updates
+                continue
+
+            if candidate_uid:
+                is_different_root = uid.root != candidate_uid.root
+                is_root_sequence_jump = uid.key.seq[-1] != candidate_uid.key.seq[-1] + 1
+
+                if is_different_root and is_root_sequence_jump:
+                    omg = "[%s] Possible header not starting the section: '%s'"
+                    # log.error(omg, self.name, candidate_uid)
+                    new_uid = f"{uid.strip_last_parts()}.0"
+                    log.error(
+                        "old: '%s', curr: '%s', new: '%s'", candidate_uid, uid, new_uid
+                    )
+                    assert not aggregate.index.get(new_uid)
+                    error_uids[candidate_uid] = new_uid
+                candidate_uid = None
+
             if uid in HTML_START_HEADER_OK:
                 continue
             elif prog.match(versus.verse) and 0 not in uid.key.seq:
-                omg = "[%s] Possible header not starting the section: '%s'"
-                log.error(omg, self.name, {uid: versus.verse})
-                error_uids.add(uid)
+                # omg = "[%s] Possible header not starting the section: '%s'"
+                # log.error(omg, self.name, {uid: versus.verse})
+                # error_uids.add(uid)
+                candidate_uid = uid
         if error_uids:
             omg = "[%s] There are '%s' headers that don't start new section: %s"
             log.error(omg, self.name, len(error_uids), error_uids)
-        return error_uids
+            with open(self.cfg.debug_dir / "fixed_uid.csv", "w") as f:
+                for old_uid, new_uid in error_uids.items():
+                    f.write(f"{old_uid},{new_uid}\n")
+        return set(error_uids.keys())
 
 
 class CheckTranslation(ServiceBase):
