@@ -110,8 +110,10 @@ class CheckHtml(ServiceBase):
                     log.error(
                         "old: '%s', curr: '%s', new: '%s'", candidate_uid, uid, new_uid
                     )
-                    assert not aggregate.index.get(new_uid)
-                    error_uids[candidate_uid] = new_uid
+                    assert new_uid == uid
+                    # Double key
+                    error_uids[new_uid] = f"{new_uid}.2"
+                    error_uids[candidate_uid] = f"{new_uid}.1"
                 candidate_uid = None
 
             if uid in HTML_START_HEADER_OK:
@@ -124,9 +126,11 @@ class CheckHtml(ServiceBase):
         if error_uids:
             omg = "[%s] There are '%s' headers that don't start new section: %s"
             log.error(omg, self.name, len(error_uids), error_uids)
-            with open(self.cfg.debug_dir / "fixed_uid.csv", "w") as f:
+            f_pth_csv = self.cfg.debug_dir / "fixed_uid.csv"
+            with open(f_pth_csv, "w") as f:
                 for old_uid, new_uid in error_uids.items():
                     f.write(f"{old_uid},{new_uid}\n")
+            log.error("File written: '%s'", f_pth_csv)
         return set(error_uids.keys())
 
 
