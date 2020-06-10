@@ -95,12 +95,13 @@ class CheckHtml(ServiceBase):
         # We fix only headers which are at the end of segment switch
         candidate_uid: Optional[UID] = None
         for uid, versus in aggregate.index.items():
-            if len(uid.key.seq) != 3:
-                # Incremental updates
-                continue
 
             if candidate_uid:
-                if uid.root != candidate_uid.root:
+                is_section_jump = (
+                    uid.strip_last_parts() != candidate_uid.strip_last_parts()
+                )
+                is_next_seq_one = uid.key.seq[-1] == 1
+                if is_section_jump and is_next_seq_one:
                     omg = "[%s] Possible header not starting the section: '%s'"
                     # log.error(omg, self.name, candidate_uid)
                     new_uid = f"{uid.strip_last_parts()}.0"
