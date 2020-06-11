@@ -1,10 +1,13 @@
 import json
 import logging
 import operator
-from collections import defaultdict
+import copy
+import re
+from collections import defaultdict, OrderedDict
 from pathlib import Path
 from typing import Dict, Set
 from functools import reduce
+from itertools import islice
 
 from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
@@ -164,15 +167,37 @@ class SCReferenceService:
             {k for k in yutta_aggregate.index if k in self.reference_engine.ms_id_index}
         )
         # CAVEAT: extracting uids for matched ms_ids
+        # FIXME: user ordered dict for creating matched_uids
+        # matched_uids = OrderedDict()
+        # for uid, ms_id in self.reference_engine.uid_index.items():
+        #     if ms_id in match:
+        #         matched_uids[ms_id] = [uid]
+        #log.error(f"Matched uids initialized: {matched_uids}")
+        # FIXME: previous implementation
         matched_uids = {ms_id: [uid] for uid, ms_id in self.reference_engine.uid_index.items() if ms_id in match}
+        log.error(f"Matched uids prior to sorting: {matched_uids}")
+        # CAVEAT: sorting function
+        def sorter(pair: tuple):
+            item = pair[0]
+            item_split = (item.split('_'))
+            first_sort_key = int(''.join([y for y in item_split[0] if y.isdigit()]))
+            second_sort_key = int(''.join([y for y in item_split[1] if y.isdigit()]))
+            return (first_sort_key, second_sort_key)
+        # FIXME: Ordering matched_uids
+        matched_uids = OrderedDict(sorted(matched_uids.items(), key=sorter))
+        log.error(f"Matched uids sorted: {matched_uids}")
         #log.error(f"Matched uids:\n{matched_uids}\n\n")
         log.error(f"UIDs that were correctly matched: {matched_uids.values()}")
-        # TODO: check for gaps in between matched_uids
+        #matched_uids = sorted(matched_uids)
         set_matched_uids = set(reduce(operator.add, matched_uids.values()))
         log.error(f"Number of UIDS in matched_uids prior to  filling the gaps: {len(set_matched_uids)}")
         log.error(f"set_matched_uids: {set_matched_uids}")
         log.error(f"UIDS checked:")
-        for ms_id, uid in matched_uids.items():
+        # TODO: iterate for i in len(matched_uids.items() and then assign it; this way you can access the next element
+        # FIXME: make sure that the order is maintained
+        for k in range(len(matched_uids)):
+            ms_id, uid = next(islice(matched_uids.items(), k, None))
+        #for ms_id, uid in matched_uids.items():
             # CAVEAT: since at this point uids have always one entry, I can just access the first element of uid here
             uid = uid[0]
             if '.' in uid:
@@ -184,42 +209,79 @@ class SCReferenceService:
                     # CAVEAT: implement counter how may elements after split('.') there is in a list and iterate over all of them
                     for i in range(len(original_subsections_numbers)):
                         initial_subsections_numbers = [x for x in original_subsections_numbers]
-                        temp_subsections_numbers = initial_subsections_numbers
+                        temp_subsections_numbers = copy.deepcopy(initial_subsections_numbers)
                         # FIXME: increment further numbers in the original subsections ONLY if for a given UID there are no further numbers:
                         # FIXME: mn26:33.1 should be checked ONLY if mn26:32.x search has exhausted the maximum number from 32 subsection
                         # TODO: get the maximum number for a given subsection from a list of valid UIDS
                         # mn26:32.2
                         #['2', '32']
+                        # FIXME: If another depth is entered, reset the the loop with new initial_subsections_numbers and
+                        # FIXME: temp_subsection_numbers using exhausted variable; another while loop should enclose the original while loop and whenever a higher level of depth was entered, the original while loop should be terminated
                         while True:
-                            # CAVEAT: if not the first subsection is checked, numbers in previous subsections are 1
-                            if i > 0:
-                                for j in range(i):
-                                    temp_subsections_numbers[j] = '1'
-                                log.error(f"temp_subsections_numbers: {temp_subsections_numbers}; initial_subsections_numbers : {initial_subsections_numbers}")
-                            number_incremented = int(temp_subsections_numbers[i]) + 1
-                            temp_subsections_numbers[i] = str(number_incremented)
-                            # CAVEAT: reversing back numbers so they can be looked up
-                            temp_subsections_numbers_reversed = temp_subsections_numbers[::-1]
-                            uid_incremented = []
-                            uid_incremented.append(uid_colon_separated[0])
-                            uid_incremented.append('.'.join(temp_subsections_numbers_reversed))
-                            uid_incremented = ':'.join(uid_incremented)
-                            log.error(f"UID: {uid}; incremented_uid: {uid_incremented}")
-                            if uid_incremented not in matched_uids[ms_id]:
-                                log.error(f"{uid_incremented} not in matched_uid.keys()")
-                                if uid_incremented not in set_matched_uids:
-                                    log.error(f"{uid_incremented} not in set_matched_uids")
-                                    if uid_incremented in bilara_aggregate.index.keys():
-                                        set_matched_uids.add(uid_incremented)
-                                        matched_uids[ms_id].append(uid_incremented)
-                                        uid = uid_incremented
-                                        log.error(f"Following uid was added to no_references_uids: {uid_incremented}")
+                            while True:
+                                exhausted = True
+                                # CAVEAT: if not the first subsection is checked, numbers in deeper subsections are 1
+                                if i > 0:
+                                    for j in range(i):
+                                        temp_subsections_numbers[j] = '1'
+                                    log.error(f"temp_subsections_numbers: {temp_subsections_numbers}; initial_subsections_numbers : {initial_subsections_numbers}")
+                                number_incremented = int(temp_subsections_numbers[i]) + 1
+                                temp_subsections_numbers[i] = str(number_incremented)
+                                # CAVEAT: reversing back numbers so they can be looked up
+                                temp_subsections_numbers_reversed = temp_subsections_numbers[::-1]
+                                uid_incremented = []
+                                uid_incremented.append(uid_colon_separated[0])
+                                uid_incremented.append('.'.join(temp_subsections_numbers_reversed))
+                                uid_incremented = ':'.join(uid_incremented)
+                                log.error(f"UID: {uid}; incremented_uid: {uid_incremented}")
+                                if uid_incremented not in matched_uids[ms_id]:
+                                    log.error(f"{uid_incremented} not in matched_uid.keys()")
+                                    if uid_incremented not in set_matched_uids:
+                                        log.error(f"{uid_incremented} not in set_matched_uids")
+                                        if uid_incremented in bilara_aggregate.index.keys():
+                                            # TODO: regexes for finding tuples containing numbers from UIDS
+                                            pattern = "(\d+)"
+                                            incremented_uid_tuple = tuple(int(x) for x in re.findall(pattern, uid_incremented))
+                                            next_matched_uid = next(islice(matched_uids.values(), k + 1, None))[0]
+                                            next_matched_uid_tuple = tuple(int(x) for x in re.findall(pattern, next_matched_uid))
+                                            # # FIXME: compare tuples created after splitting incremented_uid_float and next_matched_uid
+                                            # incremented_uid_tuple = tuple([int(x) for x in uid_incremented.split(':')[-1].split('.')])
+                                            # next_matched_uid = next(islice(matched_uids.values(), k + 1, None))[0]
+                                            # next_matched_uid_tuple = tuple([int(x) for x in next_matched_uid.split(':')[-1].split('.')])
+                                            #log.error(f"Incremented UID float: {incremented_uid_float}; Next matched UID float: {next_matched_uid_float}")
+                                            log.error(
+                                                f"Incremented UID float: {incremented_uid_tuple}; Next matched UID float: {next_matched_uid_tuple}")
+                                            #if incremented_uid_float < next_matched_uid_float:
+                                            if incremented_uid_tuple < next_matched_uid_tuple:
+                                                log.error(
+                                                    f"Incremented uid is lower than the next matched uid.\nUID_incremented: {uid_incremented}; next_matched_uid: {next_matched_uid}")
+                                                set_matched_uids.add(uid_incremented)
+                                                matched_uids[ms_id].append(uid_incremented)
+                                                log.error(
+                                                    f"Following uid was added to no_references_uids: {uid_incremented}; previous uid: {uid}")
+                                                uid = uid_incremented
+                                                if i > 0:
+                                                    log.error(f"Initial_subsections_numbers: {initial_subsections_numbers}")
+                                                    # CAVEAT: this was done before
+                                                    initial_subsections_numbers = [x for x in uid_incremented.split(':')[-1].split('.')[::-1]]
+                                                    #temp_subsections_numbers = copy.deepcopy(initial_subsections_numbers)
+                                                    log.error(f"New temp_subsection_numbers: {temp_subsections_numbers}")
+                                                    exhausted = False
+                                                    i = 0
+                                                    # CAVEAT: exit this while loop and reenter it with modified initial subsection numbers
+                                                    break
+                                            else:
+                                                log.error(f"Incremented uid is bigger than the next matched uid.\nUID_incremented: {uid_incremented}; next_matched_uid: {next_matched_uid}")
+                                                break
+                                        else:
+                                            log.error(f"{uid_incremented} not in self.bilara_aggregate.index.keys()")
+                                            break
                                     else:
-                                        log.error(f"{uid_incremented} not in self.bilara_aggregate.index.keys()")
                                         break
                                 else:
                                     break
-                            else:
+                            if exhausted == True:
+                                log.error(f"Loop has been exhausted - exhausted: {exhausted}")
                                 break
                         if i > len(original_subsections_numbers):
                             # TODO: check if there is any bigger number in a given subsection
@@ -277,7 +339,7 @@ class SCReferenceService:
             try:
                 log.error(f"\nPair for ms_id: {id}, UID: {matched_uids[id]}:")
                 log.error(f"Yutta:\n{yutta_aggregate.index[id].verse}")
-                log.error(f"Bilara:\n{bilara_verses[id]}")
+                log.error(f"Bilara:\n{''.join(bilara_verses[id])}")
             except Exception as e:
                  log.error(e)
         
