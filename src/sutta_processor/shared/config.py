@@ -74,7 +74,7 @@ class ExcludeRepo:
           - pli-tv-bi-pm:158.4
         ```
         """
-        with open(f_pth) as f:
+        with open(expandvars(f_pth)) as f:
             data = yaml.safe_load(stream=f) or {}
         return cls.from_dict(data=data)
 
