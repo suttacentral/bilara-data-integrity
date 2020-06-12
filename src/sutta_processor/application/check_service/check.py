@@ -44,7 +44,9 @@ class CheckHtml(ServiceBase):
     ) -> set:
         base_uids = set(base_aggregate.index.keys())
         html_uids = set(html_aggregate.index.keys())
-        html_missing = base_uids - html_uids
+        html_missing = base_uids - html_uids.union(
+            self.cfg.exclude.get_missing_segments
+        )
         if html_missing:
             log.error(
                 self._MISSING_UIDS, self.name, len(html_missing), base_aggregate.name()
