@@ -95,7 +95,6 @@ class CheckHtml(ServiceBase):
         # We fix only headers which are at the end of segment switch
         candidate_uid: Optional[UID] = None
         for uid, versus in aggregate.index.items():
-
             if candidate_uid:
                 is_section_jump = (
                     uid.strip_last_parts() != candidate_uid.strip_last_parts()
@@ -104,12 +103,10 @@ class CheckHtml(ServiceBase):
                     log.error("Skipping uid: %s", candidate_uid)
                     error_uids[candidate_uid] = ""
                 if is_section_jump:
+                    # TODO: just check
                     omg = "[%s] Possible header not starting the section: '%s'"
                     # log.error(omg, self.name, candidate_uid)
                     new_uid = f"{uid.strip_last_parts()}.0"
-                    log.error(
-                        "old: '%s', curr: '%s', new: '%s'", candidate_uid, uid, new_uid
-                    )
                     assert not aggregate.index.get(new_uid)
                     error_uids[candidate_uid] = new_uid
                 candidate_uid = None
@@ -117,18 +114,10 @@ class CheckHtml(ServiceBase):
             if uid in HTML_START_HEADER_OK:
                 continue
             elif prog.match(versus.verse) and 0 not in uid.key.seq:
-                # omg = "[%s] Possible header not starting the section: '%s'"
-                # log.error(omg, self.name, {uid: versus.verse})
-                # error_uids.add(uid)
                 candidate_uid = uid
         if error_uids:
             omg = "[%s] There are '%s' headers that don't start new section: %s"
-            log.error(omg, self.name, len(error_uids), error_uids)
-            f_pth_csv = self.cfg.debug_dir / "fixed_uid.csv"
-            with open(f_pth_csv, "w") as f:
-                for old_uid, new_uid in error_uids.items():
-                    f.write(f"{old_uid},{new_uid}\n")
-            log.error("File written: '%s'", f_pth_csv)
+            log.error(omg, self.name, len(error_uids), sorted(error_uids))
         return set(error_uids.keys())
 
 
