@@ -511,5 +511,3 @@ COMMENT_NOT_IN_ROOT_OK = {
     "pli-tv-bu-vb-sk69:1.35.0",
     "pli-tv-bu-vb-ss2:3.4.28.0",
 }
-
-HTML_START_HEADER_OK = set()

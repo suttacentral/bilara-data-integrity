@@ -2,15 +2,13 @@ import logging
 import pprint
 import re
 from itertools import zip_longest
-from typing import Dict, Optional, Set
+from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
-    BilaraReferenceAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
-    YuttaAggregate,
 )
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
@@ -18,7 +16,6 @@ from sutta_processor.shared.config import Config
 from sutta_processor.shared.false_positives import (
     DUPLICATE_OK_IDS,
     HTML_CHECK_OK_IDS,
-    HTML_START_HEADER_OK,
     VARIANT_ARROW_OK_IDS,
     VARIANT_UNKNOWN_OK_IDS,
 )
@@ -90,35 +87,19 @@ class CheckHtml(ServiceBase):
         return set(html_wrong)
 
     def is_0_in_header_uid(self, aggregate: BilaraHtmlAggregate) -> Set[UID]:
-        error_uids = {}
+        error_uids = set()
         prog = re.compile(r"<h\d")
-        # We fix only headers which are at the end of segment switch
-        candidate_uid: Optional[UID] = None
         for uid, versus in aggregate.index.items():
-            if candidate_uid:
-                is_section_jump = (
-                    uid.strip_last_parts() != candidate_uid.strip_last_parts()
-                )
-                if not is_section_jump:
-                    log.error("Skipping uid: %s", candidate_uid)
-                    error_uids[candidate_uid] = ""
-                if is_section_jump:
-                    # TODO: just check
-                    omg = "[%s] Possible header not starting the section: '%s'"
-                    # log.error(omg, self.name, candidate_uid)
-                    new_uid = f"{uid.strip_last_parts()}.0"
-                    assert not aggregate.index.get(new_uid)
-                    error_uids[candidate_uid] = new_uid
-                candidate_uid = None
-
-            if uid in HTML_START_HEADER_OK:
+            if uid in self.cfg.exclude.headers_without_0:
                 continue
             elif prog.match(versus.verse) and 0 not in uid.key.seq:
-                candidate_uid = uid
+                omg = "[%s] Possible header not starting the section: '%s'"
+                log.error(omg, self.name, uid)
+                error_uids.add(uid)
         if error_uids:
             omg = "[%s] There are '%s' headers that don't start new section: %s"
             log.error(omg, self.name, len(error_uids), sorted(error_uids))
-        return set(error_uids.keys())
+        return error_uids
 
 
 class CheckTranslation(ServiceBase):
