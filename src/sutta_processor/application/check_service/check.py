@@ -262,14 +262,16 @@ class CheckService(ServiceBase):
         error_keys = set()
         previous_elem = UidKey(":0-0")
         for uid in aggregate.index:
-            if not uid.key.is_next(previous=previous_elem):
+            if uid in self.cfg.exclude.check_uid_sequence_in_file:
+                pass
+            elif not uid.key.is_next(previous=previous_elem):
                 error_keys.add(uid)
                 msg = "[%s] Sequence error. Previous: '%s' current: '%s'"
                 log.error(msg, self.name, previous_elem.raw, uid)
             previous_elem = uid.key
         if error_keys:
-            msg = "[%s] There are '%s' sequence key errors"
-            log.error(msg, self.name, len(error_keys))
+            msg = "[%s] There are '%s' sequence key errors: %s"
+            log.error(msg, self.name, len(error_keys), error_keys)
 
     def get_duplicated_versus_next_to_each_other(
         self, aggregate: BilaraRootAggregate

@@ -51,6 +51,7 @@ class ExcludeRepo:
     get_comment_surplus_segments: set = attr.ib(default=set())
     get_missing_segments: set = attr.ib(default=set())
     get_unordered_segments: set = attr.ib(default=set())
+    check_uid_sequence_in_file: set = attr.ib(default=set())
 
     @classmethod
     def from_dict(cls, data: dict) -> "ExcludeRepo":
