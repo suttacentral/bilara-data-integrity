@@ -11,6 +11,7 @@ ms_yuttadhammo_path: ""
 pali_concordance_filepath: "~/all_pali_concordance.json"
 
 reference_root_path: "~/reference/pli/ms"
+exclude_filepath: ""
 
 debug_dir: ""
 # Log level: [0, 50]. 10-debug, 20-info

@@ -46,6 +46,33 @@ def use_case_present(_inst, _attr, uc_name: str):
 
 
 @attr.s(frozen=True, auto_attribs=True)
+class ExcludeRepo:
+    headers_without_0: set = attr.ib(default=set())
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ExcludeRepo":
+        fields = [field.name for field in attr.fields(cls)]
+        kwargs = {k: set(v) for k, v in data.items() if k in fields}
+        return cls(**kwargs)
+
+    @classmethod
+    def from_yaml(cls, f_pth: Union[str, Path] = None) -> "ExcludeRepo":
+        """
+        Structure of yaml file:
+        ```
+        headers_without_0:
+          - dhp416:5
+          - pli-tv-bi-pm:107.2
+          ...
+          - pli-tv-bi-pm:158.4
+        ```
+        """
+        with open(f_pth) as f:
+            data = yaml.safe_load(stream=f) or {}
+        return cls.from_dict(data=data)
+
+
+@attr.s(frozen=True, auto_attribs=True)
 class Config:
     exec_module: str = attr.ib(validator=use_case_present)
 
@@ -57,6 +84,7 @@ class Config:
     bilara_variant_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_translation_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
+    exclude_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
@@ -64,6 +92,7 @@ class Config:
 
     repo: "FileRepository" = attr.ib(init=False)
     check: "CheckService" = attr.ib(init=False)
+    exclude: ExcludeRepo = attr.ib(init=False)
 
     def __attrs_post_init__(self):
         from sutta_processor.infrastructure.repository.repo import FileRepository
@@ -72,6 +101,9 @@ class Config:
 
         object.__setattr__(self, "check", CheckService(cfg=self))
         object.__setattr__(self, "repo", FileRepository(cfg=self))
+        object.__setattr__(
+            self, "exclude", ExcludeRepo.from_yaml(f_pth=self.exclude_filepath)
+        )
 
     @classmethod
     def from_yaml(cls, f_pth: Union[str, Path] = None) -> "Config":

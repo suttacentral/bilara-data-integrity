@@ -6,11 +6,9 @@ from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
-    BilaraReferenceAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
-    YuttaAggregate,
 )
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
@@ -18,7 +16,6 @@ from sutta_processor.shared.config import Config
 from sutta_processor.shared.false_positives import (
     DUPLICATE_OK_IDS,
     HTML_CHECK_OK_IDS,
-    HTML_START_HEADER_OK,
     VARIANT_ARROW_OK_IDS,
     VARIANT_UNKNOWN_OK_IDS,
 )
@@ -93,15 +90,15 @@ class CheckHtml(ServiceBase):
         error_uids = set()
         prog = re.compile(r"<h\d")
         for uid, versus in aggregate.index.items():
-            if uid in HTML_START_HEADER_OK:
+            if uid in self.cfg.exclude.headers_without_0:
                 continue
             elif prog.match(versus.verse) and 0 not in uid.key.seq:
                 omg = "[%s] Possible header not starting the section: '%s'"
-                log.error(omg, self.name, {uid: versus.verse})
+                log.error(omg, self.name, uid)
                 error_uids.add(uid)
         if error_uids:
             omg = "[%s] There are '%s' headers that don't start new section: %s"
-            log.error(omg, self.name, len(error_uids), error_uids)
+            log.error(omg, self.name, len(error_uids), sorted(error_uids))
         return error_uids
 
 
