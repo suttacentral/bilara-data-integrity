@@ -335,8 +335,10 @@ class SequenceCheck(ServiceBase):
         previous = UidKey(":0-0")
         for uid in index:
             current = uid.key
-            if not self.is_key_in_seq(previous, current):
-                omg = "[%s] Sequence error. Previous: '%s' current: '%s"
+            if uid in self.cfg.exclude.get_unordered_segments:
+                pass
+            elif not self.is_key_in_seq(previous, current):
+                omg = "[%s] Sequence error. Previous: '%s' current: '%s'"
                 log.error(omg, self.name, previous.raw, current.raw)
                 wrong_uid.add(uid)
             previous = uid.key
