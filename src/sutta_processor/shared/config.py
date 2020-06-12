@@ -48,6 +48,8 @@ def use_case_present(_inst, _attr, uc_name: str):
 @attr.s(frozen=True, auto_attribs=True)
 class ExcludeRepo:
     headers_without_0: set = attr.ib(default=set())
+    get_comment_surplus_segments: set = attr.ib(default=set())
+    get_unordered_segments: set = attr.ib(default=set())
 
     @classmethod
     def from_dict(cls, data: dict) -> "ExcludeRepo":

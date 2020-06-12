@@ -12,5 +12,5 @@ log = logging.getLogger(__name__)
 def bilara_load(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
-    root_aggregate: BilaraRootAggregate = cfg.repo.bilara.get_root()
+    root_aggregate: BilaraRootAggregate = cfg.repo.bilara.get_root
     log.info("Got root aggregate: %s", root_aggregate)

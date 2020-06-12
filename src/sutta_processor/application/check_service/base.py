@@ -1,3 +1,4 @@
+import inspect
 import logging
 
 from sutta_processor.shared.config import Config
@@ -11,4 +12,4 @@ class ServiceBase:
 
     @property
     def name(self) -> str:
-        return self.__class__.__name__
+        return inspect.currentframe().f_back.f_code.co_name
