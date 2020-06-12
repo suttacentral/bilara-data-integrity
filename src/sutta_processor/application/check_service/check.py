@@ -1,3 +1,4 @@
+import inspect
 import logging
 import pprint
 import re
@@ -5,6 +6,7 @@ from itertools import zip_longest
 from typing import Dict, Set
 
 from sutta_processor.application.domain_models import (
+    BilaraCommentAggregate,
     BilaraHtmlAggregate,
     BilaraRootAggregate,
     BilaraTranslationAggregate,
@@ -42,7 +44,9 @@ class CheckHtml(ServiceBase):
     ) -> set:
         base_uids = set(base_aggregate.index.keys())
         html_uids = set(html_aggregate.index.keys())
-        html_missing = base_uids - html_uids
+        html_missing = base_uids - html_uids.union(
+            self.cfg.exclude.get_missing_segments
+        )
         if html_missing:
             log.error(
                 self._MISSING_UIDS, self.name, len(html_missing), base_aggregate.name()
@@ -195,6 +199,20 @@ class CheckService(ServiceBase):
         self.sequence = SequenceCheck(cfg=cfg)
         self.renumber = UidRenumber(cfg=cfg)
 
+    def get_comment_surplus_segments(
+        self,
+        check_aggregate: BilaraCommentAggregate,
+        base_aggregate: BilaraRootAggregate,
+    ):
+        function_log_name = inspect.currentframe().f_code.co_name
+        result = self._get_surplus_segments(
+            function_log_name=function_log_name,
+            check_aggregate=check_aggregate,
+            base_aggregate=base_aggregate,
+            excluded=self.cfg.exclude.get_comment_surplus_segments,
+        )
+        return result
+
     def get_surplus_segments(
         self,
         check_aggregate: BaseRootAggregate,
@@ -216,24 +234,25 @@ class CheckService(ServiceBase):
 
     def _get_surplus_segments(
         self,
+        function_log_name,
         check_aggregate: BaseRootAggregate,
         base_aggregate: BaseRootAggregate,
-        false_positive: Set[str],
+        excluded: Set[str],
     ) -> set:
         base_uids = set(base_aggregate.index.keys())
         comm_uids = set(check_aggregate.index.keys())
-        comm_surplus = comm_uids - base_uids.union(false_positive)
+        comm_surplus = comm_uids - base_uids.union(excluded)
         if comm_surplus:
             log.error(
                 self._SURPLUS_UIDS,
-                self.name,
+                function_log_name,
                 len(comm_surplus),
                 check_aggregate.name(),
                 base_aggregate.name(),
             )
             log.error(
                 self._SURPLUS_UIDS_LIST,
-                self.name,
+                function_log_name,
                 check_aggregate.name(),
                 sorted(comm_surplus),
             )
@@ -243,14 +262,16 @@ class CheckService(ServiceBase):
         error_keys = set()
         previous_elem = UidKey(":0-0")
         for uid in aggregate.index:
-            if not uid.key.is_next(previous=previous_elem):
+            if uid in self.cfg.exclude.check_uid_sequence_in_file:
+                pass
+            elif not uid.key.is_next(previous=previous_elem):
                 error_keys.add(uid)
                 msg = "[%s] Sequence error. Previous: '%s' current: '%s'"
                 log.error(msg, self.name, previous_elem.raw, uid)
             previous_elem = uid.key
         if error_keys:
-            msg = "[%s] There are '%s' sequence key errors"
-            log.error(msg, self.name, len(error_keys))
+            msg = "[%s] There are '%s' sequence key errors: %s"
+            log.error(msg, self.name, len(error_keys), error_keys)
 
     def get_duplicated_versus_next_to_each_other(
         self, aggregate: BilaraRootAggregate
@@ -291,9 +312,7 @@ class CheckService(ServiceBase):
             log.error(msg, self.name, sorted(error_keys))
         return error_keys
 
-    def get_unordered_segments(
-        self, aggregate: BaseRootAggregate, false_positive: Set[str] = None
-    ):
+    def get_unordered_segments(self, aggregate: BaseRootAggregate):
         if isinstance(aggregate, BilaraTranslationAggregate):
             wrong_uids = set()
             for lang, lang_index in aggregate.index.items():
@@ -318,8 +337,10 @@ class SequenceCheck(ServiceBase):
         previous = UidKey(":0-0")
         for uid in index:
             current = uid.key
-            if not self.is_key_in_seq(previous, current):
-                omg = "[%s] Sequence error. Previous: '%s' current: '%s"
+            if uid in self.cfg.exclude.get_unordered_segments:
+                pass
+            elif not self.is_key_in_seq(previous, current):
+                omg = "[%s] Sequence error. Previous: '%s' current: '%s'"
                 log.error(omg, self.name, previous.raw, current.raw)
                 wrong_uid.add(uid)
             previous = uid.key

@@ -48,6 +48,10 @@ def use_case_present(_inst, _attr, uc_name: str):
 @attr.s(frozen=True, auto_attribs=True)
 class ExcludeRepo:
     headers_without_0: set = attr.ib(default=set())
+    get_comment_surplus_segments: set = attr.ib(default=set())
+    get_missing_segments: set = attr.ib(default=set())
+    get_unordered_segments: set = attr.ib(default=set())
+    check_uid_sequence_in_file: set = attr.ib(default=set())
 
     @classmethod
     def from_dict(cls, data: dict) -> "ExcludeRepo":
@@ -116,7 +120,7 @@ class Config:
     @classmethod
     def _get_yaml_kwargs(cls, f_pth: Union[str, Path] = None) -> dict:
         log.info("Loading config: '%s'", f_pth)
-        with open(f_pth) as f:
+        with open(expandvars(f_pth)) as f:
             file_setts = yaml.safe_load(stream=f) or {}
         Logging.setup(
             debug_dir=file_setts.get("debug_dir"),
@@ -182,7 +186,7 @@ class Logging:
         if not debug_dir:
             return {}
 
-        debug_dir = Path(debug_dir).expanduser().resolve()
+        debug_dir = Path(expandvars(debug_dir)).expanduser().resolve()
         debug_dir.mkdir(exist_ok=True, parents=True)
         handlers = {
             "file": {

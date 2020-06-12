@@ -359,7 +359,8 @@ class SCReferenceService:
             # match_pts_pli_index()
             match_uid()
 
-    def get_wrong_segments_based_on_nya(self, reference: BilaraReferenceAggregate):
+    @classmethod
+    def get_wrong_segments_based_on_nya(cls, reference: BilaraReferenceAggregate):
         wrong_keys = set()
         for uid, ref_versus in reference.index.items():
             nya_id = ref_versus.references.nya
@@ -372,12 +373,6 @@ class SCReferenceService:
             omg = "[RefEngine] There are '%s' nya ref not aligned with uid: %s"
             log.error(omg, len(wrong_keys), wrong_keys)
         return wrong_keys
-
-    @property
-    def reference_engine(self) -> ReferenceEngine:
-        if not self._reference_engine:
-            self._reference_engine = ReferenceEngine(cfg=self.cfg)
-        return self._reference_engine
 
     @property
     def name(self):

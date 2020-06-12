@@ -3,7 +3,6 @@ import logging
 import os
 import pickle
 import stat
-from pathlib import Path
 from typing import Set
 
 from sutta_processor.application.domain_models import (
@@ -59,49 +58,57 @@ class YuttadhammoRepo:
 
 
 class BilaraRepo:
+    _root: BilaraRootAggregate = None
+    _html: BilaraHtmlAggregate = None
+    _comment: BilaraCommentAggregate = None
+    _variant: BilaraVariantAggregate = None
+    _translation: BilaraTranslationAggregate = None
+    _reference: BilaraReferenceAggregate = None
+
     def __init__(self, cfg: Config):
         self.cfg = cfg
 
     def get_root(self) -> BilaraRootAggregate:
-        root_aggregate = BilaraRootAggregate.from_path(
-            root_pth=self.cfg.bilara_root_path
-        )
-        return root_aggregate
-
-    def get_root_begin(self) -> BilaraRootAggregate:
-        root_pth = str(self.cfg.bilara_root_path).replace(
-            "bilara-data", "bilara-data_begin"
-        )
-        root_aggregate = BilaraRootAggregate.from_path(root_pth=Path(root_pth))
-        return root_aggregate
+        if not self._root:
+            self._root = BilaraRootAggregate.from_path(
+                root_pth=self.cfg.bilara_root_path
+            )
+        return self._root
 
     def get_html(self) -> BilaraHtmlAggregate:
-        aggregate = BilaraHtmlAggregate.from_path(root_pth=self.cfg.bilara_html_path)
-        return aggregate
+        if not self._html:
+            self._html = BilaraHtmlAggregate.from_path(
+                root_pth=self.cfg.bilara_html_path
+            )
+        return self._html
 
     def get_comment(self) -> BilaraCommentAggregate:
-        aggregate = BilaraCommentAggregate.from_path(
-            root_pth=self.cfg.bilara_comment_path
-        )
-        return aggregate
+        if not self._comment:
+            self._comment = BilaraCommentAggregate.from_path(
+                root_pth=self.cfg.bilara_comment_path
+            )
+        return self._comment
 
     def get_variant(self) -> BilaraVariantAggregate:
-        aggregate = BilaraVariantAggregate.from_path(
-            root_pth=self.cfg.bilara_variant_path
-        )
-        return aggregate
+        if not self._variant:
+            self._variant = BilaraVariantAggregate.from_path(
+                root_pth=self.cfg.bilara_variant_path
+            )
+        return self._variant
 
     def get_translation(self) -> BilaraTranslationAggregate:
-        aggregate = BilaraTranslationAggregate.from_path(
-            root_pth=self.cfg.bilara_translation_path
-        )
-        return aggregate
+        if not self._translation:
+            self._translation = BilaraTranslationAggregate.from_path(
+                root_pth=self.cfg.bilara_translation_path
+            )
+        return self._translation
 
     def get_reference(self) -> BilaraReferenceAggregate:
-        aggregate = BilaraReferenceAggregate.from_path(
-            root_pth=self.cfg.reference_root_path
-        )
-        return aggregate
+        if not self._reference:
+            self._reference = BilaraReferenceAggregate.from_path(
+                root_pth=self.cfg.reference_root_path
+            )
+        return self._reference
 
     def get_concordance(self) -> ConcordanceAggregate:
         aggregate = ConcordanceAggregate.from_path(

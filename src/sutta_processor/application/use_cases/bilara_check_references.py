@@ -14,3 +14,4 @@ def bilara_check_references(cfg: Config):
     cfg.check: CheckService
     reference: BilaraReferenceAggregate = cfg.repo.bilara.get_reference()
     cfg.check.reference.get_duplicated_ms_id(reference=reference)
+    cfg.check.reference.get_wrong_segments_based_on_nya(reference=reference)
