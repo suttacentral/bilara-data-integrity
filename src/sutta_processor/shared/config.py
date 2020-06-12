@@ -1,6 +1,7 @@
 import argparse
 import logging
 from logging.config import dictConfig
+from os.path import expandvars
 from pathlib import Path
 from typing import Union
 
@@ -19,13 +20,13 @@ NULL_PTH = Path("/dev/null")
 def create_dir(pth: Union[str, Path]) -> Path:
     if not pth or pth == NULL_PTH:
         return NULL_PTH
-    pth = Path(pth).expanduser().resolve()
+    pth = Path(expandvars(pth)).expanduser().resolve()
     pth.mkdir(exist_ok=True, parents=True)
     return pth
 
 
 def touch_file(pth: Union[str, Path]) -> Path:
-    pth = Path(pth)
+    pth = Path(expandvars(pth))
     pth.parent.mkdir(exist_ok=True, parents=True)
     pth.touch()
     if not pth.is_file() and not pth.is_char_device():  # is_char_device for /dev/null
