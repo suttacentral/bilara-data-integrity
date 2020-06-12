@@ -52,6 +52,9 @@ class ExcludeRepo:
     get_missing_segments: set = attr.ib(default=set())
     get_unordered_segments: set = attr.ib(default=set())
     check_uid_sequence_in_file: set = attr.ib(default=set())
+    get_unknown_variants: set = attr.ib(default=set())
+    get_wrong_uid_with_arrow: set = attr.ib(default=set())
+    get_duplicated_versus_next_to_each_other: set = attr.ib(default=set())
 
     @classmethod
     def from_dict(cls, data: dict) -> "ExcludeRepo":

@@ -21,5 +21,4 @@ def bilara_check_html(cfg: Config):
     diff = cfg.check.html.get_missing_segments(
         html_aggregate=bilara_html, base_aggregate=bilara_root
     )
-    cfg.repo.generate_diff_feedback_file(diff=diff, name="missing")
     cfg.check.get_unordered_segments(aggregate=bilara_html)

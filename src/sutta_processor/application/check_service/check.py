@@ -15,12 +15,6 @@ from sutta_processor.application.domain_models import (
 from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
 from sutta_processor.application.value_objects.uid import UID, UidKey
 from sutta_processor.shared.config import Config
-from sutta_processor.shared.false_positives import (
-    DUPLICATE_OK_IDS,
-    HTML_CHECK_OK_IDS,
-    VARIANT_ARROW_OK_IDS,
-    VARIANT_UNKNOWN_OK_IDS,
-)
 
 from .base import ServiceBase
 from .bd_reference import SCReferenceService
@@ -36,8 +30,6 @@ class CheckHtml(ServiceBase):
     _MISSING_UIDS_LIST = "[%s] Missing UIDs from html: %s"
     _SURPLUS_UIDS = "[%s] There are '%s' uids in '%s' that are not in the '%s' data"
     _SURPLUS_UIDS_LIST = "[%s] Surplus '%s' UIDs: %s"
-
-    _ignored = HTML_CHECK_OK_IDS
 
     def get_missing_segments(
         self, html_aggregate: BilaraHtmlAggregate, base_aggregate: BaseRootAggregate
@@ -71,7 +63,7 @@ class CheckHtml(ServiceBase):
             Filter out headings by removing all entries ending with 0.
             """
             is_added_heading = 0 not in uid.key.seq
-            return not is_added_heading or uid in self._ignored.union(false_positive)
+            return not is_added_heading or uid in false_positive
 
         html_wrong = sorted(uid for uid in html_surplus if not is_ignored(uid=uid))
         if html_wrong:
@@ -158,7 +150,9 @@ class CheckVariant(ServiceBase):
                 missing_word_keys.add(uid)
                 continue
 
-            if (word not in base_verse) and (uid not in VARIANT_ARROW_OK_IDS):
+            if (word not in base_verse) and (
+                uid not in self.cfg.exclude.get_wrong_uid_with_arrow
+            ):
                 log.error(self._MISSING_WORD, self.name, word, {uid: base_verse})
                 missing_word_keys.add(uid)
 
@@ -171,12 +165,12 @@ class CheckVariant(ServiceBase):
         unknown_keys = set()
         for uid, versus in aggregate.index.items():
             word, *rest = versus.verse.split("→")
-            if rest or uid in VARIANT_UNKNOWN_OK_IDS:
+            if rest or uid in self.cfg.exclude.get_unknown_variants:
                 continue
             unknown_keys.add(uid)
 
         if unknown_keys:
-            msg = "[%s] There are '%s' uids are not validated"
+            msg = "[%s] There are '%s' uids that are not validated"
             log.error(msg, self.name, len(unknown_keys))
             values = {k: aggregate.index[k].verse for k in unknown_keys}
             pretty_values = pprint.pformat(values, width=200)
@@ -282,7 +276,10 @@ class CheckService(ServiceBase):
             verse = versus.verse.strip()
             if not verse:
                 continue
-            if verse == prev_versus and uid not in DUPLICATE_OK_IDS:
+            if (
+                verse == prev_versus
+                and uid not in self.cfg.exclude.get_duplicated_versus_next_to_each_other
+            ):
                 error_keys.add(uid)
                 msg = "[%s] Same versus next to each other. '%s': '%s'"
                 log.error(msg, self.name, uid, verse)
