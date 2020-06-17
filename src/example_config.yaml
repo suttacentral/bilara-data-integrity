@@ -1,22 +1,20 @@
 ---
 exec_module: 'noop'
-bilara_root_path: "~/bilara-data/root/pli/ms"
+bilara_root_path: "./bilara-data/root/pli/ms"
 
-pali_canon_path: "~/ms_palicanon"
-bilara_html_path: ""
-bilara_comment_path: ""
-bilara_variant_path: ""
-bilara_translation_path: ""
-ms_yuttadhammo_path: ""
-pali_concordance_filepath: "~/all_pali_concordance.json"
+bilara_html_path: "./bilara-data/html"
+bilara_comment_path: "./bilara-data/comment"
+bilara_variant_path: "./bilara-data/variant"
+bilara_translation_path: "./bilara-data/translation"
+ms_yuttadhammo_path: "./sc-renumber-segments/data/ms_yuttadhammo"
+pali_concordance_filepath: "./sc-renumber-segments/data/all_pali_concordance.json"
+reference_root_path: "./bilara-data/reference/pli/ms"
 
 # Path where check_migration script result will be saved.
 # It should point to the migration_differences folder in the Bilara-data project.
-migration_differences_path: ""
+migration_differences_path: "./bilara-data/migration_differences"
 
-reference_root_path: "~/reference/pli/ms"
-exclude_filepath: ""
 
-debug_dir: ""
+debug_dir: "."
 # Log level: [0, 50]. 10-debug, 20-info
 log_level: 20
