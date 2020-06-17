@@ -62,27 +62,28 @@ Script is working!
 ```
 # Running the application
 
-9. Whenever you want to run a particular script from the app just change  `exec_module:` of the `example_config.yaml` file to whatever you choose - for instance:
+Whenever you want to run a particular script from the app just change  `exec_module` of the `example_config.yaml` file to whatever you choose - for instance:
 
 ```bash
 exec_module: 'check_migration'
 ```
 
+
 List of available scripts:
 
-run_all_checks - run all available checks
-check_migration - cross-validate bilara-data text against original ms_yuttadhammo source files
-bilara_check_comment - check if path to comments is set up properly
-bilara_check_html - check if path to html files is set up properly
-bilara_check_root- check if path to root files is set up properly
-bilara_check_translation - check if path to translation files is set up properly
-bilara_check_variant - check if path to variant files is set up properly
-bilara_load - load bilara-data
-ms_yuttadhammo_convert_to_html - extract html files directly from original xml files
-ms_yuttadhammo_load - load ms_yuttadhammo
-ms_yuttadhammo_match_root_text - match root text of ms_yuttadhammo
-noop - no operation, available just for checking purposes
-reference_data_check - validate references
+- **run_all_checks** - run all available checks
+- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files
+- **bilara_check_comment** - check if path to comments is set up properly
+- **bilara_check_html** - check if path to html files is set up properly
+- **bilara_check_root** - check if path to root files is set up properly
+- **bilara_check_translation** - check if path to translation files is set up properly
+- **bilara_check_variant** - check if path to variant files is set up properly
+- **bilara_load** - load bilara-data
+- **ms_yuttadhammo_convert_to_html** - extract html files directly from original xml files
+- **ms_yuttadhammo_load** - load ms_yuttadhammo
+- **ms_yuttadhammo_match_root_text**** - match root text of ms_yuttadhammo
+- **noop** - no operation, available just for checking purposes
+- **reference_data_check** - validate references
 
 
 
