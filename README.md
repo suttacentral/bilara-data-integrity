@@ -65,7 +65,7 @@ Script is working!
 Whenever you want to run a particular script from the app just change  `exec_module` of the `example_config.yaml` file to whatever you choose - for instance:
 
 ```bash
-exec_module: 'check_migration'
+exec_module: 'run_all_checks'
 ```
 
 
