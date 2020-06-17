@@ -1,6 +1,7 @@
 import html
 import logging
 from collections import Counter
+import re
 from typing import List
 
 from lxml.etree import _Element, fromstring, tostring
@@ -21,6 +22,29 @@ class YuttaExtractor:
 
     @classmethod
     def get_page_from_html(cls, html: str) -> _Element:
+        first_letter_regex = '<span class="firstLetter">.<\/span>'
+        first_letter_spans = re.findall(first_letter_regex, html)
+
+        for first_letter_span in first_letter_spans:
+            letter = first_letter_span[26:-7]
+            html = html.replace(first_letter_span, letter, 1)
+
+        quoted_text_regex = '<span class="gathaQuote">.+?(?=>)>'
+        quoted_text_spans = re.findall(quoted_text_regex, html)
+
+        for quoted_text_span in quoted_text_spans:
+            quoted_text = quoted_text_span[25:-7]
+            html = html.replace(quoted_text_span, quoted_text, 1)
+
+        bold_text_regex = '<span class="bold">.+?(?=>)>'
+        bold_text_spans = re.findall(bold_text_regex, html)
+
+        for bold_text_span in bold_text_spans:
+            #print(html)
+            bold_text = bold_text_span[19:-7]
+            html = html.replace(bold_text_span, bold_text, 1)
+            #print(html)
+
         return fromstring(html.replace("<br>", "<br/>"))
 
     @classmethod

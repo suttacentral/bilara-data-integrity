@@ -93,6 +93,7 @@ class Config:
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
     exclude_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    migration_differences_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
     debug_dir: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     log_level: int = attr.ib(default=logging.INFO)
