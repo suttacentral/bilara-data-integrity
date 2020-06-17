@@ -29,12 +29,21 @@ class YuttaExtractor:
             letter = first_letter_span[26:-7]
             html = html.replace(first_letter_span, letter, 1)
 
-        bold_text_regex = '<span class="bold">[a-zA-Z0-9_’ ]*<\/span>'
+        quoted_text_regex = '<span class="gathaQuote">.+?(?=>)>'
+        quoted_text_spans = re.findall(quoted_text_regex, html)
+
+        for quoted_text_span in quoted_text_spans:
+            quoted_text = quoted_text_span[25:-7]
+            html = html.replace(quoted_text_span, quoted_text, 1)
+
+        bold_text_regex = '<span class="bold">.+?(?=>)>'
         bold_text_spans = re.findall(bold_text_regex, html)
 
         for bold_text_span in bold_text_spans:
+            #print(html)
             bold_text = bold_text_span[19:-7]
             html = html.replace(bold_text_span, bold_text, 1)
+            #print(html)
 
         return fromstring(html.replace("<br>", "<br/>"))
 

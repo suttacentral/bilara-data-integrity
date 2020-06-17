@@ -41,11 +41,11 @@ def clean_verse(verse):
         .replace(';', ' ')
         .replace('0', ' ').replace('1', ' ').replace('2', ' ').replace('3', ' ').replace('4', ' ').replace('5', ' ').replace('6', ' ').replace('7', ' ').replace('8', ' ').replace('9', ' ')
         .replace('☑', ' ').replace('๐', ' ').replace('×', ' ').replace('☒', ' ')
-        .replace('‘', ' ')
         .replace('*', ' ')
         .replace('|', ' ').replace('#', ' ')
         .replace('[', ' ').replace(']', ' ')
     )
+    #         .replace('‘', ' ')
    
     # Order of removing characters is important.Cleaning from double white spaces has to be done twice.
     verse = " ".join(verse.split())
