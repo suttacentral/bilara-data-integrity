@@ -8,9 +8,12 @@ bilara_variant_path: "./bilara-data/variant"
 bilara_translation_path: "./bilara-data/translation"
 ms_yuttadhammo_path: "./sc-renumber-segments/data/ms_yuttadhammo"
 pali_concordance_filepath: "./sc-renumber-segments/data/all_pali_concordance.json"
-
 reference_root_path: "./bilara-data/reference/pli/ms"
-#exclude_filepath: ""
+
+# Path where check_migration script result will be saved.
+# It should point to the migration_differences folder in the Bilara-data project.
+migration_differences_path: "./bilara-data/migration_differences"
+
 
 debug_dir: "."
 # Log level: [0, 50]. 10-debug, 20-info
