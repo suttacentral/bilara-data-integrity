@@ -2,12 +2,11 @@
 exec_module: 'noop'
 bilara_root_path: "./bilara-data/root/pli/ms"
 
-pali_canon_path: "~/ms_palicanon"
 bilara_html_path: "./bilara-data/html"
 bilara_comment_path: "./bilara-data/comment"
 bilara_variant_path: "./bilara-data/variant"
 bilara_translation_path: "./bilara-data/translation"
-ms_yuttadhammo_path: ".."
+ms_yuttadhammo_path: "./sc-renumber-segments/data/ms_yuttadhammo"
 pali_concordance_filepath: "./sc-renumber-segments/data/all_pali_concordance.json"
 
 reference_root_path: "./bilara-data/reference/pli/ms"
