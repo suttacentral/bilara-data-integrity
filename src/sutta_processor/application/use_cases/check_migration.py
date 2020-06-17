@@ -312,9 +312,9 @@ def get_bilara_sutras(cfg, yutta):
 
 
 def get_yutta(cfg):
-    """ If the yutta_aggregate object is creating it will be saved on hard disc due to script acceleration"""
+    """ Generate Yutta class object using data from Yuthaddamo files. """
 
-    # Use this code to speed up loading the Yuthadammo sutras for processing.
+    # Use this code to save yuthta_agregate data on local disc and speed up loading the Yuthadammo sutras for processing.
 
     # yutta_aggregate = None
 
