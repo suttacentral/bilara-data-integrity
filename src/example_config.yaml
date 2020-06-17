@@ -10,6 +10,10 @@ bilara_translation_path: ""
 ms_yuttadhammo_path: ""
 pali_concordance_filepath: "~/all_pali_concordance.json"
 
+# Path where check_migration script result will be saved.
+# It should point to the migration_differences folder in the Bilara-data project.
+migration_differences_path: ""
+
 reference_root_path: "~/reference/pli/ms"
 exclude_filepath: ""
 
