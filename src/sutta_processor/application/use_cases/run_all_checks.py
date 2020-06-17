@@ -10,6 +10,7 @@ from .bilara_check_references import bilara_check_references
 from .bilara_check_root import bilara_check_root
 from .bilara_check_translation import bilara_check_translation
 from .bilara_check_variant import bilara_check_variant
+from .bilara_check_duplicated_indexes import bilara_check_duplicated_indexes
 
 log = logging.getLogger(__name__)
 
@@ -24,3 +25,4 @@ def run_all_checks(cfg: Config):
     bilara_check_root(cfg=cfg)
     bilara_check_translation(cfg=cfg)
     bilara_check_variant(cfg=cfg)
+    bilara_check_duplicated_indexes(cfg=cfg)

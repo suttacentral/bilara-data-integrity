@@ -30,6 +30,7 @@ __all__ = [
     "bilara_check_translation",
     "bilara_check_variant",
     "bilara_load",
+    "bilara_check_duplicated_indexes",
     "fix_headers_uid",
     "ms_yuttadhammo_convert_to_html",
     "ms_yuttadhammo_load",
