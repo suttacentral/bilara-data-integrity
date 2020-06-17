@@ -11,50 +11,49 @@ import re
 log = logging.getLogger(__name__)
 
 
-detected_errors = [
-   ['ms15A3_83', 'ms15A3_92'], #   "an3.20:6.8": "Paṭhamabhāṇavāro niṭṭhito.", "an3.20:6.9": "Rathakāravaggo dutiyo. ", - wrong verses order
-   ['ms15A3_614', 'ms15A3_657'], # missing words
-   ['ms15A4_751', 'ms15A4_760'], # missing word
-]
-
 # Text cleaning global function.
 
 
 def clean_verse(verse):
     """ Cleans input text from unwanted characters. """
     verse = (
-        verse.replace("—", " ")
+        verse.rstrip()
+        .lower()
+        .replace("—", " ")
         .replace(":", " ")
         .replace("…", " ")
         .replace(".", " ")
         .replace("(", " ")
         .replace(")", " ")
-        .rstrip()
         .replace("ṅ", "ṃ")
-        .lower()
         .replace("“", " ")
         .replace("”", " ")
         .replace("–", " ")
         .replace("-", " ")
         .replace("?", " ")
         .replace(",", " ")
-        .replace(';', ' ')
-        .replace('0', ' ').replace('1', ' ').replace('2', ' ').replace('3', ' ').replace('4', ' ').replace('5', ' ').replace('6', ' ').replace('7', ' ').replace('8', ' ').replace('9', ' ')
-        .replace('☑', ' ').replace('๐', ' ').replace('×', ' ').replace('☒', ' ')
-        .replace('*', ' ')
-        .replace('|', ' ').replace('#', ' ')
-        .replace('[', ' ').replace(']', ' ')
+        .replace(";", " ")
+        .replace("0", " ")
+        .replace("1", " ")
+        .replace("2", " ")
+        .replace("3", " ")
+        .replace("4", " ")
+        .replace("5", " ")
+        .replace("6", " ")
+        .replace("7", " ")
+        .replace("8", " ")
+        .replace("9", " ")
+        .replace("☑", " ")
+        .replace("๐", " ")
+        .replace("×", " ")
+        .replace("☒", " ")
+        .replace("*", "")
+        .replace("|", " ")
+        .replace("#", " ")
+        .replace("[", " ")
+        .replace("]", " ")
     )
-    #         .replace('‘', ' ')
-   
-    # Order of removing characters is important.Cleaning from double white spaces has to be done twice.
-    verse = " ".join(verse.split())
 
-    verse = (
-        verse.replace("‘ānāmi", "‘jānāmi")
-        .replace("evamidhekacce", "evam’idhekacce")
-        .replace("midhekacce", "m’idhekacce")
-    )
     return " ".join(verse.split())
 
 
@@ -65,14 +64,15 @@ def clean_verse(verse):
 
 class Yutta:
     def __init__(self, yutta_aggregate):
-        self.msids_list = self.generate_msids_list(yutta_aggregate)
+        self.unused_msids_list, self.msids_list = self.generate_msids_lists(yutta_aggregate)
         self.last_msids_list = self.generate_last_msids_list(yutta_aggregate)
         self.yutta_aggregate = yutta_aggregate
 
-    def generate_msids_list(self, yutta_aggregate):
+    def generate_msids_lists(self, yutta_aggregate):
         """ Generate list of all ms* ids and placed them in the ascending order """
         msids_list = [msid for msid in yutta_aggregate.index.keys()]
-        return sorted(msids_list, key=lambda index: (index.rsplit("_", 1)[0], int(index.rsplit("_", 1)[1])))
+        sorted_msids_list = sorted(msids_list, key=lambda index: (index.rsplit("_", 1)[0], int(index.rsplit("_", 1)[1])))
+        return sorted_msids_list, sorted_msids_list.copy()
 
     def generate_last_msids_list(self, yutta_aggregate):
         """ 
@@ -109,6 +109,8 @@ class Yutta:
 
             if clean_verse(self.yutta_aggregate.index[msid].verse) not in headers:
                 full_sutra += " " + self.yutta_aggregate.index[msid].verse
+            
+            if msid in self.unused_msids_list: self.unused_msids_list.remove(msid)
 
             if self.last_msids_list[msid] and found_last_msid:
                 break
@@ -134,7 +136,7 @@ class BilaraSutra:
         Remove ids which do not start with 'ms' or start with 'msdiv' characters.
         If there is no ms* id in the data, the whole index will be removed.
         """
-        ms_regex = 'ms(?!div)\w+'
+        ms_regex = "ms(?!div)\w+"
 
         for index, msids in references.copy().items():
             founded_msids = re.findall(ms_regex, msids)
@@ -147,7 +149,6 @@ class BilaraSutra:
                 references[index] = founded_msids[0]
             else:
                 del references[index]
-
 
     def get_formatted_references(self, reference_file_path):
         """
@@ -163,7 +164,9 @@ class BilaraSutra:
         self.remove_non_ms_indexes(references)
 
         msids_list = list(references.values())
-        sorted_msids_list = sorted(msids_list, key=lambda index: (index.rsplit("_", 1)[0], int(index.rsplit("_", 1)[1])))
+        sorted_msids_list = sorted(
+            msids_list, key=lambda index: (index.rsplit("_", 1)[0], int(index.rsplit("_", 1)[1]))
+        )
 
         if not msids_list:
             log.error(f"This reference file does not conaint ms* ids: {reference_file_path}")
@@ -173,7 +176,6 @@ class BilaraSutra:
             return []
         else:
             return [msids_list[0], msids_list[-1]]
-
 
     def get_headers(self, bilara_file_path):
         """ Create list with texts of all headers in the sutra. """
@@ -201,27 +203,28 @@ class BilaraSutra:
         sutra = ""
 
         for text in self.content.values():
-            if not text: continue
-            text = text if text[-1] == ' ' else text + ' '
+            if not text:
+                continue
+            text = text if text[-1] == " " else text + " "
             sutra += text
 
         return sutra
 
-
     def format_output(self, msids, bilara_sutra, bilara_extra_words, yutthadammo_sutra, yutthadamo_extra_words):
-        return ({
-            'msids': msids,
-            'bilara_sutra': bilara_sutra,
-            'bilara_extra_words': ' '.join(bilara_extra_words),
-            'yutthadammo_sutra': yutthadammo_sutra,
-            'yutthadamo_extra_words': ' '.join(yutthadamo_extra_words),
-        })
+        return {
+            "msids": msids,
+            "bilara_sutra": bilara_sutra,
+            "bilara_extra_words": " ".join(bilara_extra_words),
+            "yutthadammo_sutra": yutthadammo_sutra,
+            "yutthadamo_extra_words": " ".join(yutthadamo_extra_words),
+        }
 
     def get_differences(self):
         """ Checks if sutras form Bilara-data and Yuttadhammo match together. """
 
         # Return False if reference file is missing or corrupted.
-        if not self.references: return None
+        if not self.references:
+            return None
 
         bilara_sutra = self.generate_bilara_sutra()
         yutta_sutra = self.yutta.get_verses(self.headers, self.references[0], self.references[1])
@@ -229,19 +232,21 @@ class BilaraSutra:
         clean_bilara_sutra = clean_verse(bilara_sutra)
         clean_yutta_sutra = clean_verse(yutta_sutra)
 
-        if clean_bilara_sutra != clean_yutta_sutra and self.references not in detected_errors:
+        if clean_bilara_sutra != clean_yutta_sutra:
 
             bilara_difference = clean_bilara_sutra.split()
             for word in clean_yutta_sutra.split():
                 if word in bilara_difference:
-                        bilara_difference.remove(word)
+                    bilara_difference.remove(word)
 
             yuta_difference = clean_yutta_sutra.split()
             for word in clean_bilara_sutra.split():
                 if word in yuta_difference:
                     yuta_difference.remove(word)
 
-            return self.format_output(self.references, clean_bilara_sutra, bilara_difference, clean_yutta_sutra, yuta_difference)
+            return self.format_output(
+                self.references, clean_bilara_sutra, bilara_difference, clean_yutta_sutra, yuta_difference
+            )
 
         return None
 
@@ -308,50 +313,63 @@ def get_bilara_sutras(cfg, yutta):
 
 def get_yutta(cfg):
     """ If the yutta_aggregate object is creating it will be saved on hard disc due to script acceleration"""
-    
+
     # Use this code to speed up loading the Yuthadammo sutras for processing.
-    
-    # yutta_aggregate = None
 
-    # if os.path.isfile("./yutta_aggregate.pickle"):
-    #     with open("./yutta_aggregate.pickle", "rb") as file:
-    #         yutta_aggregate = pickle.load(file)
-    # else:
-    #     yutta_aggregate = cfg.repo.yutta.get_aggregate()
+    yutta_aggregate = None
 
-    #     with open("yutta_aggregate.pickle", "wb") as file:
-    #         pickle.dump(yutta_aggregate, file, protocol=pickle.HIGHEST_PROTOCOL)
+    if os.path.isfile("./yutta_aggregate.pickle"):
+        with open("./yutta_aggregate.pickle", "rb") as file:
+            yutta_aggregate = pickle.load(file)
+    else:
+        yutta_aggregate = cfg.repo.yutta.get_aggregate()
 
-    yutta_aggregate = cfg.repo.yutta.get_aggregate()
+        with open("yutta_aggregate.pickle", "wb") as file:
+            pickle.dump(yutta_aggregate, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # yutta_aggregate = cfg.repo.yutta.get_aggregate()
 
     return Yutta(yutta_aggregate)
 
+
 # Saving script result
 
+
 def save_result(directory, sutra_differences):
-    bilara_differences_path = os.path.join(directory, 'bilara_differences.json')
-    yutta_differences_path = os.path.join(directory, 'yutta_differences.json')
+    bilara_differences_path = os.path.join(directory, "bilara_differences.json")
+    yutta_differences_path = os.path.join(directory, "yutta_differences.json")
+    extra_words_summary_path = os.path.join(directory, "extra_words_summary.json")
     bilara_differences = dict()
     yutta_differences = dict()
+    extra_words_summary = dict()
 
     for sutra_difference in sutra_differences:
-        msids = ' - '.join(sutra_difference['msids'])
+        msids = " - ".join(sutra_difference["msids"])
 
         bilara_differences[msids] = {
-            'text': sutra_difference['bilara_sutra'],
-            'extra_words': sutra_difference['bilara_extra_words']
+            "text": sutra_difference["bilara_sutra"],
+            "extra_words": sutra_difference["bilara_extra_words"],
         }
 
         yutta_differences[msids] = {
-            'text': sutra_difference['yutthadammo_sutra'],
-            'extra_words': sutra_difference['yutthadamo_extra_words']
+            "text": sutra_difference["yutthadammo_sutra"],
+            "extra_words": sutra_difference["yutthadamo_extra_words"],
         }
 
-    with open(bilara_differences_path, 'w') as file:
+        extra_words_summary[msids] = {
+            "bilara_extra_words": sutra_difference["bilara_extra_words"],
+            "yuttadhammo_extra_words": sutra_difference["yutthadamo_extra_words"],
+        }
+
+    with open(bilara_differences_path, "w") as file:
         json.dump(bilara_differences, file, indent=2, ensure_ascii=False)
 
-    with open(yutta_differences_path, 'w') as file:
+    with open(yutta_differences_path, "w") as file:
         json.dump(yutta_differences, file, indent=2, ensure_ascii=False)
+
+    with open(extra_words_summary_path, "w") as file:
+        json.dump(extra_words_summary, file, indent=2, ensure_ascii=False)
+
 
 ## ################## ##
 
@@ -367,7 +385,8 @@ def check_migration(cfg: Config):
     matched_sutras = 0
 
     for index, bilara_sutra in enumerate(bilara_sutras):
-        if index % 100 == 0: print(f"Processed: {sutras_count}/{index}")
+        if index % 100 == 0:
+            print(f"Processed: {sutras_count}/{index}")
 
         sutra_differences = bilara_sutra.get_differences()
         if sutra_differences is None:
@@ -375,11 +394,19 @@ def check_migration(cfg: Config):
         else:
             sutras_differences.append(sutra_differences)
 
-    if sutras_differences: save_result(cfg.migration_differences_path, sutras_differences)
+    if sutras_differences:
+        save_result(cfg.migration_differences_path, sutras_differences)
 
-    log.info(f"""
+    log.info(
+        f"""
+        Verses from Yuttadhammo which have not been used : 
+        
+        {[yutta.unused_msids_list]}
+
+        List of duplicated references: 
         Sutras checked: {sutras_count}
         Matched texts: {matched_sutras}
         Bugs: {sutras_count - matched_sutras}
-    """)
+    """
+    )
 
