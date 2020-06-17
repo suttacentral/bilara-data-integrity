@@ -8,6 +8,7 @@ bilara_variant_path: "./bilara-data/variant"
 bilara_translation_path: "./bilara-data/translation"
 ms_yuttadhammo_path: "./sc-renumber-segments/data/ms_yuttadhammo"
 pali_concordance_filepath: "./sc-renumber-segments/data/all_pali_concordance.json"
+pali_canon_path: "~/ms_palicanon"
 reference_root_path: "./bilara-data/reference/pli/ms"
 
 # Path where check_migration script result will be saved.
