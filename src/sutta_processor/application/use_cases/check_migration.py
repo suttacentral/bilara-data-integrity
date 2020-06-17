@@ -316,18 +316,18 @@ def get_yutta(cfg):
 
     # Use this code to speed up loading the Yuthadammo sutras for processing.
 
-    yutta_aggregate = None
+    # yutta_aggregate = None
 
-    if os.path.isfile("./yutta_aggregate.pickle"):
-        with open("./yutta_aggregate.pickle", "rb") as file:
-            yutta_aggregate = pickle.load(file)
-    else:
-        yutta_aggregate = cfg.repo.yutta.get_aggregate()
+    # if os.path.isfile("./yutta_aggregate.pickle"):
+    #     with open("./yutta_aggregate.pickle", "rb") as file:
+    #         yutta_aggregate = pickle.load(file)
+    # else:
+    #     yutta_aggregate = cfg.repo.yutta.get_aggregate()
 
-        with open("yutta_aggregate.pickle", "wb") as file:
-            pickle.dump(yutta_aggregate, file, protocol=pickle.HIGHEST_PROTOCOL)
+    #     with open("yutta_aggregate.pickle", "wb") as file:
+    #         pickle.dump(yutta_aggregate, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-    # yutta_aggregate = cfg.repo.yutta.get_aggregate()
+    yutta_aggregate = cfg.repo.yutta.get_aggregate()
 
     return Yutta(yutta_aggregate)
 
