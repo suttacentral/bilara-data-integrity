@@ -72,7 +72,7 @@ exec_module: 'check_migration'
 List of available scripts:
 
 - **run_all_checks** - run all available checks
-- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files
+- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `example_config.yaml` file, by default: `./bilara-data/migration_differences`
 - **bilara_check_comment** - check if path to comments is set up properly
 - **bilara_check_html** - check if path to html files is set up properly
 - **bilara_check_root** - check if path to root files is set up properly
@@ -84,31 +84,3 @@ List of available scripts:
 - **ms_yuttadhammo_match_root_text**** - match root text of ms_yuttadhammo
 - **noop** - no operation, available just for checking purposes
 - **reference_data_check** - validate references
-
-
-
-
-# Available checks
-## Validate SuttaCentral reference data
-Load 1) Pali, 2) SC root data and 3) SC reference data. Checks:
-* All PapliMsIds are referenced in reference data
-* Reference data contain only valid MsIds
-* Reference data contain only valid SC UIDs
-
-*How to run*
-* In your configuration file set `exec_module: "check_reference_data"`
-* Make sure `pali_canon_path`, `bilara_root_path` and `reference_root_path` are valid
-
-
-## Read data from ms_yuttadhammo source
-First we need to convert xml data to html. Actual data is loaded via parsing those html.
-
-*How to run*
-* In your configuration file set `exec_module: "ms_yuttadhammo_convert_to_html"` and run the script
-* In your configuration file set `exec_module: "ms_yuttadhammo_load"` and run the script
-
-## Check bilary data segments id
-Run various tests against the segments. Check `sutta_processor.application.services.bilara_data_check.BDataCheckService.check_uid_sequence_in_file`.
-
-*How to run*
-* In your configuration file set `exec_module: "bilara_check_root"` and run the script
