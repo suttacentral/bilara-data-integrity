@@ -81,7 +81,7 @@ List of available scripts:
 - **bilara_load** - load bilara-data
 - **ms_yuttadhammo_convert_to_html** - extract html files directly from original xml files
 - **ms_yuttadhammo_load** - load ms_yuttadhammo
-- **ms_yuttadhammo_match_root_text**** - match root text of ms_yuttadhammo
+- **ms_yuttadhammo_match_root_text** - match root text of ms_yuttadhammo
 - **noop** - no operation, available just for checking purposes
 - **reference_data_check** - validate references
 
