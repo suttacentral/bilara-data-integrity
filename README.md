@@ -93,11 +93,6 @@ The scripts try to return as many possibly wrong entries as possible, and hence 
 
 Saves files to /migration_differences. Works by diffing text based on ms IDs, stripping punctuation, ṃ/ṅ differences, markup, handles some quote mark cases.
 
-`File with the key: 'sn48.147-158' is missing in the root or reference directory`
-4 false positives of this error.
-
-10 false positives of "contains many ms ids" or "does not contain ms ids"
-
 Script does not currently alias ṃ and ṁ. This will show many bugs unless you replace: ṃ --> ṁ, ṁg --> ṅg, ṁk --> ṅk.
 
 86 false positives.
@@ -116,22 +111,12 @@ Returns 11 duplicated segments errors. These are false positives, the text repea
 
 ### bilara_check_translation
 
-Currently shows false positives for not recognizing Russian texts, and German blurbs.
+Currently shows false positives for not recognizing German blurbs.
 
 ### bilara_check_variant
 
 `get_wrong_uid_with_arrow`
-The script checks whether the first words in the variant entry are in fact found in the associated root text. Errors are generated in several contexts. Currently 42 are returned.
-
-- variant abbreviates with …
-- English used in variant
-- change in quote marks
-- capitalization
-- variant note is descriptive (eg. ayaṁ pāṭho si potthake natthi)
-- variant is split over several segments
-
-`get_unknown_variants] Not valid keys`
-These are variants that do not use the expected arrow notation, currently counted at 298. These are not errors, but it would be good to either standardize the notation further or refine the script.
+The script checks whether the first words in the variant entry are in fact found in the associated root text. Errors are generated in several contexts. Currently 56 are returned.
 
 `[get_unordered_segments]`
 There are '7' unordered segment errors, however these are due to script not parsing sequence properly, they are in fact in sequence.
