@@ -169,7 +169,7 @@ class BilaraSutra:
         )
 
         if not msids_list:
-            log.error(f"This reference file does not conaint ms* ids: {reference_file_path}")
+            log.error(f"This reference file does not contain ms* ids: {reference_file_path}")
             return []
         elif msids_list != sorted_msids_list:
             log.error(f"In this file, the ms* ids are not in order: {reference_file_path}")
