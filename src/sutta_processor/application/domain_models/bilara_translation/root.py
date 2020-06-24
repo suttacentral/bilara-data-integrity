@@ -53,7 +53,7 @@ class BilaraTranslationAggregate(BaseRootAggregate):
     def _update_index(cls, index: dict, file_aggregate):
         def get_lang() -> str:
             for part in reversed(file_aggregate.f_pth.parts):
-                if part in {"en", "de", "jpn", "pt"}:
+                if part in {"en", "de", "jpn", "pt", "ru"}:
                     return part
             raise RuntimeError("No language detected")
 
