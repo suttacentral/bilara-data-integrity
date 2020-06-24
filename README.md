@@ -93,6 +93,11 @@ The scripts try to return as many possibly wrong entries as possible, and hence 
 
 Saves files to /migration_differences. Works by diffing text based on ms IDs, stripping punctuation, ṃ/ṅ differences, markup, handles some quote mark cases.
 
+`File with the key: 'sn48.147-158' is missing in the root or reference directory`
+4 false positives of this error.
+
+10 false positives of "contains many ms ids" or "does not contain ms ids"
+
 Script does not currently alias ṃ and ṁ. This will show many bugs unless you replace: ṃ --> ṁ, ṁg --> ṅg, ṁk --> ṅk.
 
 86 false positives.
@@ -116,7 +121,7 @@ Currently shows false positives for not recognizing German blurbs.
 ### bilara_check_variant
 
 `get_wrong_uid_with_arrow`
-The script checks whether the first words in the variant entry are in fact found in the associated root text. Errors are generated in several contexts. Currently 56 are returned.
+The script checks whether the first words in the variant entry are in fact found in the associated root text. Errors are generated in several contexts. Currently 56 are returned. In addition there is a false error due to not recognizing sa12.20:2.2.
 
 `[get_unordered_segments]`
 There are '7' unordered segment errors, however these are due to script not parsing sequence properly, they are in fact in sequence.
