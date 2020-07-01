@@ -142,12 +142,14 @@ class CheckVariant(ServiceBase):
             word, *rest = versus.verse.split("→")
             if not rest:
                 continue
+            word, *_ = word.split('…')
             word = word.strip()
             try:
                 base_verse: str = base_aggregate.index[uid].verse
             except KeyError:
-                log.error(self._MISSING_KEY, self.name, uid, base_aggregate.name())
-                missing_word_keys.add(uid)
+                if uid not in self.cfg.exclude.get_wrong_uid_with_arrow:
+                    log.error(self._MISSING_KEY, self.name, uid, base_aggregate.name())
+                    missing_word_keys.add(uid)
                 continue
 
             if (word not in base_verse) and (
