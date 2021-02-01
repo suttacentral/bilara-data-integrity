@@ -75,8 +75,8 @@ class YuttaExtractor:
         }
         text_parts = node.xpath(".//text()")
         cb = handlers.get(len(text_parts), cls.handle_len7_verse)
-        versus = cb(text_parts=text_parts)
-        return versus
+        verses = cb(text_parts=text_parts)
+        return verses
 
     @classmethod
     def get_str_from_parts(cls, parts: List[str]) -> str:

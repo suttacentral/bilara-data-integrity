@@ -8,8 +8,8 @@ from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
     YuttaAggregate,
 )
-from sutta_processor.application.domain_models.base import BaseVersus
-from sutta_processor.application.domain_models.ms_yuttadhammo.base import YuttaVersus
+from sutta_processor.application.domain_models.base import BaseVerses
+from sutta_processor.application.domain_models.ms_yuttadhammo.base import YuttaVerses
 from sutta_processor.application.value_objects import (
     UID,
     BaseUID,
@@ -20,7 +20,7 @@ from sutta_processor.application.value_objects import (
 )
 from sutta_processor.shared.exceptions import NoTokensError
 
-from ..domain_models.bilara_root.root import Versus
+from ..domain_models.bilara_root.root import Verses
 from .base import ServiceBase
 from .bd_reference import SCReferenceService
 from .tokenizer import VersetTokenizer
@@ -43,16 +43,16 @@ class TextMatcher:
 
     def __init__(self, root: BilaraRootAggregate, pali: YuttaAggregate):
         def get_unmatched_root_index() -> Dict[RootUID, RootUidTokens]:
-            index_combined: Dict[RootUID, List[Versus]] = defaultdict(list)
+            index_combined: Dict[RootUID, List[Verses]] = defaultdict(list)
             index_text_combined: Dict[RootUID, RootUidTokens] = {}
-            for uid, versus in root.index.items():
+            for uid, verses in root.index.items():
                 if 0 in uid.key.seq:
                     continue
-                index_combined[uid.root].append(versus)
+                index_combined[uid.root].append(verses)
 
-            for root_uid, versus_list in index_combined.items():
+            for root_uid, verses_list in index_combined.items():
                 try:
-                    txt = " ".join((versus.verse for versus in versus_list))
+                    txt = " ".join((verses.verse for verses in verses_list))
                     tokens = VersetTokenizer.get_tokens(txt)
                     index_text_combined[root_uid] = RootUidTokens(root_uid, tokens)
                 except NoTokensError as e:
@@ -70,41 +70,41 @@ class TextMatcher:
 
     def get_missing_root_text_from_ms(self) -> set:
 
-        for i, versus in enumerate(self.pali.index.values()):
-            # ms_id, versus = item  # type: MsId, YuttaVersus
+        for i, verses in enumerate(self.pali.index.values()):
+            # ms_id, verses = item  # type: MsId, YuttaVerses
             # if "ms25Cn_738" not in uids:
             #     continue
             if i > 30:
                 break
             try:
-                self.process_yutta_verse(i=i, versus=versus)
+                self.process_yutta_verse(i=i, verses=verses)
             except Exception as e:
                 log.exception(e)
         log.error("-" * 80)
         log.error("-" * 80)
         return self.wrong_keys
 
-    def process_yutta_verse(self, i: int, versus: YuttaVersus):
+    def process_yutta_verse(self, i: int, verses: YuttaVerses):
         def get_ratio():
             ratio_map = {}
             matcher = SequenceMatcher()
-            matcher.set_seq1(versus.verse.tokens)
+            matcher.set_seq1(verses.verse.tokens)
             for root_tokens in self.roots_uid_tokens_index.values():
                 matcher.set_seq2(root_tokens.tokens)
                 ratio = matcher.quick_ratio()
                 if ratio > 0.7:
                     omg = "Ratio for yt: '%s' root: '%s', ratio: %s"
-                    log.error(omg, versus.ms_id, root_tokens.uid, ratio)
+                    log.error(omg, verses.ms_id, root_tokens.uid, ratio)
                     ratio_map[root_tokens.uid] = ratio
             if not ratio_map:
                 omg = "Couldn't find a match ms_uid: '%s' tokes: %s"
-                log.error(omg, versus.ms_id, versus.verse.tokens)
+                log.error(omg, verses.ms_id, verses.verse.tokens)
             return ratio_map
 
         self.ratios: Dict[MsId, Dict[RootUID, float]] = defaultdict(dict)
         self.c["all"] += 1
         try:
-            self.ratios[versus.ms_id] = get_ratio()
+            self.ratios[verses.ms_id] = get_ratio()
         except Exception as e:
             log.exception(e)
             return
@@ -161,13 +161,13 @@ class CheckText(ServiceBase):
                 return True
             return False
 
-        for uid, versus in root.index.items():
+        for uid, verses in root.index.items():
             if is_skipped(uid) or is_key_missing(uid):
                 continue
 
             c["all"] += 1
             ms_id = self.reference.reference_engine.uid_index[uid]
-            root_tokens = versus.verse.tokens
+            root_tokens = verses.verse.tokens
             pali_tokens = pali.index[ms_id].verse.tokens
             if root_tokens != pali_tokens:
                 omg = (
@@ -178,7 +178,7 @@ class CheckText(ServiceBase):
                     omg,
                     self.name,
                     uid,
-                    versus.verse,
+                    verses.verse,
                     pali.index[ms_id].verse,
                     root_tokens,
                     pali_tokens,
@@ -221,7 +221,7 @@ class CheckText(ServiceBase):
     ) -> Set[UID]:
         wrong_keys = set()
 
-        def get_root_versus(ms_id) -> Optional[BaseVersus]:
+        def get_root_verses(ms_id) -> Optional[BaseVerses]:
             root_ids: set = self.reference.reference_engine.ms_id_index.get(ms_id)
             if not root_ids:
                 c["missing_in_reference"] += 1
@@ -229,7 +229,7 @@ class CheckText(ServiceBase):
             if len(root_ids) != 1:
                 omg = f"MsId '{ms_id}' referencing more than one segment id:{root_ids}"
                 raise RuntimeError(omg)
-            root_vers: BaseVersus = root.index[root_ids.pop()]
+            root_vers: BaseVerses = root.index[root_ids.pop()]
             return root_vers
 
         c: Counter = Counter(
@@ -251,8 +251,8 @@ class CheckText(ServiceBase):
                 # TODO: Make multi id compilant
                 ms_id = uids.pop()
                 try:
-                    root_versus = get_root_versus(ms_id=ms_id)
-                    if root_versus and "EMPTY" in root_versus.verse.tokens.head_key:
+                    root_verses = get_root_verses(ms_id=ms_id)
+                    if root_verses and "EMPTY" in root_verses.verse.tokens.head_key:
                         # TODO: Handle empty tokens (do more validation with that)
                         c["all"] -= 1
                         continue
@@ -278,12 +278,12 @@ class CheckText(ServiceBase):
         self, ms_id: MsId, root: BilaraRootAggregate, pali: YuttaAggregate,
     ):
         def print_details(uid_):
-            root_vers: BaseVersus = root.index[uid_]
+            root_vers: BaseVerses = root.index[uid_]
             log.error("Root verset: '%s'", root_vers.verse)
             log.error("Root tokens: '%s'", root_vers.verse.tokens.head_key)
 
         log.error(f"{'=' * 40} %s {'=' * 40}", ms_id)
-        pali_vers: YuttaVersus = pali.index[ms_id]
+        pali_vers: YuttaVerses = pali.index[ms_id]
         log.error("Pali verset: '%s'", pali_vers.verse)
         log.error("Pali tokens: '%s'", pali_vers.verse.tokens.head_key)
 

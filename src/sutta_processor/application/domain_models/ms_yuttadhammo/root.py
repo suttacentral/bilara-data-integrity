@@ -10,7 +10,7 @@ from sutta_processor.application.domain_models.base import BaseRootAggregate
 from sutta_processor.application.value_objects import MsId
 
 from ...value_objects.verse import VerseTokens
-from .base import YuttaFileAggregate, YuttaVersus
+from .base import YuttaFileAggregate, YuttaVerses
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class YuttaAggregate(BaseRootAggregate):
     file_aggregates: Tuple[YuttaFileAggregate]
-    index: Dict[MsId, YuttaVersus]
+    index: Dict[MsId, YuttaVerses]
 
     _text_index: Dict[VerseTokens, Set[MsId]] = attr.ib(init=False)
     _text_head_index: Dict[VerseTokens.HeadKey, Set[VerseTokens]] = attr.ib(init=False)

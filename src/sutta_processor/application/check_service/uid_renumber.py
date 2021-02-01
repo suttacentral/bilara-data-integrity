@@ -11,7 +11,7 @@ from sutta_processor.application.domain_models import (
 )
 from sutta_processor.application.domain_models.bilara_html.root import (
     BilaraHtmlFileAggregate,
-    HtmlVersus,
+    HtmlVerses,
 )
 from sutta_processor.application.domain_models.bilara_root.root import FileAggregate
 from sutta_processor.application.value_objects import UID
@@ -30,22 +30,22 @@ class UidRenumber(ServiceBase):
     def process_file_aggregate(self, file_aggregate: FileAggregate):
         def update_root_file_index():
             new_index = {}
-            for uid, versus in file_aggregate.index.items():
+            for uid, verses in file_aggregate.index.items():
                 if uid.key.key.startswith("foo"):
                     log.error("Replacing foo with uid: %s", foo_uid_to_replace)
                     new_uid = foo_uid_to_replace
                 else:
                     new_uid = uid
-                new_index[new_uid] = versus
+                new_index[new_uid] = verses
             file_aggregate._replace_index(index=new_index)
 
         def update_html_file_index(next_uid):
             html_f_aggregate: BilaraHtmlFileAggregate = self.html.file_index[next_uid]
             new_index = {}
             prev_uid = None
-            for uid, versus in html_f_aggregate.index.items():
+            for uid, verses in html_f_aggregate.index.items():
                 if uid == next_uid:
-                    verse = HtmlVersus(
+                    verse = HtmlVerses(
                         raw_uid=foo_uid_to_replace,
                         verse="<p class='uddana-intro'>{}</p>",
                     )
@@ -53,7 +53,7 @@ class UidRenumber(ServiceBase):
                     new_index[foo_uid_to_replace] = verse
                     new_index[prev_uid] = prev_verse
 
-                new_index[uid] = versus
+                new_index[uid] = verses
                 prev_uid = uid
             html_f_aggregate._replace_index(index=new_index)
 
@@ -72,7 +72,7 @@ class UidRenumber(ServiceBase):
 
             elif foo_found:
                 # Verset form html data that is just before the foo
-                prev_html_verse: HtmlVersus = self.get_prev_html_line(uid_after_foo=uid)
+                prev_html_verse: HtmlVerses = self.get_prev_html_line(uid_after_foo=uid)
                 if "uddana-intro" in prev_html_verse.verse:
                     foo_uid_to_replace = prev_html_verse.uid
                     # We can auto fix foo by assigning uid from prev verse of html file
@@ -91,14 +91,14 @@ class UidRenumber(ServiceBase):
             # No foo was found in this file
             return
 
-    def get_prev_html_line(self, uid_after_foo: UID) -> Optional[HtmlVersus]:
+    def get_prev_html_line(self, uid_after_foo: UID) -> Optional[HtmlVerses]:
 
-        prev_verse: HtmlVersus = ""  # ...
-        for uid, versus in self.html.index.items():  # type: UID, HtmlVersus
+        prev_verse: HtmlVerses = ""  # ...
+        for uid, verses in self.html.index.items():  # type: UID, HtmlVerses
             if uid == uid_after_foo:
                 return prev_verse
             else:
-                prev_verse = versus
+                prev_verse = verses
 
     def add_aggregates(self, bilara: BilaraRootAggregate, html: BilaraHtmlAggregate):
         self.bilara = bilara

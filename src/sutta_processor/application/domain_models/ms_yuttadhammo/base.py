@@ -7,14 +7,14 @@ from lxml.etree import _Element
 
 from sutta_processor.application.value_objects import MsId, MsVerse
 
-from ..base import BaseFileAggregate, BaseVersus
+from ..base import BaseFileAggregate, BaseVerses
 from .extractors import YuttaExtractor
 
 log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class YuttaVersus(BaseVersus):
+class YuttaVerses(BaseVerses):
     ms_id: MsId
     verse: MsVerse = attr.ib(converter=MsVerse)
     raw_uid: None = attr.ib(init=False, default=None)
@@ -25,8 +25,8 @@ class YuttaVersus(BaseVersus):
 
 @attr.s(frozen=True, auto_attribs=True)
 class YuttaFileAggregate(BaseFileAggregate):
-    versets: Tuple[YuttaVersus]
-    index: Dict[MsId, YuttaVersus]
+    versets: Tuple[YuttaVerses]
+    index: Dict[MsId, YuttaVerses]
 
     raw_xml: str
     raw_html: str
@@ -42,7 +42,7 @@ class YuttaFileAggregate(BaseFileAggregate):
         """
         raw_html = cls.get_raw_source(f_pth=f_pth)
         page = cls.extractor.get_page_from_html(html=raw_html)
-        index: Dict[MsId, YuttaVersus] = cls.get_index(page=page)
+        index: Dict[MsId, YuttaVerses] = cls.get_index(page=page)
 
         kwargs = {
             "f_pth": f_pth,
@@ -59,18 +59,18 @@ class YuttaFileAggregate(BaseFileAggregate):
         return cls(**in_dto)
 
     @classmethod
-    def get_index(cls, page: _Element) -> Dict[MsId, YuttaVersus]:
+    def get_index(cls, page: _Element) -> Dict[MsId, YuttaVerses]:
         id_nodes = cls.extractor.get_id_nodes(page=page)
-        dict_args = (cls.get_versus(node=n) for n in id_nodes)
-        index = {ms_id: versus for ms_id, versus in dict_args}
+        dict_args = (cls.get_verses(node=n) for n in id_nodes)
+        index = {ms_id: verses for ms_id, verses in dict_args}
         return index
 
     @classmethod
-    def get_versus(cls, node: _Element) -> Tuple[MsId, YuttaVersus]:
+    def get_verses(cls, node: _Element) -> Tuple[MsId, YuttaVerses]:
         ms_id = MsId.from_xml_id(cls.extractor.get_ms_id(node=node))
         verse = MsVerse(cls.extractor.get_verse(node=node))
-        versus = YuttaVersus(ms_id=ms_id, verse=verse)
-        return ms_id, versus
+        verses = YuttaVerses(ms_id=ms_id, verse=verse)
+        return ms_id, verses
 
     @property
     def html_cleaned(self) -> str:

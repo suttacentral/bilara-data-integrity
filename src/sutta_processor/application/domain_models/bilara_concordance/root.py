@@ -9,7 +9,7 @@ import attr
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
-    BaseVersus,
+    BaseVerses,
 )
 from sutta_processor.application.value_objects import (
     UID,
@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class ConcordanceVersus(BaseVersus):
+class ConcordanceVerses(BaseVerses):
     uid: UID = attr.ib(init=False)
     verse: Verse
 
@@ -40,8 +40,8 @@ class ConcordanceVersus(BaseVersus):
 
 @attr.s(frozen=True, auto_attribs=True)
 class ConcordanceFileAggregate(BaseFileAggregate):
-    index: Dict[UID, ConcordanceVersus]
-    versus_class = ConcordanceVersus
+    index: Dict[UID, ConcordanceVerses]
+    verses_class = ConcordanceVerses
 
     @classmethod
     def from_dict(cls, in_dto: dict, f_pth: Path) -> "ConcordanceFileAggregate":
@@ -65,7 +65,7 @@ class ConcordanceAggregate(BaseRootAggregate):
     # cs are counted from the first paragraph, but are not unique through whole texts,
     # that's wy we need BaseTextKey to see which sutta it is.
     ref_index: Dict[BaseTextKey, Dict[ScID, ReferencesConcordance]]
-    index: Dict[UID, ConcordanceVersus]
+    index: Dict[UID, ConcordanceVerses]
 
     @classmethod
     def from_path(cls, root_pth: Path) -> "ConcordanceAggregate":
@@ -74,13 +74,13 @@ class ConcordanceAggregate(BaseRootAggregate):
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
 
         ref_index = defaultdict(dict)
-        for uid, versus in index.items():  # type: UID, ConcordanceVersus
-            if versus.references.sc_id:
-                ref_index[uid.key.key][versus.references.sc_id] = versus.references
-            elif versus.references.pts_pli:
+        for uid, verses in index.items():  # type: UID, ConcordanceVerses
+            if verses.references.sc_id:
+                ref_index[uid.key.key][verses.references.sc_id] = verses.references
+            elif verses.references.pts_pli:
                 ref_index[uid.key.key.head][
-                    versus.references.pts_pli
-                ] = versus.references
+                    verses.references.pts_pli
+                ] = verses.references
         return cls(
             file_aggregates=(f_aggregate,), index=index, ref_index=dict(ref_index),
         )

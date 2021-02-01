@@ -8,7 +8,7 @@ from natsort import natsorted
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
-    BaseVersus,
+    BaseVerses,
 )
 from sutta_processor.application.value_objects import UID, References, Verse
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class ReferenceVersus(BaseVersus):
+class ReferenceVerses(BaseVerses):
     uid: UID = attr.ib(init=False)
     verse: Verse
 
@@ -30,8 +30,8 @@ class ReferenceVersus(BaseVersus):
 
 @attr.s(frozen=True, auto_attribs=True)
 class BilaraReferenceFileAggregate(BaseFileAggregate):
-    versus_class = ReferenceVersus
-    index: Dict[UID, ReferenceVersus]
+    verses_class = ReferenceVerses
+    index: Dict[UID, ReferenceVerses]
 
     @classmethod
     def from_dict(cls, in_dto: dict, f_pth: Path) -> "BilaraReferenceFileAggregate":
@@ -52,7 +52,7 @@ class BilaraReferenceFileAggregate(BaseFileAggregate):
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class BilaraReferenceAggregate(BaseRootAggregate):
-    index: Dict[UID, ReferenceVersus]
+    index: Dict[UID, ReferenceVerses]
 
     @classmethod
     def from_path(cls, root_pth: Path) -> "BilaraReferenceAggregate":
