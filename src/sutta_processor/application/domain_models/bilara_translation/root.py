@@ -7,7 +7,7 @@ import attr
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
-    BaseVersus,
+    BaseVerses,
 )
 from sutta_processor.application.value_objects import UID
 
@@ -15,13 +15,13 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class TranslationVersus(BaseVersus):
+class TranslationVerses(BaseVerses):
     pass
 
 
 @attr.s(frozen=True, auto_attribs=True)
 class BilaraTranslationFileAggregate(BaseFileAggregate):
-    versus_class = TranslationVersus
+    verses_class = TranslationVerses
 
     @classmethod
     def from_dict(cls, in_dto: dict, f_pth: Path) -> "BilaraTranslationFileAggregate":
@@ -31,7 +31,7 @@ class BilaraTranslationFileAggregate(BaseFileAggregate):
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class BilaraTranslationAggregate(BaseRootAggregate):
-    index: Dict[str, Dict[UID, TranslationVersus]]
+    index: Dict[str, Dict[UID, TranslationVerses]]
     file_aggregates: Tuple[BilaraTranslationFileAggregate]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"

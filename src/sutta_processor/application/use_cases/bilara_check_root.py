@@ -14,5 +14,5 @@ def bilara_check_root(cfg: Config):
     cfg.check: CheckService
     root_aggregate: BilaraRootAggregate = cfg.repo.bilara.get_root()
     cfg.check.check_uid_sequence_in_file(aggregate=root_aggregate)
-    diff = cfg.check.get_duplicated_versus_next_to_each_other(aggregate=root_aggregate)
+    diff = cfg.check.get_duplicated_verses_next_to_each_other(aggregate=root_aggregate)
     diff = cfg.check.get_empty_verses(aggregate=root_aggregate)

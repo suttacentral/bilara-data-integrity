@@ -6,7 +6,7 @@ import attr
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
-    BaseVersus,
+    BaseVerses,
 )
 from sutta_processor.application.value_objects import RawVerse
 
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class Versus(BaseVersus):
+class Verses(BaseVerses):
     raw_verse: RawVerse = attr.ib(converter=RawVerse, init=False)
 
     def __attrs_post_init__(self):
@@ -24,7 +24,7 @@ class Versus(BaseVersus):
 
 @attr.s(frozen=True, auto_attribs=True)
 class FileAggregate(BaseFileAggregate):
-    versus_class = Versus
+    verses_class = Verses
 
     @classmethod
     def from_dict(cls, in_dto: dict, f_pth: Path) -> "FileAggregate":

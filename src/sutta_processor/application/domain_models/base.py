@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class BaseVersus(ABC):
+class BaseVerses(ABC):
     uid: UID = attr.ib(converter=UID, init=False)
     verse: Verse = attr.ib(converter=Verse)
 
@@ -33,12 +33,12 @@ class BaseVersus(ABC):
 
 @attr.s(frozen=True, auto_attribs=True)
 class BaseFileAggregate(ABC):
-    index: Dict[UID, BaseVersus]
+    index: Dict[UID, BaseVerses]
 
     errors: Dict[str, str]
 
     f_pth: Path
-    versus_class = BaseVersus
+    verses_class = BaseVerses
 
     @classmethod
     @abstractmethod
@@ -51,7 +51,7 @@ class BaseFileAggregate(ABC):
         errors = {}
         for k, v in in_dto.items():
             try:
-                mn = cls.versus_class(raw_uid=k, verse=v)
+                mn = cls.verses_class(raw_uid=k, verse=v)
                 index[mn.uid] = mn
             except SegmentIdError as e:
                 log.trace(e)
@@ -68,7 +68,7 @@ class BaseFileAggregate(ABC):
             data = json.load(f)
         return cls.from_dict(in_dto=data, f_pth=f_pth)
 
-    def _replace_index(self, index: Dict[UID, BaseVersus]):
+    def _replace_index(self, index: Dict[UID, BaseVerses]):
         """
         Insecure - won't update the aggregate index. Use only to update file once, and
           then reload the whole thing.
@@ -83,7 +83,7 @@ class BaseFileAggregate(ABC):
 
 @attr.s(frozen=True)
 class TextCompareMixin:
-    index: Dict[UID, BaseVersus]
+    index: Dict[UID, BaseVerses]
 
     _text_index: Dict[VerseTokens, Set[UID]]
     _text_head_index: Dict[VerseTokens.HeadKey, Set[VerseTokens]]
@@ -129,7 +129,7 @@ class TextCompareMixin:
 class BaseRootAggregate(ABC, TextCompareMixin):
     """Translation aggregate has different index structure."""
 
-    index: Dict[UID, BaseVersus]
+    index: Dict[UID, BaseVerses]
     file_aggregates: Tuple[BaseFileAggregate]
 
     _LOAD_INFO = "* [%s] Loaded '%s' UIDs"

@@ -13,10 +13,10 @@ from sutta_processor.application.domain_models import (
 )
 from sutta_processor.application.domain_models.base import BaseFileAggregate
 from sutta_processor.application.domain_models.bilara_concordance.root import (
-    ConcordanceVersus,
+    ConcordanceVerses,
 )
 from sutta_processor.application.domain_models.bilara_reference.root import (
-    ReferenceVersus,
+    ReferenceVerses,
 )
 from sutta_processor.application.value_objects import UID, BaseTextKey, MsId
 from sutta_processor.shared.config import Config
@@ -182,7 +182,7 @@ class SCReferenceService:
     @classmethod
     def get_references_stem(cls, reference: BilaraReferenceAggregate) -> list:
         stems = set()
-        for verse in reference.index.values():  # type: ReferenceVersus
+        for verse in reference.index.values():  # type: ReferenceVerses
             stems.update((v.reference_root for v in verse.references))
         reference_stems = list(sorted(stems))
         log.error("Reference stems: %s", reference_stems)
@@ -190,20 +190,20 @@ class SCReferenceService:
 
     def get_wrong_pts_cs_no(self, reference: BilaraReferenceAggregate):
         ignore = {"pts-cs75", "pts-cs1.10", "pts-cs7", "pts-cs8", "pts-cs12"}
-        for versus in reference.index.values():  # type: ReferenceVersus
-            if not versus.uid.key.raw.startswith("dn"):
+        for verses in reference.index.values():  # type: ReferenceVerses
+            if not verses.uid.key.raw.startswith("dn"):
                 continue
-            elif not versus.references.pts_cs:
+            elif not verses.references.pts_cs:
                 # No pts_cs reference in the reference list so skip it
                 continue
-            elif versus.references.pts_cs in ignore:
+            elif verses.references.pts_cs in ignore:
                 continue
-            if not versus.uid.key.seq.raw.startswith(versus.references.pts_cs.pts_no):
+            if not verses.uid.key.seq.raw.startswith(verses.references.pts_cs.pts_no):
                 log.error(
                     "[%s] wrong uid '%s' for pts_cs number: %s",
                     self.name,
-                    versus.uid,
-                    versus.references.pts_cs,
+                    verses.uid,
+                    verses.references.pts_cs,
                 )
 
     def get_missing_ms_id_from_reference(self, aggregate: YuttaAggregate):
@@ -264,7 +264,7 @@ class SCReferenceService:
             # continue
             # else:
             #     log.error("Empty index for file: %s", f_aggr.f_pth)
-            # f_aggr.index[concordance_verse.uid] = ReferenceVersus(
+            # f_aggr.index[concordance_verse.uid] = ReferenceVerses(
             #     raw_uid=concordance_verse.raw_uid,
             #     verse=",".join(concordance_verse.references),
             # )
@@ -362,8 +362,8 @@ class SCReferenceService:
     @classmethod
     def get_wrong_segments_based_on_nya(cls, reference: BilaraReferenceAggregate):
         wrong_keys = set()
-        for uid, ref_versus in reference.index.items():
-            nya_id = ref_versus.references.nya
+        for uid, ref_verses in reference.index.items():
+            nya_id = ref_verses.references.nya
             if not nya_id:
                 continue
             is_uid_ok = nya_id == f"nya{uid.key.seq[0]}"

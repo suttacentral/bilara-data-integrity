@@ -6,20 +6,20 @@ import attr
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
-    BaseVersus,
+    BaseVerses,
 )
 
 log = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class CommentVersus(BaseVersus):
+class CommentVerses(BaseVerses):
     pass
 
 
 @attr.s(frozen=True, auto_attribs=True)
 class BilaraCommentFileAggregate(BaseFileAggregate):
-    versus_class = CommentVersus
+    verses_class = CommentVerses
 
     @classmethod
     def from_dict(cls, in_dto: dict, f_pth: Path) -> "BilaraCommentFileAggregate":

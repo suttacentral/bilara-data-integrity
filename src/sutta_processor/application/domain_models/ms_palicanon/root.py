@@ -9,7 +9,7 @@ from natsort import natsorted, ns
 from sutta_processor.application.domain_models.base import BaseRootAggregate
 from sutta_processor.application.value_objects import MsId
 
-from .base import PaliFileAggregate, PaliVersus
+from .base import PaliFileAggregate, PaliVerses
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class PaliCanonAggregate(BaseRootAggregate):
     file_aggregates: Tuple[PaliFileAggregate]
-    index: Dict[MsId, PaliVersus]
+    index: Dict[MsId, PaliVerses]
 
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 

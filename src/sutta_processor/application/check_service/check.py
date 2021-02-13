@@ -12,7 +12,7 @@ from sutta_processor.application.domain_models import (
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
 )
-from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVersus
+from sutta_processor.application.domain_models.base import BaseRootAggregate, BaseVerses
 from sutta_processor.application.value_objects.uid import UID, UidKey
 from sutta_processor.shared.config import Config
 
@@ -85,10 +85,10 @@ class CheckHtml(ServiceBase):
     def is_0_in_header_uid(self, aggregate: BilaraHtmlAggregate) -> Set[UID]:
         error_uids = set()
         prog = re.compile(r"<h\d")
-        for uid, versus in aggregate.index.items():
+        for uid, verses in aggregate.index.items():
             if uid in self.cfg.exclude.headers_without_0:
                 continue
-            elif prog.match(versus.verse) and 0 not in uid.key.seq:
+            elif prog.match(verses.verse) and 0 not in uid.key.seq:
                 omg = "[%s] Possible header not starting the section: '%s'"
                 log.error(omg, self.name, uid)
                 error_uids.add(uid)
@@ -138,8 +138,8 @@ class CheckVariant(ServiceBase):
     ) -> Set[UID]:
         missing_word_keys = set()
 
-        for uid, versus in aggregate.index.items():
-            word, *rest = versus.verse.split("→")
+        for uid, verses in aggregate.index.items():
+            word, *rest = verses.verse.split("→")
             if not rest:
                 continue
             word, *_ = word.split('…')
@@ -165,8 +165,8 @@ class CheckVariant(ServiceBase):
 
     def get_unknown_variants(self, aggregate: BilaraVariantAggregate) -> Set[UID]:
         unknown_keys = set()
-        for uid, versus in aggregate.index.items():
-            word, *rest = versus.verse.split("→")
+        for uid, verses in aggregate.index.items():
+            word, *rest = verses.verse.split("→")
             if rest or uid in self.cfg.exclude.get_unknown_variants:
                 continue
             unknown_keys.add(uid)
@@ -269,25 +269,25 @@ class CheckService(ServiceBase):
             msg = "[%s] There are '%s' sequence key errors: %s"
             log.error(msg, self.name, len(error_keys), error_keys)
 
-    def get_duplicated_versus_next_to_each_other(
+    def get_duplicated_verses_next_to_each_other(
         self, aggregate: BilaraRootAggregate
     ) -> set:
         error_keys = set()
-        prev_versus = ""
-        for uid, versus in aggregate.index.items():  # type: UID, BaseVersus
-            verse = versus.verse.strip()
+        prev_verses = ""
+        for uid, verses in aggregate.index.items():  # type: UID, BaseVerses
+            verse = verses.verse.strip()
             if not verse:
                 continue
             if (
-                verse == prev_versus
-                and uid not in self.cfg.exclude.get_duplicated_versus_next_to_each_other
+                verse == prev_verses
+                and uid not in self.cfg.exclude.get_duplicated_verses_next_to_each_other
             ):
                 error_keys.add(uid)
-                msg = "[%s] Same versus next to each other. '%s': '%s'"
+                msg = "[%s] Same verses next to each other. '%s': '%s'"
                 log.error(msg, self.name, uid, verse)
-            prev_versus = verse
+            prev_verses = verse
         if error_keys:
-            msg = "[%s] There are '%s' duplicated versus error"
+            msg = "[%s] There are '%s' duplicated verses error"
             log.error(msg, self.name, len(error_keys))
             msg = "[%s] dupes UIDs: %s"
             log.error(msg, self.name, sorted(error_keys))
@@ -297,15 +297,15 @@ class CheckService(ServiceBase):
         error_keys = set()
         pattern = r"(\(\s\)|^\s$)"
         prog = re.compile(pattern)
-        for uid, versus in aggregate.index.items():  # type: UID, BaseVersus
-            result = prog.match(versus.verse)
+        for uid, verses in aggregate.index.items():  # type: UID, BaseVerses
+            result = prog.match(verses.verse)
             if result:
                 error_keys.add(uid)
                 msg = "[%s] Key has blank value: '%s': '%s'"
-                log.error(msg, self.name, uid, versus.verse)
+                log.error(msg, self.name, uid, verses.verse)
 
         if error_keys:
-            msg = "[%s] There are '%s' blank versus error"
+            msg = "[%s] There are '%s' blank verses error"
             log.error(msg, self.name, len(error_keys))
             msg = "[%s] blank UIDs: %s"
             log.error(msg, self.name, sorted(error_keys))
@@ -331,7 +331,7 @@ class CheckService(ServiceBase):
 
 
 class SequenceCheck(ServiceBase):
-    def get_unordered_segments(self, index: Dict[UID, BaseVersus]) -> Set[UID]:
+    def get_unordered_segments(self, index: Dict[UID, BaseVerses]) -> Set[UID]:
         wrong_uid = set()
         previous = UidKey(":0-0")
         for uid in index:
