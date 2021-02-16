@@ -42,7 +42,6 @@ class BilaraHtmlAggregate(BaseRootAggregate):
     def from_path(cls, root_pth: Path) -> "BilaraHtmlAggregate":
         file_aggregates, index, errors = cls._from_path(
             root_pth=root_pth,
-            glob_pattern="**/*.json",
             file_aggregate_cls=BilaraHtmlFileAggregate,
         )
         log.info(cls._LOAD_INFO, cls.__name__, len(index))

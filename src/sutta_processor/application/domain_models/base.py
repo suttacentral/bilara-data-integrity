@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import pprint
 from abc import ABC, abstractmethod
 from collections import Counter
@@ -140,17 +141,21 @@ class BaseRootAggregate(ABC, TextCompareMixin):
 
     @classmethod
     def _from_path(
-        cls, root_pth: Path, glob_pattern: str, file_aggregate_cls
+        cls, root_pth: Path, file_aggregate_cls
     ) -> Tuple[tuple, dict, dict]:
         file_aggregates = []
         index = {}
         errors = {}
-        all_files = natsorted(root_pth.glob(glob_pattern), alg=ns.PATH)
+        temp_files = []
+        for root_dir, sub_dirs, dir_files in os.walk(root_pth):
+            # Remove the 'name' 'xplayground' and directories and all files
+            sub_dirs[:] = [d for d in sub_dirs if d != 'name' and d != 'xplayground']
+            temp_files.extend([Path(root_dir + '/' + file) for file in dir_files])
+
+        all_files = natsorted(temp_files, alg=ns.PATH)
         c: Counter = Counter(ok=0, error=0, all=len(all_files))
         for i, f_pth in enumerate(all_files):  # type: int, Path
             try:
-                if "xplayground" in f_pth.parts:
-                    raise SkipFileError()
                 file_aggregate = file_aggregate_cls.from_file(f_pth=f_pth)
                 cls._update_index(index=index, file_aggregate=file_aggregate)
                 errors.update(file_aggregate.errors)
