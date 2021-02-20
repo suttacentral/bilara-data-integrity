@@ -148,7 +148,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         errors = {}
         temp_files = []
         for root_dir, sub_dirs, dir_files in os.walk(root_pth):
-            # Remove the 'name' 'xplayground' and directories and all files
+            # Remove the 'name' 'xplayground' directories and all files
             sub_dirs[:] = [d for d in sub_dirs if d != 'name' and d != 'xplayground']
             temp_files.extend([Path(root_dir + '/' + file) for file in dir_files])
 
