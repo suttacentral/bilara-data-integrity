@@ -11,6 +11,7 @@ pali_concordance_filepath: "./sc-renumber-segments/data/all_pali_concordance.jso
 pali_canon_path: "~/ms_palicanon"
 reference_root_path: "./bilara-data/reference/pli/ms"
 
+# Directories whose files we don't want included in the various checks
 exclude_dirs: ['name', 'xplayground']
 
 # Path where check_migration script result will be saved.
