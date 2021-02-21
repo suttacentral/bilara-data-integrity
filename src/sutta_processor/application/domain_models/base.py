@@ -5,7 +5,7 @@ import pprint
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
-from typing import Dict, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 import attr
 from natsort import natsorted, ns
@@ -141,15 +141,14 @@ class BaseRootAggregate(ABC, TextCompareMixin):
 
     @classmethod
     def _from_path(
-        cls, root_pth: Path, file_aggregate_cls
+        cls, exclude_dirs: List[str], root_pth: Path, file_aggregate_cls
     ) -> Tuple[tuple, dict, dict]:
         file_aggregates = []
         index = {}
         errors = {}
         temp_files = []
         for root_dir, sub_dirs, dir_files in os.walk(root_pth):
-            # Remove the 'name' 'xplayground' directories and all files
-            sub_dirs[:] = [d for d in sub_dirs if d != 'name' and d != 'xplayground']
+            sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
             temp_files.extend([Path(root_dir + '/' + file) for file in dir_files])
 
         all_files = natsorted(temp_files, alg=ns.PATH)

@@ -3,7 +3,7 @@ import logging
 from logging.config import dictConfig
 from os.path import expandvars
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 import attr
 from ruamel import yaml
@@ -81,6 +81,9 @@ class ExcludeRepo:
 
 @attr.s(frozen=True, auto_attribs=True)
 class Config:
+    # Not setting default so that exclude_dirs must be included
+    exclude_dirs: List[str] = attr.ib()
+
     exec_module: str = attr.ib(validator=use_case_present)
 
     bilara_root_path: Path = attr.ib(converter=create_dir)

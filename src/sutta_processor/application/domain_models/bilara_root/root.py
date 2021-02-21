@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import List
 
 import attr
 
@@ -35,8 +36,9 @@ class FileAggregate(BaseFileAggregate):
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class BilaraRootAggregate(BaseRootAggregate):
     @classmethod
-    def from_path(cls, root_pth: Path) -> "BilaraRootAggregate":
+    def from_path(cls, exclude_dirs: List[str], root_pth: Path) -> "BilaraRootAggregate":
         file_aggregates, index, errors = cls._from_path(
+            exclude_dirs=exclude_dirs,
             root_pth=root_pth,
             file_aggregate_cls=FileAggregate,
         )

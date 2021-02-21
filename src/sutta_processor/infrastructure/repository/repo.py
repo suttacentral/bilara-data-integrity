@@ -71,6 +71,7 @@ class BilaraRepo:
     def get_root(self) -> BilaraRootAggregate:
         if not self._root:
             self._root = BilaraRootAggregate.from_path(
+                exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.bilara_root_path
             )
         return self._root
@@ -78,6 +79,7 @@ class BilaraRepo:
     def get_html(self) -> BilaraHtmlAggregate:
         if not self._html:
             self._html = BilaraHtmlAggregate.from_path(
+                exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.bilara_html_path
             )
         return self._html
@@ -85,6 +87,7 @@ class BilaraRepo:
     def get_comment(self) -> BilaraCommentAggregate:
         if not self._comment:
             self._comment = BilaraCommentAggregate.from_path(
+                exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.bilara_comment_path
             )
         return self._comment
@@ -92,6 +95,7 @@ class BilaraRepo:
     def get_variant(self) -> BilaraVariantAggregate:
         if not self._variant:
             self._variant = BilaraVariantAggregate.from_path(
+                exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.bilara_variant_path
             )
         return self._variant
@@ -99,13 +103,15 @@ class BilaraRepo:
     def get_translation(self) -> BilaraTranslationAggregate:
         if not self._translation:
             self._translation = BilaraTranslationAggregate.from_path(
-                root_pth=self.cfg.bilara_translation_path
+                exclude_dirs=self.cfg.exclude_dirs,
+                root_pth=self.cfg.bilara_translation_path,
             )
         return self._translation
 
     def get_reference(self) -> BilaraReferenceAggregate:
         if not self._reference:
             self._reference = BilaraReferenceAggregate.from_path(
+                exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.reference_root_path
             )
         return self._reference
