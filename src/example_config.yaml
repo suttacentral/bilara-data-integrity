@@ -13,6 +13,8 @@ reference_root_path: "./bilara-data/reference/pli/ms"
 
 # Directories whose files we don't want included in the various checks
 exclude_dirs: ['name', 'xplayground', 'vri', 'lzh']
+# Files known to create false positives in the various checks
+exclude_filepath: 'false_positives.yaml'
 
 # Path where check_migration script result will be saved.
 # It should point to the migration_differences folder in the Bilara-data project.

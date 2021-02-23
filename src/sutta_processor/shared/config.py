@@ -83,6 +83,8 @@ class ExcludeRepo:
 class Config:
     # Not setting default so that exclude_dirs must be included
     exclude_dirs: List[str] = attr.ib()
+    # Not setting default so that exclude_filepath must be included.  We need this to remove false positives.
+    exclude_filepath: Path = attr.ib()
 
     exec_module: str = attr.ib(validator=use_case_present)
 
@@ -94,7 +96,6 @@ class Config:
     bilara_variant_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_translation_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
-    exclude_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     migration_differences_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
