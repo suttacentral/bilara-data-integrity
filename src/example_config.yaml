@@ -12,7 +12,7 @@ pali_canon_path: "~/ms_palicanon"
 reference_root_path: "./bilara-data/reference/pli/ms"
 
 # Directories whose files we don't want included in the various checks
-exclude_dirs: ['name', 'xplayground']
+exclude_dirs: ['name', 'xplayground', 'vri', 'lzh']
 
 # Path where check_migration script result will be saved.
 # It should point to the migration_differences folder in the Bilara-data project.
