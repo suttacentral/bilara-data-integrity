@@ -154,7 +154,6 @@ class CheckVariant(ServiceBase):
             if not rest:
                 continue
             word, *_ = word.split('…')
-            # word = word.strip().replace('"', '').lower()
             word = self._custom_strip(text=word)
             try:
                 base_verse: str = base_aggregate.index[uid].verse
