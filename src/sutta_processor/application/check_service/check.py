@@ -133,6 +133,17 @@ class CheckVariant(ServiceBase):
     _MISSING_WORD = "[%s] Word '%s' not found in the base verse: '%s'"
     _MISSING_KEY = "[%s] Key '%s' was not found in '%s'"
 
+    def _custom_strip(self, text: str) -> str:
+        """Used to clean up strings before comparing them. This needed to be done
+        because curly quotes and case sensitivity were causing false positives."""
+        # Remove whitespace
+        stripped_ws = text.strip()
+        # Remove stright quotes
+        replaced_sq = stripped_ws.replace('"', '')
+        # Remove opening/closing curly quotes
+        replaced_cq = replaced_sq.replace('“', '').replace('”', '')
+        return replaced_cq.lower()
+
     def get_wrong_uid_with_arrow(
         self, aggregate: BilaraVariantAggregate, base_aggregate: BaseRootAggregate,
     ) -> Set[UID]:
@@ -143,7 +154,8 @@ class CheckVariant(ServiceBase):
             if not rest:
                 continue
             word, *_ = word.split('…')
-            word = word.strip()
+            # word = word.strip().replace('"', '').lower()
+            word = self._custom_strip(text=word)
             try:
                 base_verse: str = base_aggregate.index[uid].verse
             except KeyError:
@@ -152,7 +164,7 @@ class CheckVariant(ServiceBase):
                     missing_word_keys.add(uid)
                 continue
 
-            if (word not in base_verse) and (
+            if (word not in self._custom_strip(text=base_verse)) and (
                 uid not in self.cfg.exclude.get_wrong_uid_with_arrow
             ):
                 log.error(self._MISSING_WORD, self.name, word, {uid: base_verse})
