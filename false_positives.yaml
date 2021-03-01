@@ -4,14 +4,7 @@ get_comment_surplus_segments: []
 
 get_missing_segments: []
 
-get_unordered_segments:
-  - mn104:16.3
-  - mn104:7-11.4
-  - mn119:18.3
-  - mn124:11-15.3
-  - mn124:40.1
-  - mn152:11-15.3
-  - mn4:22-26.1
+get_unordered_segments: []
 
 check_uid_sequence_in_file: []
 

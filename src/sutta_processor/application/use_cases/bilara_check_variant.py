@@ -21,4 +21,3 @@ def bilara_check_variant(cfg: Config):
         aggregate=bilara_variant, base_aggregate=bilara_root
     )
     cfg.check.variant.get_unknown_variants(aggregate=bilara_variant)
-    cfg.check.get_unordered_segments(aggregate=bilara_variant)
