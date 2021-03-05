@@ -72,7 +72,8 @@ class BilaraRepo:
         if not self._root:
             self._root = BilaraRootAggregate.from_path(
                 exclude_dirs=self.cfg.exclude_dirs,
-                root_pth=self.cfg.bilara_root_path
+                root_pth=self.cfg.bilara_root_path,
+                root_langs=self.cfg.bilara_root_langs,
             )
         return self._root
 

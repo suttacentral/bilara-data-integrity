@@ -85,6 +85,8 @@ class Config:
     exclude_dirs: List[str] = attr.ib()
     # Not setting default so that exclude_filepath must be included.  We need this to remove false positives.
     exclude_filepath: Path = attr.ib()
+    # A list of folder names, where each folder has files in a certain language
+    bilara_root_langs: List[str] = attr.ib()
 
     exec_module: str = attr.ib(validator=use_case_present)
 
