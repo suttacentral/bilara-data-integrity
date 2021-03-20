@@ -5,7 +5,7 @@ import pprint
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 import attr
 from natsort import natsorted, ns
@@ -134,31 +134,25 @@ class BaseRootAggregate(ABC, TextCompareMixin):
     file_aggregates: Tuple[BaseFileAggregate]
 
     _LOAD_INFO = "* [%s] Loaded '%s' UIDs"
-    _PROCESS_INFO = (
-        "* [%s] Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
-    )
+    _PROCESS_INFO = "* [%s] Processed: '%s' files. good: '%s', bad: '%s'. Failed ratio: %.2f%%"
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     @classmethod
-    def _from_path(
-        cls, exclude_dirs: List[str], root_pth: Path, file_aggregate_cls, root_langs: List[str]=None,
-    ) -> Tuple[tuple, dict, dict]:
+    def _file_paths_from_dir(cls, exclude_dirs: List[str], root_pth: Path) -> List[Path]:
+        """A helper function to get the paths to files contained in the roo_path directory."""
+        temp_files = []
+        for root_dir, sub_dirs, dir_files in os.walk(root_pth):
+            sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
+            temp_files.extend([Path(root_dir + '/' + file) for file in dir_files])
+
+        return temp_files
+
+    @classmethod
+    def _file_aggregates_from_files(cls, all_files: List[Path], file_aggregate_cls) -> Tuple[tuple, dict, dict]:
         file_aggregates = []
         index = {}
         errors = {}
-        temp_files = []
-        if root_langs:
-            for lang in root_langs:
-                root_lang_path = root_pth /lang
-                for root_dir, sub_dirs, dir_files in os.walk(root_lang_path):
-                    sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
-                    temp_files.extend([Path(root_dir + '/' + file) for file in dir_files])
-        else:
-            for root_dir, sub_dirs, dir_files in os.walk(root_pth):
-                sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
-                temp_files.extend([Path(root_dir + '/' + file) for file in dir_files])
 
-        all_files = natsorted(temp_files, alg=ns.PATH)
         c: Counter = Counter(ok=0, error=0, all=len(all_files))
         for i, f_pth in enumerate(all_files):  # type: int, Path
             try:
@@ -175,10 +169,28 @@ class BaseRootAggregate(ABC, TextCompareMixin):
             log.trace("Processing file: %s/%s", i, c["all"])
         ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
         log.info(cls._PROCESS_INFO, cls.name(), c["all"], c["ok"], c["error"], ratio)
+
+        return tuple(file_aggregates), index, errors
+
+    @classmethod
+    def _from_path(
+        cls,
+        exclude_dirs: List[str],
+        root_pth: Path,
+        file_aggregate_cls,
+    ) -> Tuple[tuple, dict, dict]:
+
+        temp_files = cls._file_paths_from_dir(exclude_dirs=exclude_dirs, root_pth=root_pth)
+
+        all_files = natsorted(temp_files, alg=ns.PATH)
+        file_aggregates, index, errors = cls._file_aggregates_from_files(
+            all_files=all_files, file_aggregate_cls=file_aggregate_cls
+        )
         if errors:
             msg = "[%s] There are '%s' wrong ids: \n%s"
             keys = pprint.pformat(sorted(errors.keys()))
             log.error(msg, cls.name(), len(errors), keys)
+
         return tuple(file_aggregates), index, errors
 
     @classmethod
