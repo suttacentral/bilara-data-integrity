@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 import attr
 from natsort import natsorted
@@ -55,10 +55,10 @@ class BilaraReferenceAggregate(BaseRootAggregate):
     index: Dict[UID, ReferenceVerses]
 
     @classmethod
-    def from_path(cls, root_pth: Path) -> "BilaraReferenceAggregate":
+    def from_path(cls, exclude_dirs: List[str], root_pth: Path) -> "BilaraReferenceAggregate":
         file_aggregates, index, errors = cls._from_path(
+            exclude_dirs=exclude_dirs,
             root_pth=root_pth,
-            glob_pattern="**/*.json",
             file_aggregate_cls=BilaraReferenceFileAggregate,
         )
         log.info(cls._LOAD_INFO, cls.__name__, len(index))

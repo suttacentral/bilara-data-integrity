@@ -27,7 +27,6 @@ class YuttaAggregate(BaseRootAggregate):
     def from_path(cls, root_pth: Path) -> "YuttaAggregate":
         file_aggregates, index, errors = cls._from_path(
             root_pth=root_pth,
-            glob_pattern="**/*.html",
             file_aggregate_cls=YuttaFileAggregate,
         )
         return cls(file_aggregates=tuple(file_aggregates), index=index)

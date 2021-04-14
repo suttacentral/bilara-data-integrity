@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import attr
 
@@ -37,10 +37,10 @@ class BilaraTranslationAggregate(BaseRootAggregate):
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     @classmethod
-    def from_path(cls, root_pth: Path) -> "BilaraCommentAggregate":
+    def from_path(cls, exclude_dirs: List[str], root_pth: Path) -> "BilaraCommentAggregate":
         file_aggregates, index, errors = cls._from_path(
+            exclude_dirs=exclude_dirs,
             root_pth=root_pth,
-            glob_pattern="**/*.json",
             file_aggregate_cls=BilaraTranslationFileAggregate,
         )
         length = 0

@@ -3,7 +3,7 @@ import logging
 from logging.config import dictConfig
 from os.path import expandvars
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 import attr
 from ruamel import yaml
@@ -81,6 +81,13 @@ class ExcludeRepo:
 
 @attr.s(frozen=True, auto_attribs=True)
 class Config:
+    # Not setting default so that exclude_dirs must be included
+    exclude_dirs: List[str] = attr.ib()
+    # Not setting default so that exclude_filepath must be included.  We need this to remove false positives.
+    exclude_filepath: Path = attr.ib()
+    # A list of folder names, where each folder has files in a certain language
+    bilara_root_langs: List[str] = attr.ib()
+
     exec_module: str = attr.ib(validator=use_case_present)
 
     bilara_root_path: Path = attr.ib(converter=create_dir)
@@ -91,7 +98,6 @@ class Config:
     bilara_variant_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_translation_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
-    exclude_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     migration_differences_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
