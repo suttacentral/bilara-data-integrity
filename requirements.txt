@@ -12,7 +12,7 @@ click==7.1.2              # via black, pip-tools
 frozendict==1.2           # via sutta_processor (setup.py)
 importlib-metadata==1.7.0  # via pluggy, pytest
 isort==4.3.21             # via sutta_processor (setup.py)
-lxml==4.6.2               # via sutta_processor (setup.py)
+lxml==4.6.3               # via sutta_processor (setup.py)
 more-itertools==8.4.0     # via pytest
 natsort==7.0.1            # via sutta_processor (setup.py)
 packaging==20.4           # via pytest
