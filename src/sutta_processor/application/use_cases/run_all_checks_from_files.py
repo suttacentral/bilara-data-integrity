@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from sutta_processor.application.check_service import CheckService
 from sutta_processor.infrastructure.repository.repo import FileRepository
@@ -18,9 +18,10 @@ log = logging.getLogger(__name__)
 
 
 # noinspection PyDataclass
-def run_all_checks(cfg: Config, all_files: Dict[str, List[Path]]):
+def run_all_checks_from_files(cfg: Config, all_files: Dict[str, List[Path]]):
     cfg.repo: FileRepository
     cfg.check: CheckService
+
     bilara_check_comment_from_files(cfg=cfg, comment_file_paths=all_files['comment'], root_file_paths=all_files['root'])
     bilara_check_html_from_files(cfg=cfg, html_file_paths=all_files['html'], root_file_paths=all_files['root'])
     bilara_check_references_from_files(cfg=cfg, ref_file_paths=all_files['reference'])

@@ -3,7 +3,8 @@ import logging
 import os
 import pickle
 import stat
-from typing import Set
+from pathlib import Path
+from typing import List, Set
 
 from sutta_processor.application.domain_models import (
     BilaraCommentAggregate,
