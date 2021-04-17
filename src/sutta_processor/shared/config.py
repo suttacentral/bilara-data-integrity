@@ -255,5 +255,6 @@ def configure_argparse() -> argparse.Namespace:
         default=argparse.SUPPRESS,
         help="Print this help text and exit",
     )
+    parser.add_argument('-f', '--files', required=True, type=Path, nargs='*')
 
     return parser.parse_args()

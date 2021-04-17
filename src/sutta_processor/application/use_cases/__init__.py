@@ -14,6 +14,7 @@ from .ms_yuttadhammo_match_root_text import ms_yuttadhammo_match_root_text
 from .reference_data_check import reference_data_check
 from .renumber_uids import renumber_uids
 from .run_all_checks import run_all_checks
+from .run_all_checks_from_files import run_all_checks_from_files
 from .check_migration import check_migration
 
 log = logging.getLogger(__name__)
