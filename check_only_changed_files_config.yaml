@@ -1,4 +1,4 @@
-exec_module: 'run_all_checks_from_files'
+exec_module: 'check_all_changes'
 
 bilara_root_path: "./bilara-data/root/"
 # Allows us to include more than just the Pali in the root tests
