@@ -24,17 +24,17 @@ def _sort_files(file_paths: List[Path]) -> Dict[str, List[Path]]:
     var_files = []
     for file in file_paths:
         if file.parts[0] == 'comment':
-            comment_files.append(file)
+            comment_files.append('bilara-data' / file)
         elif file.parts[0] == 'html':
-            html_files.append(file)
+            html_files.append('bilara-data' / file)
         elif file.parts[0] == 'reference':
-            ref_files.append(file)
+            ref_files.append('bilara-data' / file)
         elif file.parts[0] == 'root':
-            root_files.append(file)
+            root_files.append('bilara-data' / file)
         elif file.parts[0] == 'translation':
-            trans_files.append(file)
+            trans_files.append('bilara-data' / file)
         else:
-            var_files.append(file)
+            var_files.append('bilara-data' / file)
 
     sorted_files['comment'] = comment_files
     sorted_files['html'] = html_files
