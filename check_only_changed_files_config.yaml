@@ -9,11 +9,6 @@ bilara_variant_path: "./bilara-data/variant"
 bilara_translation_path: "./bilara-data/translation"
 reference_root_path: "./bilara-data/reference/pli/ms"
 
-# Not used in GitHub Action
-ms_yuttadhammo_path: "./sc-renumber-segments/data/ms_yuttadhammo"
-pali_concordance_filepath: "./sc-renumber-segments/data/all_pali_concordance.json"
-pali_canon_path: "~/ms_palicanon"
-
 exclude_dirs: ['name', 'xplayground', 'vri', 'site', 'blurb']
 exclude_filepath: './false_positives.yaml'
 
@@ -24,4 +19,4 @@ migration_differences_path: "./bilara-data/migration_differences"
 
 debug_dir: "."
 # Log level: [0, 50]. 10-debug, 20-info, 30-warning, 40-error, 50-critical
-log_level: 40
+log_level: 20

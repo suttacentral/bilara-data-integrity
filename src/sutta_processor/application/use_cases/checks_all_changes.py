@@ -16,7 +16,6 @@ from .bilara_check_duplicated_indexes import bilara_check_duplicated_indexes_fro
 
 log = logging.getLogger(__name__)
 
-
 # noinspection PyDataclass
 def check_all_changes(cfg: Config, all_files: Dict[str, List[Path]]):
     cfg.repo: FileRepository
@@ -25,16 +24,20 @@ def check_all_changes(cfg: Config, all_files: Dict[str, List[Path]]):
     if all_files['comment']:
         bilara_check_comment_from_files(cfg=cfg, comment_file_paths=all_files['comment'],
                                         root_file_paths=all_files['root'])
-    elif all_files['html']:
+    if all_files['html'] and all_files['root']:
         bilara_check_html_from_files(cfg=cfg, html_file_paths=all_files['html'], root_file_paths=all_files['root'])
-    elif all_files['reference']:
+
+    if all_files['reference']:
         bilara_check_references_from_files(cfg=cfg, ref_file_paths=all_files['reference'])
-    elif all_files['root']:
+
+    if all_files['root']:
         bilara_check_root_from_files(cfg=cfg, root_file_paths=all_files['root'])
-    elif all_files['translation']:
+
+    if all_files['html'] and all_files['translation']:
         bilara_check_translation_from_files(cfg=cfg, html_file_paths=all_files['html'],
                                             trans_file_paths=all_files['translation'])
-    elif all_files['variant']:
+    if all_files['variant']:
         bilara_check_variant_from_files(cfg=cfg, root_file_paths=all_files['root'], var_file_paths=all_files['variant'])
-    elif all_files['reference']:
+
+    if all_files['reference']:
         bilara_check_duplicated_indexes_from_files(cfg=cfg, ref_file_paths=all_files['reference'])
