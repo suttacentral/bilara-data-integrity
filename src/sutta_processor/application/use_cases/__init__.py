@@ -14,7 +14,7 @@ from .ms_yuttadhammo_match_root_text import ms_yuttadhammo_match_root_text
 from .reference_data_check import reference_data_check
 from .renumber_uids import renumber_uids
 from .run_all_checks import run_all_checks
-from .checks_all_changes import check_all_changes
+from .check_all_changes import check_all_changes
 from .check_migration import check_migration
 
 log = logging.getLogger(__name__)
@@ -33,6 +33,7 @@ __all__ = [
     "bilara_check_variant",
     "bilara_load",
     "bilara_check_duplicated_indexes",
+    "check_all_changes",
     "fix_headers_uid",
     "ms_yuttadhammo_convert_to_html",
     "ms_yuttadhammo_load",

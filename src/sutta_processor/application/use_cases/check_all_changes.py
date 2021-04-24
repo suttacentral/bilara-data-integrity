@@ -16,11 +16,15 @@ from .bilara_check_duplicated_indexes import bilara_check_duplicated_indexes_fro
 
 log = logging.getLogger(__name__)
 
+
 # noinspection PyDataclass
 def check_all_changes(cfg: Config, all_files: Dict[str, List[Path]]):
+    """This wrapper function is used when running tests only on changed files that are part of a commit, rather than on
+    all files (changed and unchanged) that are part of a commit."""
     cfg.repo: FileRepository
     cfg.check: CheckService
 
+    # Only run tests if there are changed files.
     if all_files['comment']:
         bilara_check_comment_from_files(cfg=cfg, comment_file_paths=all_files['comment'],
                                         root_file_paths=all_files['root'])

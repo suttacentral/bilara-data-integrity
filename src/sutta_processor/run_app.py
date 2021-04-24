@@ -15,6 +15,8 @@ def get_exit_status(cfg: Config):
         return len(f.read(10))
 
 def _sort_files(file_paths: List[Path]) -> Dict[str, List[Path]]:
+    """Sort files based on the directory the belong to, like root or html, so the correct files can be easily passed to
+    the corresponding tests."""
     sorted_files: Dict[str: List[Path]] = {}
     comment_files = []
     html_files = []
@@ -33,8 +35,10 @@ def _sort_files(file_paths: List[Path]) -> Dict[str, List[Path]]:
             root_files.append('bilara-data' / file)
         elif file.parts[0] == 'translation':
             trans_files.append('bilara-data' / file)
-        else:
+        elif file.parts[0] == 'variant':
             var_files.append('bilara-data' / file)
+        else:
+            continue
 
     sorted_files['comment'] = comment_files
     sorted_files['html'] = html_files
@@ -45,14 +49,29 @@ def _sort_files(file_paths: List[Path]) -> Dict[str, List[Path]]:
 
     return sorted_files
 
+
 def main() -> int:
     args = configure_argparse()
     Logging.setup()
     cfg = Config.from_yaml(f_pth=args.config)
-    all_files = _sort_files(file_paths=args.files)
     log.debug("cfg.debug_dir: %s", cfg.debug_dir)
+    # exec_module is specified in the config yaml file.
     exec_module = getattr(use_cases, cfg.exec_module)
-    exec_module(cfg=cfg, all_files=all_files)
+    if args.files:
+        if exec_module.__name__ != 'check_all_changes':
+            sys.exit("File paths were supplied as arguments to the application, "
+                     "but exec_module was not 'check_all_changes'. Only 'check_all_changes' accepts files paths as"
+                     " arguments.")
+        all_files = _sort_files(file_paths=args.files)
+        exec_module(cfg=cfg, all_files=all_files)
+        return get_exit_status(cfg=cfg)
+
+    # Extra verification
+    if not args.files and exec_module.__name__ == 'check_all_changes':
+        sys.exit("File paths were not supplied as arguments to the application, "
+                 "but exec_module was 'check_all_changes'. 'check_all_changes' requires files paths as arguments.")
+
+    exec_module(cfg=cfg)
     return get_exit_status(cfg=cfg)
 
 

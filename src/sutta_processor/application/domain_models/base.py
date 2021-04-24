@@ -139,7 +139,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
 
     @classmethod
     def _file_paths_from_dir(cls, exclude_dirs: List[str], root_pth: Path) -> List[Path]:
-        """A helper function to get the paths to files contained in the roo_path directory."""
+        """A helper function to get the paths to files contained in the root_path directory."""
         temp_files = []
         for root_dir, sub_dirs, dir_files in os.walk(root_pth):
             sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
@@ -179,6 +179,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         root_pth: Path,
         file_aggregate_cls,
     ) -> Tuple[tuple, dict, dict]:
+        """This function operates at the directory level, meaning it will get all files in the root_path directory."""
 
         temp_files = cls._file_paths_from_dir(exclude_dirs=exclude_dirs, root_pth=root_pth)
 
@@ -194,9 +195,10 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         return tuple(file_aggregates), index, errors
 
     @classmethod
-    def _from_file_paths(
-            cls, exclude_dirs: List[str], file_paths: List[Path], file_aggregate_cls, root_langs: List[str] = None,
-    ) -> Tuple[tuple, dict, dict]:
+    def _from_file_paths(cls, file_paths: List[Path], file_aggregate_cls) -> Tuple[tuple, dict, dict]:
+        """This function only operates on the files contained in file_paths, as opposed to all files in a directory,
+        as is done by _from_path. This was added to allow running tests exclusively on files changed as part of a
+        commit, instead of all files in a commit."""
         file_aggregates = []
         index = {}
         errors = {}
