@@ -3,7 +3,8 @@ import logging
 import os
 import pickle
 import stat
-from typing import Set
+from pathlib import Path
+from typing import List, Set
 
 from sutta_processor.application.domain_models import (
     BilaraCommentAggregate,
@@ -77,11 +78,30 @@ class BilaraRepo:
             )
         return self._root
 
+    def get_root_from_files(self, file_paths: List[Path]) -> BilaraRootAggregate:
+        """A version of the get_root function that works on a list of files as a pathlib.Path obect."""
+        if not self._root:
+            self._root = BilaraRootAggregate.from_file_paths(
+                exclude_dirs=self.cfg.exclude_dirs,
+                file_paths=file_paths,
+                root_langs=self.cfg.bilara_root_langs,
+            )
+        return self._root
+
     def get_html(self) -> BilaraHtmlAggregate:
         if not self._html:
             self._html = BilaraHtmlAggregate.from_path(
                 exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.bilara_html_path
+            )
+        return self._html
+
+    def get_html_from_files(self, file_paths: List[Path]) -> BilaraHtmlAggregate:
+        """A version of the get_html function that works on a list of files as a pathlib.Path obect."""
+        if not self._html:
+            self._html = BilaraHtmlAggregate.from_file_paths(
+                exclude_dirs=self.cfg.exclude_dirs,
+                file_paths=file_paths
             )
         return self._html
 
@@ -93,11 +113,27 @@ class BilaraRepo:
             )
         return self._comment
 
+    def get_comment_from_files(self, file_paths: List[Path]) -> BilaraCommentAggregate:
+        if not self._comment:
+            self._comment = BilaraCommentAggregate.from_file_paths(
+                exclude_dirs=self.cfg.exclude_dirs,
+                file_paths=file_paths,
+            )
+        return self._comment
+
     def get_variant(self) -> BilaraVariantAggregate:
         if not self._variant:
             self._variant = BilaraVariantAggregate.from_path(
                 exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.bilara_variant_path
+            )
+        return self._variant
+
+    def get_variant_from_files(self, file_paths: List[Path]) -> BilaraVariantAggregate:
+        if not self._variant:
+            self._variant = BilaraVariantAggregate.from_file_paths(
+                exclude_dirs=self.cfg.exclude_dirs,
+                file_paths=file_paths,
             )
         return self._variant
 
@@ -109,11 +145,27 @@ class BilaraRepo:
             )
         return self._translation
 
+    def get_translation_from_files(self, file_paths: List[Path]) -> BilaraTranslationAggregate:
+        if not self._translation:
+            self._translation = BilaraTranslationAggregate.from_file_paths(
+                exclude_dirs=self.cfg.exclude_dirs,
+                file_paths=file_paths,
+            )
+        return self._translation
+
     def get_reference(self) -> BilaraReferenceAggregate:
         if not self._reference:
             self._reference = BilaraReferenceAggregate.from_path(
                 exclude_dirs=self.cfg.exclude_dirs,
                 root_pth=self.cfg.reference_root_path
+            )
+        return self._reference
+
+    def get_reference_from_files(self, file_paths: List[Path]) -> BilaraReferenceAggregate:
+        if not self._reference:
+            self._reference = BilaraReferenceAggregate.from_file_paths(
+                exclude_dirs=self.cfg.exclude_dirs,
+                file_paths=file_paths,
             )
         return self._reference
 

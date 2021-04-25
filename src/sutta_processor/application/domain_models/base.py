@@ -139,7 +139,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
 
     @classmethod
     def _file_paths_from_dir(cls, exclude_dirs: List[str], root_pth: Path) -> List[Path]:
-        """A helper function to get the paths to files contained in the roo_path directory."""
+        """A helper function to get the paths to files contained in the root_path directory."""
         temp_files = []
         for root_dir, sub_dirs, dir_files in os.walk(root_pth):
             sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
@@ -179,6 +179,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         root_pth: Path,
         file_aggregate_cls,
     ) -> Tuple[tuple, dict, dict]:
+        """This function operates at the directory level, meaning it will get all files in the root_path directory."""
 
         temp_files = cls._file_paths_from_dir(exclude_dirs=exclude_dirs, root_pth=root_pth)
 
@@ -191,6 +192,38 @@ class BaseRootAggregate(ABC, TextCompareMixin):
             keys = pprint.pformat(sorted(errors.keys()))
             log.error(msg, cls.name(), len(errors), keys)
 
+        return tuple(file_aggregates), index, errors
+
+    @classmethod
+    def _from_file_paths(cls, file_paths: List[Path], file_aggregate_cls) -> Tuple[tuple, dict, dict]:
+        """This function only operates on the files contained in file_paths, as opposed to all files in a directory,
+        as is done by _from_path. This was added to allow running tests exclusively on files changed as part of a
+        commit, instead of all files in a commit."""
+        file_aggregates = []
+        index = {}
+        errors = {}
+
+        all_files = natsorted(file_paths, alg=ns.PATH)
+        c: Counter = Counter(ok=0, error=0, all=len(all_files))
+        for i, f_pth in enumerate(all_files):  # type: int, Path
+            try:
+                file_aggregate = file_aggregate_cls.from_file(f_pth=f_pth)
+                cls._update_index(index=index, file_aggregate=file_aggregate)
+                errors.update(file_aggregate.errors)
+                file_aggregates.append(file_aggregate)
+                c["ok"] += 1
+            except SkipFileError:
+                c["all"] -= 1
+            except Exception as e:
+                log.warning("Error processing: %s, file: '%s', ", e, f_pth)
+                c["error"] += 1
+            log.trace("Processing file: %s/%s", i, c["all"])
+        ratio = (c["error"] / c["all"]) * 100 if c["all"] else 0
+        log.info(cls._PROCESS_INFO, cls.name(), c["all"], c["ok"], c["error"], ratio)
+        if errors:
+            msg = "[%s] There are '%s' wrong ids: \n%s"
+            keys = pprint.pformat(sorted(errors.keys()))
+            log.error(msg, cls.name(), len(errors), keys)
         return tuple(file_aggregates), index, errors
 
     @classmethod

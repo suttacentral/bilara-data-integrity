@@ -81,17 +81,17 @@ class ExcludeRepo:
 
 @attr.s(frozen=True, auto_attribs=True)
 class Config:
-    # Not setting default so that exclude_dirs must be included
+    # Not setting default so that exclude_dirs must be included.
     exclude_dirs: List[str] = attr.ib()
     # Not setting default so that exclude_filepath must be included.  We need this to remove false positives.
     exclude_filepath: Path = attr.ib()
-    # A list of folder names, where each folder has files in a certain language
+    # A list of folder names, where each folder has files in a certain language.
     bilara_root_langs: List[str] = attr.ib()
 
     exec_module: str = attr.ib(validator=use_case_present)
 
-    bilara_root_path: Path = attr.ib(converter=create_dir)
-    pali_canon_path: Path = attr.ib(converter=create_dir)
+    bilara_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
+    pali_canon_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     ms_yuttadhammo_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_html_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_comment_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
@@ -238,7 +238,7 @@ class Logging:
 
 def configure_argparse() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Tool to help with suttas texts", add_help=False
+        description="Runs a series of tests on bilara-data files.", add_help=False
     )
     parser.add_argument(
         "-c",
@@ -255,5 +255,8 @@ def configure_argparse() -> argparse.Namespace:
         default=argparse.SUPPRESS,
         help="Print this help text and exit",
     )
+
+    # TODO: change to required false and test
+    parser.add_argument('-f', '--files', type=Path, nargs='*')
 
     return parser.parse_args()

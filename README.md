@@ -1,60 +1,62 @@
 # sutta_processor
 
-Process, check and validate text from bilara-data and original ms_yuttadhammo source.
+Process, check, and validate text from bilara-data and original ms_yuttadhammo source.
 
 # Setting up
 
-This package require Python distribution (it was tested using Python 3.7), thus please make sure that such a version (or newer) is available at your machine. If not, please download it from https://www.python.org/downloads/.
+This package requires Python. It was tested using Python 3.7, so please make sure that version (or a newer one ) is available on your machine. If is isn't, please download it from https://www.python.org/downloads/.
 
-1. Clone the repository to your machine
+1. Clone the repository to your machine.
 
 ```bash
 git clone https://github.com/suttacentral/sc-renumber-segments.git
 ```
 
-2. Clone bilara-data repository to your machine
+2. Clone bilara-data repository to your machine inside the sc-renumber-segments directory.
 
 ```bash
 git clone https://github.com/suttacentral/bilara-data.git
 ```
 
-3. Create new virtual environment in the same directory as cloned sc-renumber-segments
+You should now have a directory structure like `path/to/sc-renumber-segments/bilara-data/`.
+
+3. Create new virtual environment in the same directory as the cloned sc-renumber-segments.
 
 ```bash
 python3 -m venv ./sc-renumber-segments/
 ```
 
-4. Activate your virtual environment
+4. Activate your virtual environment.
 
 ```bash
 source ./sc-renumber-segments/bin/activate
 ```
 
-5. Install requirements
+5. Install requirements.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-6. Install application in developer mode
+6. Install application in developer mode. Note the "." at the end of the command.
 
 ```bash
 pip install -e .
 ```
 
-7. Copy config file to the current directory
+7. Copy the config file to the current directory. Note the "." at the end of the command.
 
 ```bash
 cp sc-renumber-segments/src/example_config.yaml .
 ```
 
-8. Try running sutta-processor app
+8. Try running the sutta-processor app.
 
 ```bash
 sutta-processor -c example_config.yaml
 ```
 
-If everything was set up correctly, you should see such a notification:
+If everything was set up correctly, you should see the following output:
 
 ```bash
 Loading config: 'example_config.yaml'
@@ -62,15 +64,21 @@ Script is working!
 ```
 # Running the application
 
-Whenever you want to run a particular script from the app just change  `exec_module` of the `example_config.yaml` file to whatever you choose - for instance:
+Whenever you want to run a particular script from the app just change `exec_module` in the `example_config.yaml`. For example:
 
 ```bash
 exec_module: 'run_all_checks'
 ```
 
+`sutta-processor` operates in two different scopes:
+1. all files found in the relevant directories, like `html ` or `root`
+2. a list of files supplied to the application as arguments
 
-List of available scripts:
+Scope 2 is meant to run on a list of changed files from a git commit.
 
+List of available scripts (unless otherwise noted, all scripts run in Scope 1):
+
+- **check_all_changes** - run checks on supplied list of files (Scope 2)
 - **run_all_checks** - run all available checks
 - **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `example_config.yaml` file, by default: `./bilara-data/migration_differences`
 - **bilara_check_comment** - check if path to comments is set up properly
@@ -87,45 +95,4 @@ List of available scripts:
 
 ## Notes on exceptions
 
-The scripts try to return as many possibly wrong entries as possible, and hence generate some false positives. Further refinement might eliminate these, but for now, here is a general guide to the exceptions you are likely to find. Following describes the state as of 23/6/2020.
-
-### check_migration
-
-Saves files to /migration_differences. Works by diffing text based on ms IDs, stripping punctuation, ṃ/ṅ differences, markup, handles some quote mark cases.
-
-`File with the key: 'sn48.147-158' is missing in the root or reference directory`
-4 false positives of this error.
-
-10 false positives of "contains many ms ids" or "does not contain ms ids"
-
-Script does not currently alias ṃ and ṁ. This will show many bugs unless you replace: ṃ --> ṁ, ṁg --> ṅg, ṁk --> ṅk.
-
-86 false positives.
-
-### bilara_check_comment
-
-0 errors
-
-### bilara_check_html
-
-0 errors
-
-### bilara_check_root
-
-Returns 11 duplicated segments errors. These are false positives, the text repeats.
-
-### bilara_check_translation
-
-Currently shows false positives for not recognizing German blurbs.
-
-### bilara_check_variant
-
-`get_wrong_uid_with_arrow`
-The script checks whether the first words in the variant entry are in fact found in the associated root text. Errors are generated in several contexts. Currently 56 are returned. In addition there is a false error due to not recognizing sa12.20:2.2.
-
-`[get_unordered_segments]`
-There are '7' unordered segment errors, however these are due to script not parsing sequence properly, they are in fact in sequence.
-
-### reference_data_check
-
-0 errors.
+There are several false positives generated by `sutta-processor`.  These have been listed in the file `false_positives.yaml`, which is required by `sutta-processor` to run without raising errors for those false positives. 

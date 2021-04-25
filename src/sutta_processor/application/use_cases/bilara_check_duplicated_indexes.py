@@ -4,6 +4,8 @@ import logging
 import ntpath
 import os
 from fnmatch import fnmatch
+from pathlib import Path
+from typing import List
 
 from sutta_processor.shared.config import Config
 
@@ -58,6 +60,18 @@ def bilara_check_duplicated_indexes(cfg: Config):
     reference_paths = get_reference_paths(directory=cfg.reference_root_path)
 
     for reference_path in reference_paths:
+        file_content = get_file_content(reference_path)
+        duplicated_indexes = get_duplicated_indexes(file_content)
+
+        for duplicated_index in duplicated_indexes:
+            log.error(f"Found duplicated index {duplicated_index} in the {reference_path}")
+            # Uncomment to remove duplicated indexes from files.
+            # remove_duplicated_index(file_content, duplicated_index)
+            # save_file_content(reference_path, file_content)
+
+def bilara_check_duplicated_indexes_from_files(cfg: Config, ref_file_paths: List[Path]):
+
+    for file_path in ref_file_paths:
         file_content = get_file_content(reference_path)
         duplicated_indexes = get_duplicated_indexes(file_content)
 
