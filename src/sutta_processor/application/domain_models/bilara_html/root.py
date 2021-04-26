@@ -55,22 +55,3 @@ class BilaraHtmlAggregate(BaseRootAggregate):
         #     for uid in file_aggregate.index:
         #         file_index[uid] = file_aggregate
         return cls(file_aggregates=file_aggregates, index=index, file_index=file_index)
-
-    @classmethod
-    def from_file_paths(cls, exclude_dirs: List[str], file_paths: List[Path]) -> "BilaraHtmlAggregate":
-        """A version of the from_path function that works on a list of files as a pathlib.Path obect."""
-        file_aggregates, index, errors = cls._from_file_paths(
-            exclude_dirs=exclude_dirs,
-            file_paths=file_paths,
-            file_aggregate_cls=BilaraHtmlFileAggregate,
-        )
-        log.info(cls._LOAD_INFO, cls.__name__, len(index))
-        file_index = {
-            uid: file_aggregate
-            for file_aggregate in file_aggregates
-            for uid in file_aggregate.index
-        }
-        # for file_aggregate in file_aggregates:
-        #     for uid in file_aggregate.index:
-        #         file_index[uid] = file_aggregate
-        return cls(file_aggregates=file_aggregates, index=index, file_index=file_index)

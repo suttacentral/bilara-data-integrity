@@ -1,8 +1,7 @@
 import logging
 import os
-import pprint
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import attr
 
@@ -39,8 +38,9 @@ class FileAggregate(BaseFileAggregate):
 
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class BilaraRootAggregate(BaseRootAggregate):
+
     @classmethod
-    def _file_paths_from_dir(cls, exclude_dirs: List[str], root_pth: Path, root_langs: List[str] = None) -> List[Path]:
+    def _file_paths_from_dir(cls, exclude_dirs: List[str], root_pth: Path, root_langs: List[str]=None) -> List[Path]:
         """A helper function to get the paths to files contained in the root_pth directory.
         This function was overridden because it needs to loop through the list of root_langs."""
         temp_files = []
@@ -54,11 +54,7 @@ class BilaraRootAggregate(BaseRootAggregate):
 
     @classmethod
     def _from_path(
-        cls,
-        exclude_dirs: List[str],
-        root_pth: Path,
-        file_aggregate_cls,
-        root_langs: List[str] = None,
+        cls, exclude_dirs: List[str], root_pth: Path, file_aggregate_cls, root_langs: List[str]=None,
     ) -> Tuple[tuple, dict, dict]:
         """An overridden version of _from_path in src/sutta_processor/application/domain_models/base.py.
         This needed to be overridden because of the inclusion of other languages."""
@@ -66,9 +62,8 @@ class BilaraRootAggregate(BaseRootAggregate):
 
         all_files = natsorted(temp_files, alg=ns.PATH)
         # Call parent class' _file_aggregates_from_files
-        file_aggregates, index, errors = cls._file_aggregates_from_files(
-            all_files=all_files, file_aggregate_cls=file_aggregate_cls
-        )
+        file_aggregates, index, errors = cls._file_aggregates_from_files(all_files=all_files,
+                                                                        file_aggregate_cls=file_aggregate_cls)
         if errors:
             msg = "[%s] There are '%s' wrong ids: \n%s"
             keys = pprint.pformat(sorted(errors.keys()))
@@ -76,26 +71,13 @@ class BilaraRootAggregate(BaseRootAggregate):
 
         return tuple(file_aggregates), index, errors
 
+
     @classmethod
-    def from_path(cls, exclude_dirs: List[str], root_pth: Path, root_langs: List[str] = None) -> "BilaraRootAggregate":
+    def from_path(cls, exclude_dirs: List[str], root_pth: Path, root_langs: List[str]=None) -> "BilaraRootAggregate":
         """Calls the overridden version of _from_path defined above."""
         file_aggregates, index, errors = cls._from_path(
             exclude_dirs=exclude_dirs,
             root_pth=root_pth,
-            file_aggregate_cls=FileAggregate,
-            root_langs=root_langs,
-        )
-        log.info(cls._LOAD_INFO, cls.__name__, len(index))
-        return cls(file_aggregates=tuple(file_aggregates), index=index)
-
-    @classmethod
-    def from_file_paths(
-        cls, exclude_dirs: List[str], file_paths: List[Path], root_langs: List[str] = None
-    ) -> "BilaraRootAggregate":
-        """A version of the from_path function that works on a list of files as a pathlib.Path obect."""
-        file_aggregates, index, errors = cls._from_file_paths(
-            exclude_dirs=exclude_dirs,
-            file_paths=file_paths,
             file_aggregate_cls=FileAggregate,
             root_langs=root_langs,
         )

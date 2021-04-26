@@ -45,13 +45,3 @@ class BilaraVariantAggregate(BaseRootAggregate):
         )
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return cls(file_aggregates=tuple(file_aggregates), index=index)
-
-    @classmethod
-    def from_file_paths(cls, exclude_dirs: List[str], file_paths: List[Path]) -> "BilaraCommentAggregate":
-        file_aggregates, index, errors = cls._from_file_paths(
-            exclude_dirs=exclude_dirs,
-            file_paths=file_paths,
-            file_aggregate_cls=BilaraVariantFileAggregate,
-        )
-        log.info(cls._LOAD_INFO, cls.__name__, len(index))
-        return cls(file_aggregates=tuple(file_aggregates), index=index)
