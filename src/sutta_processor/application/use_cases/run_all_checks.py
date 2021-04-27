@@ -20,8 +20,8 @@ def run_all_checks(cfg: Config):
     cfg.repo: FileRepository
     cfg.check: CheckService
     #bilara_check_comment(cfg=cfg)
-    bilara_check_html(cfg=cfg)
-    #bilara_check_references(cfg=cfg)
+    # bilara_check_html(cfg=cfg)
+    bilara_check_references(cfg=cfg)
     #bilara_check_root(cfg=cfg)
     #bilara_check_translation(cfg=cfg)
     #bilara_check_variant(cfg=cfg)
