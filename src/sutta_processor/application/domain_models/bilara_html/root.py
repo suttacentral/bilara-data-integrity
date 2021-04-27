@@ -39,7 +39,7 @@ class BilaraHtmlAggregate(BaseRootAggregate):
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     @classmethod
-    def from_path(cls, exclude_dirs: List[str], root_pth: Path) -> "BilaraHtmlAggregate":
+    def from_path(cls, exclude_dirs: List[Path], root_pth: Path) -> "BilaraHtmlAggregate":
         file_aggregates, index, errors = cls._from_path(
             exclude_dirs=exclude_dirs,
             root_pth=root_pth,
@@ -57,7 +57,7 @@ class BilaraHtmlAggregate(BaseRootAggregate):
         return cls(file_aggregates=file_aggregates, index=index, file_index=file_index)
 
     @classmethod
-    def from_file_paths(cls, exclude_dirs: List[str], file_paths: List[Path]) -> "BilaraHtmlAggregate":
+    def from_file_paths(cls, exclude_dirs: List[Path], file_paths: List[Path]) -> "BilaraHtmlAggregate":
         """A version of the from_path function that works on a list of files as a pathlib.Path obect."""
         file_aggregates, index, errors = cls._from_file_paths(
             exclude_dirs=exclude_dirs,
