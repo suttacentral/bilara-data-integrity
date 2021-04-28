@@ -204,6 +204,8 @@ class BaseRootAggregate(ABC, TextCompareMixin):
                 if str(ex_dir) in str(file):
                     filtered_files.remove(file)
 
+        return filtered_files
+
     @classmethod
     def _from_file_paths(cls, exclude_dirs: List[Path], file_paths: List[Path],
                          file_aggregate_cls) -> Tuple[tuple, dict, dict]:
