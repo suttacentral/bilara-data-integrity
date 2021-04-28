@@ -195,6 +195,16 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         return tuple(file_aggregates), index, errors
 
     @classmethod
+    def _filter_exclude_dirs(cls, exclude_dirs: List[Path], file_paths: List[Path]) -> List[Path]:
+        # Creating new list to avoid changing file_paths in place
+        filtered_files = file_paths
+        # Filter our files from directories we don't want to process
+        for ex_dir in exclude_dirs:
+            for file in file_paths:
+                if str(ex_dir) in str(file):
+                    filtered_files.remove(file)
+
+    @classmethod
     def _from_file_paths(cls, exclude_dirs: List[Path], file_paths: List[Path],
                          file_aggregate_cls) -> Tuple[tuple, dict, dict]:
         """This function only operates on the files contained in file_paths, as opposed to all files in a directory,
@@ -204,13 +214,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         index = {}
         errors = {}
 
-        # Creating new list to avoid changing file_paths in place
-        filtered_files = file_paths
-        # Filter our files from directories we don't want to process
-        for ex_dir in exclude_dirs:
-            for file in file_paths:
-                if str(ex_dir) in str(file):
-                    filtered_files.remove(file)
+        filtered_files = cls._filter_exclude_dirs(exclude_dirs=exclude_dirs, file_paths=file_paths)
 
         all_files = natsorted(filtered_files, alg=ns.PATH)
         c: Counter = Counter(ok=0, error=0, all=len(all_files))
