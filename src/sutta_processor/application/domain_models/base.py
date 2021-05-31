@@ -138,7 +138,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
     _ERR_MSG = "Lost data, some indexes were duplicated after merging file: '{f_pth}'"
 
     @classmethod
-    def _file_paths_from_dir(cls, exclude_dirs: List[str], root_pth: Path) -> List[Path]:
+    def _file_paths_from_dir(cls, exclude_dirs: List[Path], root_pth: Path) -> List[Path]:
         """A helper function to get the paths to files contained in the root_path directory."""
         temp_files = []
         for root_dir, sub_dirs, dir_files in os.walk(root_pth):
@@ -175,7 +175,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
     @classmethod
     def _from_path(
         cls,
-        exclude_dirs: List[str],
+        exclude_dirs: List[Path],
         root_pth: Path,
         file_aggregate_cls,
     ) -> Tuple[tuple, dict, dict]:
@@ -195,7 +195,20 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         return tuple(file_aggregates), index, errors
 
     @classmethod
-    def _from_file_paths(cls, file_paths: List[Path], file_aggregate_cls) -> Tuple[tuple, dict, dict]:
+    def _filter_exclude_dirs(cls, exclude_dirs: List[Path], file_paths: List[Path]) -> List[Path]:
+        # Creating new list to avoid changing file_paths in place
+        filtered_files = file_paths
+        # Filter our files from directories we don't want to process
+        for ex_dir in exclude_dirs:
+            for file in file_paths:
+                if str(ex_dir) in str(file):
+                    filtered_files.remove(file)
+
+        return filtered_files
+
+    @classmethod
+    def _from_file_paths(cls, exclude_dirs: List[Path], file_paths: List[Path],
+                         file_aggregate_cls) -> Tuple[tuple, dict, dict]:
         """This function only operates on the files contained in file_paths, as opposed to all files in a directory,
         as is done by _from_path. This was added to allow running tests exclusively on files changed as part of a
         commit, instead of all files in a commit."""
@@ -203,7 +216,9 @@ class BaseRootAggregate(ABC, TextCompareMixin):
         index = {}
         errors = {}
 
-        all_files = natsorted(file_paths, alg=ns.PATH)
+        filtered_files = cls._filter_exclude_dirs(exclude_dirs=exclude_dirs, file_paths=file_paths)
+
+        all_files = natsorted(filtered_files, alg=ns.PATH)
         c: Counter = Counter(ok=0, error=0, all=len(all_files))
         for i, f_pth in enumerate(all_files):  # type: int, Path
             try:

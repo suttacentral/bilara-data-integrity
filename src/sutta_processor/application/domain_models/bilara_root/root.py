@@ -40,7 +40,7 @@ class FileAggregate(BaseFileAggregate):
 @attr.s(frozen=True, auto_attribs=True, str=False)
 class BilaraRootAggregate(BaseRootAggregate):
     @classmethod
-    def _file_paths_from_dir(cls, exclude_dirs: List[str], root_pth: Path, root_langs: List[str] = None) -> List[Path]:
+    def _file_paths_from_dir(cls, exclude_dirs: List[Path], root_pth: Path, root_langs: List[Path] = None) -> List[Path]:
         """A helper function to get the paths to files contained in the root_pth directory.
         This function was overridden because it needs to loop through the list of root_langs."""
         temp_files = []
@@ -55,10 +55,10 @@ class BilaraRootAggregate(BaseRootAggregate):
     @classmethod
     def _from_path(
         cls,
-        exclude_dirs: List[str],
+        exclude_dirs: List[Path],
         root_pth: Path,
         file_aggregate_cls,
-        root_langs: List[str] = None,
+        root_langs: List[Path] = None,
     ) -> Tuple[tuple, dict, dict]:
         """An overridden version of _from_path in src/sutta_processor/application/domain_models/base.py.
         This needed to be overridden because of the inclusion of other languages."""
@@ -77,7 +77,7 @@ class BilaraRootAggregate(BaseRootAggregate):
         return tuple(file_aggregates), index, errors
 
     @classmethod
-    def from_path(cls, exclude_dirs: List[str], root_pth: Path, root_langs: List[str] = None) -> "BilaraRootAggregate":
+    def from_path(cls, exclude_dirs: List[Path], root_pth: Path, root_langs: List[Path] = None) -> "BilaraRootAggregate":
         """Calls the overridden version of _from_path defined above."""
         file_aggregates, index, errors = cls._from_path(
             exclude_dirs=exclude_dirs,
@@ -89,15 +89,29 @@ class BilaraRootAggregate(BaseRootAggregate):
         return cls(file_aggregates=tuple(file_aggregates), index=index)
 
     @classmethod
+    def _filter_languages(cls, file_paths: List[Path], root_langs: List[Path]) -> List[Path]:
+        """Filter out any files that aren't part of the currently supported languages.
+        This is only needed for root files, so this function only exists in bilara_root."""
+
+        # Creating new list to avoid changing file_paths in place
+        filtered_files = []
+        for lang in root_langs:
+            for file in file_paths:
+                if str(lang) in str(file):
+                    filtered_files.append(file)
+
+        return filtered_files
+
+    @classmethod
     def from_file_paths(
-        cls, exclude_dirs: List[str], file_paths: List[Path], root_langs: List[str] = None
+        cls, exclude_dirs: List[Path], file_paths: List[Path], root_langs: List[Path] = None
     ) -> "BilaraRootAggregate":
         """A version of the from_path function that works on a list of files as a pathlib.Path obect."""
+        filtered_files = cls._filter_languages(file_paths=file_paths, root_langs=root_langs)
         file_aggregates, index, errors = cls._from_file_paths(
             exclude_dirs=exclude_dirs,
-            file_paths=file_paths,
+            file_paths=filtered_files,
             file_aggregate_cls=FileAggregate,
-            root_langs=root_langs,
         )
         log.info(cls._LOAD_INFO, cls.__name__, len(index))
         return cls(file_aggregates=tuple(file_aggregates), index=index)

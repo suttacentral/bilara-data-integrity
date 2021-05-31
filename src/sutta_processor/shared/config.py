@@ -82,11 +82,11 @@ class ExcludeRepo:
 @attr.s(frozen=True, auto_attribs=True)
 class Config:
     # Not setting default so that exclude_dirs must be included.
-    exclude_dirs: List[str] = attr.ib()
+    exclude_dirs: List[Path] = attr.ib()
     # Not setting default so that exclude_filepath must be included.  We need this to remove false positives.
     exclude_filepath: Path = attr.ib()
     # A list of folder names, where each folder has files in a certain language.
-    bilara_root_langs: List[str] = attr.ib()
+    bilara_root_langs: List[Path] = attr.ib()
 
     exec_module: str = attr.ib(validator=use_case_present)
 
