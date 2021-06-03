@@ -12,8 +12,8 @@ bilara_translation_path: "./bilara-data/translation"
 reference_root_path: "./bilara-data/reference/pli/ms"
 
 # Not used in GitHub Action
-ms_yuttadhammo_path: "./sc-renumber-segments/data/ms_yuttadhammo"
-pali_concordance_filepath: "./sc-renumber-segments/data/all_pali_concordance.json"
+ms_yuttadhammo_path: "./bilara-data-integrity/data/ms_yuttadhammo"
+pali_concordance_filepath: "./bilara-data-integrity/data/all_pali_concordance.json"
 pali_canon_path: "~/ms_palicanon"
 
 exclude_dirs: ['name', 'xplayground', 'vri', 'site', 'blurb']

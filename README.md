@@ -9,27 +9,27 @@ This package requires Python. It was tested using Python 3.7, so please make sur
 1. Clone the repository to your machine.
 
 ```bash
-git clone https://github.com/suttacentral/sc-renumber-segments.git
+git clone https://github.com/suttacentral/bilara-data-integrity.git
 ```
 
-2. Clone bilara-data repository to your machine inside the sc-renumber-segments directory.
+2. Clone bilara-data repository to your machine inside the bilara-data-integrity directory.
 
 ```bash
 git clone https://github.com/suttacentral/bilara-data.git
 ```
 
-You should now have a directory structure like `path/to/sc-renumber-segments/bilara-data/`.
+You should now have a directory structure like `path/to/bilara-data-integrity/bilara-data/`.
 
-3. Create new virtual environment in the same directory as the cloned sc-renumber-segments.
+3. Create new virtual environment in the same directory as the cloned bilara-data-integrity.
 
 ```bash
-python3 -m venv ./sc-renumber-segments/
+python3 -m venv ./bilara-data-integrity/
 ```
 
 4. Activate your virtual environment.
 
 ```bash
-source ./sc-renumber-segments/bin/activate
+source ./bilara-data-integrity/bin/activate
 ```
 
 5. Install requirements.
@@ -47,7 +47,7 @@ pip install -e .
 7. Copy the config file to the current directory. Note the "." at the end of the command.
 
 ```bash
-cp sc-renumber-segments/src/example_config.yaml .
+cp bilara-data-integrity/src/example_config.yaml .
 ```
 
 8. Try running the sutta-processor app.
