@@ -30,7 +30,7 @@ def bilara_check_translation_from_files(cfg: Config, html_file_paths: List[Path]
     cfg.repo: FileRepository
     cfg.check: CheckService
     bilara_html: BilaraHtmlAggregate = cfg.repo.bilara.get_html_from_files(file_paths=html_file_paths)
-    bilara_tran: BilaraTranslationAggregate = cfg.repo.bilara.get_root_from_files(file_paths=trans_file_paths)
+    bilara_tran: BilaraTranslationAggregate = cfg.repo.bilara.get_translation_from_files(file_paths=trans_file_paths)
     cfg.check.get_surplus_segments(
         check_aggregate=bilara_tran, base_aggregate=bilara_html
     )
