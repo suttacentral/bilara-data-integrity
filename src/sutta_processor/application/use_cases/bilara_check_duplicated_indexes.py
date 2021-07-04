@@ -72,7 +72,7 @@ def bilara_check_duplicated_indexes(cfg: Config):
 def bilara_check_duplicated_indexes_from_files(cfg: Config, ref_file_paths: List[Path]):
 
     for file_path in ref_file_paths:
-        file_content = get_file_content(reference_path)
+        file_content = get_file_content(file_path=file_path)
         duplicated_indexes = get_duplicated_indexes(file_content)
 
         for duplicated_index in duplicated_indexes:
