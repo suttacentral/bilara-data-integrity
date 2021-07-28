@@ -31,8 +31,8 @@ def check_all_changes(cfg: Config, all_files: Dict[str, List[Path]]):
     if all_files['html'] and all_files['root']:
         bilara_check_html_from_files(cfg=cfg, html_file_paths=all_files['html'], root_file_paths=all_files['root'])
 
-    if all_files['reference']:
-        bilara_check_references_from_files(cfg=cfg, ref_file_paths=all_files['reference'])
+    # if all_files['reference']:
+    #     bilara_check_references_from_files(cfg=cfg, ref_file_paths=all_files['reference'])
 
     if all_files['root']:
         bilara_check_root_from_files(cfg=cfg, root_file_paths=all_files['root'])
