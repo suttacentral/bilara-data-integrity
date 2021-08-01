@@ -169,15 +169,17 @@ class SCReferenceService:
             return duplicates
 
         counter = get_reference_counts()
-        duplicated_ms_id = get_surplus_ref(c=counter)
+        # Take into account when there might be references that don't have ms_ids, like Chinese texts.
+        if counter:
+            duplicated_ms_id = get_surplus_ref(c=counter)
 
-        if duplicated_ms_id:
-            omg = "[%s] There are '%s' duplicated ms_id in bilara references: %s"
-            log.error(omg, self.name, len(duplicated_ms_id[2]), duplicated_ms_id[2])
-            duplicated_ms_id.pop(2)
             if duplicated_ms_id:
-                omg = "[%s] There are multiple ms_id in bilara references: %s"
-                log.error(omg, self.name, duplicated_ms_id)
+                omg = "[%s] There are '%s' duplicated ms_id in bilara references: %s"
+                log.error(omg, self.name, len(duplicated_ms_id[2]), duplicated_ms_id[2])
+                duplicated_ms_id.pop(2)
+                if duplicated_ms_id:
+                    omg = "[%s] There are multiple ms_id in bilara references: %s"
+                    log.error(omg, self.name, duplicated_ms_id)
 
     @classmethod
     def get_references_stem(cls, reference: BilaraReferenceAggregate) -> list:
