@@ -76,7 +76,7 @@ def bilara_check_duplicated_indexes_from_files(cfg: Config, ref_file_paths: List
         duplicated_indexes = get_duplicated_indexes(file_content)
 
         for duplicated_index in duplicated_indexes:
-            log.error(f"Found duplicated index {duplicated_index} in the {reference_path}")
+            log.error(f"Found duplicated index {duplicated_index} in the {file_path}")
             # Uncomment to remove duplicated indexes from files.
             # remove_duplicated_index(file_content, duplicated_index)
             # save_file_content(reference_path, file_content)
