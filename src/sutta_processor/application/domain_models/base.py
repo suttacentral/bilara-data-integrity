@@ -4,6 +4,7 @@ import os
 import pprint
 from abc import ABC, abstractmethod
 from collections import Counter
+from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
@@ -197,7 +198,7 @@ class BaseRootAggregate(ABC, TextCompareMixin):
     @classmethod
     def _filter_exclude_dirs(cls, exclude_dirs: List[Path], file_paths: List[Path]) -> List[Path]:
         # Creating new list to avoid changing file_paths in place
-        filtered_files = file_paths
+        filtered_files = deepcopy(file_paths)
         # Filter our files from directories we don't want to process
         for ex_dir in exclude_dirs:
             for file in file_paths:
