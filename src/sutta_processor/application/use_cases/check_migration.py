@@ -258,7 +258,7 @@ class BilaraSutra:
 # Getting BilaraSutra objects
 
 
-def get_file_paths(directory, key_separator):
+def get_file_paths(directory, key_separator, exclude_dirs):
     """ 
     Returns file key - file path pair for every file in the directory.
     E.g. "an10.48": "/bilara-data/reference/pli/ms/sutta/an/an10/an10.48_reference.json"
@@ -266,7 +266,8 @@ def get_file_paths(directory, key_separator):
     """
     file_paths = dict()
 
-    for path, _, files in os.walk(directory):
+    for path, sub_dirs, files in os.walk(directory):
+        sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
         for name in files:
             file_key = name.split(key_separator)[0]
             file_paths[file_key] = os.path.join(path, name)
@@ -277,8 +278,10 @@ def get_file_paths(directory, key_separator):
 def get_matched_bilara_files(cfg):
     """ Generates list of matching *root.json and *reference.json files from the Bilary-data directory. """
     matched_files = list()
-    bilara_file_paths = get_file_paths(cfg.bilara_root_path, "_root")
-    reference_file_paths = get_file_paths(cfg.reference_root_path, "_reference")
+    # bilara_file_paths = get_file_paths(cfg.bilara_root_path, "_root", cfg.exclude_dirs)
+    bilara_file_paths = get_file_paths('./bilara-data/root/pli/ms/', "_root", cfg.exclude_dirs)
+    # reference_file_paths = get_file_paths(cfg.reference_root_path, "_reference", cfg.exclude_dirs)
+    reference_file_paths = get_file_paths('./bilara-data/reference/pli/ms', "_reference", cfg.exclude_dirs)
 
     bilara_keys_set = set(bilara_file_paths)
     reference_keys_set = set(reference_file_paths)

@@ -135,7 +135,7 @@ class ReferenceEngine:
 
 
 class SCReferenceService:
-    _reference_engine: ReferenceEngine = None
+    reference_engine: ReferenceEngine
     _MS_REF_MISS_COUNT = (
         "[%s] There are '%s' MsId that are not found in the reference file"
     )
@@ -147,6 +147,7 @@ class SCReferenceService:
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
+        self.reference_engine = ReferenceEngine(cfg=cfg)
 
     def get_duplicated_ms_id(self, reference: BilaraReferenceAggregate):
         def get_reference_counts() -> Counter:

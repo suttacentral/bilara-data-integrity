@@ -37,7 +37,8 @@ class YuttadhammoRepo:
         self.cfg = cfg
 
     def get_aggregate(self) -> YuttaAggregate:
-        root_aggregate = YuttaAggregate.from_path(root_pth=self.cfg.ms_yuttadhammo_path)
+        root_aggregate = YuttaAggregate.from_path(exclude_dirs=self.cfg.exclude_dirs,
+                                                  root_pth=self.cfg.ms_yuttadhammo_path)
         return root_aggregate
 
     def get_xml_data_for_conversion(self) -> YuttaAggregate:
