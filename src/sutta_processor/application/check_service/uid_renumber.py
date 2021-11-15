@@ -6,7 +6,6 @@ from sutta_processor.application.domain_models import (
     BilaraHtmlAggregate,
     BilaraReferenceAggregate,
     BilaraRootAggregate,
-    ConcordanceAggregate,
     YuttaAggregate,
 )
 from sutta_processor.application.domain_models.bilara_html.root import (

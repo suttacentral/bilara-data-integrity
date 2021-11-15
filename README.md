@@ -87,11 +87,7 @@ List of available scripts (unless otherwise noted, all scripts run in Scope 1):
 - **bilara_check_translation** - check if path to translation files is set up properly
 - **bilara_check_variant** - check if path to variant files is set up properly
 - **bilara_load** - load bilara-data
-- **ms_yuttadhammo_convert_to_html** - extract html files directly from original xml files
-- **ms_yuttadhammo_load** - load ms_yuttadhammo
-- **ms_yuttadhammo_match_root_text** - match root text of ms_yuttadhammo
 - **noop** - no operation, available just for checking purposes
-- **reference_data_check** - validate references
 
 ## Notes on exceptions
 

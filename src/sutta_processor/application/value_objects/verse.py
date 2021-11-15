@@ -26,7 +26,6 @@ class References(set):
     def __init__(self, *a):
         """
         From root_reference: ('sc38, pts-vp-pli11, ms24Mn_38',)
-        From concordance: (['sc91', 'ms24Mn_767', 'cck26.187', 'bj33.276'],)
         """
         sc_id = ""
         pts_pli = ""
@@ -91,19 +90,6 @@ class References(set):
     @property
     def data(self) -> str:
         return ", ".join(sorted(self))
-
-
-class ReferencesConcordance(References):
-    uid: UID
-
-    def __init__(self, *a, uid: UID):
-        super().__init__(*a)
-        self.uid = uid
-
-    @property
-    def data(self) -> list:
-        return list(sorted(set(self)))
-
 
 class VerseTokens(tuple):
     HEAD_KEY_LEN = 3

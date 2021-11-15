@@ -17,7 +17,6 @@ from .verse import (
     MsVerse,
     RawVerse,
     References,
-    ReferencesConcordance,
     Verse,
     VerseTokens,
 )

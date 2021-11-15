@@ -18,7 +18,6 @@ from sutta_processor.shared.config import Config
 
 from .base import ServiceBase
 from .bd_reference import SCReferenceService
-from .concordance import ConcordanceService
 from .text_check import CheckText
 from .uid_renumber import UidRenumber
 
@@ -198,7 +197,6 @@ class CheckService(ServiceBase):
     def __init__(self, cfg: Config):
         super().__init__(cfg=cfg)
         self.reference = SCReferenceService(cfg=cfg)
-        self.concordance = ConcordanceService(cfg=cfg)
         self.html = CheckHtml(cfg=cfg)
         self.translation = CheckTranslation(cfg=cfg)
         self.variant = CheckVariant(cfg=cfg)
