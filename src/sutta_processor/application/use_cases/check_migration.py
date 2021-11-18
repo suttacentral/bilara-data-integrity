@@ -6,6 +6,7 @@ import pickle
 from collections import OrderedDict
 import json
 import re
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -279,10 +280,10 @@ def get_file_paths(directory, key_separator, exclude_dirs):
 def get_matched_bilara_files(cfg):
     """ Generates list of matching *root.json and *reference.json files from the Bilary-data directory. """
     matched_files = list()
-    # bilara_file_paths = get_file_paths(cfg.bilara_root_path, "_root", cfg.exclude_dirs)
-    bilara_file_paths = get_file_paths('./bilara-data/root/pli/ms/', "_root", cfg.exclude_dirs)
-    # reference_file_paths = get_file_paths(cfg.reference_root_path, "_reference", cfg.exclude_dirs)
-    reference_file_paths = get_file_paths('./bilara-data/reference/pli/ms', "_reference", cfg.exclude_dirs)
+    # Don't want the Chinese root texts. palit_root = ./bilara-data/root/pli/ms/
+    pali_root = cfg.bilara_root_path / Path(cfg.bilara_root_langs[0])
+    bilara_file_paths = get_file_paths(pali_root, "_root", cfg.exclude_dirs)
+    reference_file_paths = get_file_paths(cfg.reference_root_path, "_reference", cfg.exclude_dirs)
 
     bilara_keys_set = set(bilara_file_paths)
     reference_keys_set = set(reference_file_paths)

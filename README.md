@@ -44,31 +44,23 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-7. Copy the config file to the current directory. Note the "." at the end of the command.
+7. Try running the sutta-processor app.  It takes the config file as an argument.
 
 ```bash
-cp bilara-data-integrity/src/example_config.yaml .
+sutta-processor -c run_all_checks_config.yaml
 ```
 
-8. Try running the sutta-processor app.
+The config file is located here `bilara-data-integrity/run_all_checks_config.yaml`. 
 
-```bash
-sutta-processor -c example_config.yaml
-```
-
-If everything was set up correctly, you should see the following output:
-
-```bash
-Loading config: 'example_config.yaml'
-Script is working!
-```
 # Running the application
 
-Whenever you want to run a particular script from the app just change `exec_module` in the `example_config.yaml`. For example:
+Whenever you want to run a particular script from the app just change `exec_module` in `run_all_checks_config.yaml`. For example:
 
 ```bash
-exec_module: 'run_all_checks'
+exec_module: 'bilara_check_html'
 ```
+
+The default `exec_module` is `run_all_checks`.
 
 `sutta-processor` operates in two different scopes:
 1. all files found in the relevant directories, like `html ` or `root`
@@ -80,7 +72,7 @@ List of available scripts (unless otherwise noted, all scripts run in Scope 1):
 
 - **check_all_changes** - run checks on supplied list of files (Scope 2)
 - **run_all_checks** - run all available checks
-- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `example_config.yaml` file, by default: `./bilara-data/migration_differences`
+- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `run_all_checks_config.yaml` file, by default: `./bilara-data/migration_differences`
 - **bilara_check_comment** - check if path to comments is set up properly
 - **bilara_check_html** - check if path to html files is set up properly
 - **bilara_check_root** - check if path to root files is set up properly

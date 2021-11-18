@@ -289,5 +289,4 @@ cover/*
 *.iml
 !/scripts/*
 
-example_config.yaml
 bilara-data/

@@ -1,6 +1,4 @@
----
-exec_module: 'noop'
-bilara_root_path: "./bilara-data/root/pli/ms"
+exec_module: 'run_all_checks'
 
 bilara_root_path: "./bilara-data/root/"
 # Allows us to include more than just the Pali in the root tests
@@ -10,7 +8,7 @@ bilara_comment_path: "./bilara-data/comment"
 bilara_variant_path: "./bilara-data/variant"
 bilara_translation_path: "./bilara-data/translation"
 reference_root_path: "./bilara-data/reference/pli/ms"
-ms_yuttadhammo_path: "./bilara-data-integrity/data/ms_yuttadhammo"
+ms_yuttadhammo_path: "./data/ms_yuttadhammo"
 
 exclude_dirs: ['name', 'xplayground', 'vri', 'site', 'blurb']
 exclude_filepath: './false_positives.yaml'
