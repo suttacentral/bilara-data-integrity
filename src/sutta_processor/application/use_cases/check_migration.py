@@ -6,7 +6,7 @@ import pickle
 from collections import OrderedDict
 import json
 import re
-
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def clean_verse(verse):
         .replace(".", " ")
         .replace("(", " ")
         .replace(")", " ")
-        .replace("ṅ", "ṃ")
+        .replace("ṅ", "ṁ")
         .replace("“", " ")
         .replace("”", " ")
         .replace("–", " ")
@@ -52,6 +52,10 @@ def clean_verse(verse):
         .replace("#", " ")
         .replace("[", " ")
         .replace("]", " ")
+        .replace("»", "")
+        .replace("«", "")
+        .replace("’", "")
+        .replace("‘", "")
     )
 
     return " ".join(verse.split())
@@ -75,7 +79,7 @@ class Yutta:
         return sorted_msids_list, sorted_msids_list.copy()
 
     def generate_last_msids_list(self, yutta_aggregate):
-        """ 
+        """
         Generates dictionary in which keys are ms* ids. For every item, if ms* id is the last one in the file, it will have the True value.
         Otherwise it will be False as default value.
         """
@@ -93,7 +97,7 @@ class Yutta:
         """
         Generates full sutra by combining all verses from Yuttadhammo html files.
         It starts from given start_msid and add verses by selecting next ms* ids.
-        Adding new verses will stop if end_msid was found. 
+        Adding new verses will stop if end_msid was found.
         If the end_msid was not the last index in the html file all verses after them till the end of the file also will be added.
         All verses which text is included in header will be ignored.
         """
@@ -109,7 +113,7 @@ class Yutta:
 
             if clean_verse(self.yutta_aggregate.index[msid].verse) not in headers:
                 full_sutra += " " + self.yutta_aggregate.index[msid].verse
-            
+
             if msid in self.unused_msids_list: self.unused_msids_list.remove(msid)
 
             if self.last_msids_list[msid] and found_last_msid:
@@ -139,17 +143,14 @@ class BilaraSutra:
         ms_regex = "ms(?!div)\w+"
 
         for index, msids in references.copy().items():
-            founded_msids = re.findall(ms_regex, msids)
+            found_msids = re.findall(ms_regex, msids)
 
-            if len(founded_msids) > 1:
-                log.error(f"This reference contains many ms* ids: {index}: {msids}")
-                references.clear()
-                break
-            elif founded_msids:
-                references[index] = founded_msids[0]
+            if found_msids:
+                references[index] = found_msids[0]
             else:
                 del references[index]
 
+    # LOOK AT ME
     def get_formatted_references(self, reference_file_path):
         """
         Load data from reference file, removes headers indexes and non ms* ids.
@@ -245,7 +246,8 @@ class BilaraSutra:
                     yuta_difference.remove(word)
 
             return self.format_output(
-                self.references, clean_bilara_sutra, bilara_difference, clean_yutta_sutra, yuta_difference
+                msids=self.references, bilara_sutra=clean_bilara_sutra, bilara_extra_words=bilara_difference,
+                yutthadammo_sutra=clean_yutta_sutra, yutthadamo_extra_words=yuta_difference
             )
 
         return None
@@ -258,15 +260,16 @@ class BilaraSutra:
 # Getting BilaraSutra objects
 
 
-def get_file_paths(directory, key_separator):
-    """ 
+def get_file_paths(directory, key_separator, exclude_dirs):
+    """
     Returns file key - file path pair for every file in the directory.
     E.g. "an10.48": "/bilara-data/reference/pli/ms/sutta/an/an10/an10.48_reference.json"
          "an10.48": "/bilara-data/root/pli/ms/sutta/an/an10/an10.48_root-pli-ms.json
     """
     file_paths = dict()
 
-    for path, _, files in os.walk(directory):
+    for path, sub_dirs, files in os.walk(directory):
+        sub_dirs[:] = [d for d in sub_dirs if d not in exclude_dirs]
         for name in files:
             file_key = name.split(key_separator)[0]
             file_paths[file_key] = os.path.join(path, name)
@@ -277,8 +280,10 @@ def get_file_paths(directory, key_separator):
 def get_matched_bilara_files(cfg):
     """ Generates list of matching *root.json and *reference.json files from the Bilary-data directory. """
     matched_files = list()
-    bilara_file_paths = get_file_paths(cfg.bilara_root_path, "_root")
-    reference_file_paths = get_file_paths(cfg.reference_root_path, "_reference")
+    # Don't want the Chinese root texts. palit_root = ./bilara-data/root/pli/ms/
+    pali_root = cfg.bilara_root_path / Path(cfg.bilara_root_langs[0])
+    bilara_file_paths = get_file_paths(pali_root, "_root", cfg.exclude_dirs)
+    reference_file_paths = get_file_paths(cfg.reference_root_path, "_reference", cfg.exclude_dirs)
 
     bilara_keys_set = set(bilara_file_paths)
     reference_keys_set = set(reference_file_paths)

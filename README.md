@@ -44,31 +44,23 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-7. Copy the config file to the current directory. Note the "." at the end of the command.
+7. Try running the sutta-processor app.  It takes the config file and the test module as arguments.
 
 ```bash
-cp bilara-data-integrity/src/example_config.yaml .
+sutta-processor -e run_all_checks -c sutta_processor_config.yaml
 ```
 
-8. Try running the sutta-processor app.
+The config file is located here `bilara-data-integrity/sutta_processor_config.yaml`. 
 
-```bash
-sutta-processor -c example_config.yaml
-```
-
-If everything was set up correctly, you should see the following output:
-
-```bash
-Loading config: 'example_config.yaml'
-Script is working!
-```
 # Running the application
 
-Whenever you want to run a particular script from the app just change `exec_module` in the `example_config.yaml`. For example:
+Whenever you want to run a particular script from the app just change the first argument. For example:
 
 ```bash
-exec_module: 'run_all_checks'
+sutta-processor -e bilara_check_root -c sutta_processor_config.yaml
 ```
+
+The list of available scripts can be found here `src/sutta_processor/application/use_cases` or below.
 
 `sutta-processor` operates in two different scopes:
 1. all files found in the relevant directories, like `html ` or `root`
@@ -79,19 +71,15 @@ Scope 2 is meant to run on a list of changed files from a git commit.
 List of available scripts (unless otherwise noted, all scripts run in Scope 1):
 
 - **check_all_changes** - run checks on supplied list of files (Scope 2)
-- **run_all_checks** - run all available checks
-- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `example_config.yaml` file, by default: `./bilara-data/migration_differences`
+- **run_all_checks** - run all available tests (but check_migration)
+- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `sutta_processor_config.yaml` file, by default: `./bilara-data/migration_differences`
 - **bilara_check_comment** - check if path to comments is set up properly
 - **bilara_check_html** - check if path to html files is set up properly
 - **bilara_check_root** - check if path to root files is set up properly
 - **bilara_check_translation** - check if path to translation files is set up properly
 - **bilara_check_variant** - check if path to variant files is set up properly
 - **bilara_load** - load bilara-data
-- **ms_yuttadhammo_convert_to_html** - extract html files directly from original xml files
-- **ms_yuttadhammo_load** - load ms_yuttadhammo
-- **ms_yuttadhammo_match_root_text** - match root text of ms_yuttadhammo
 - **noop** - no operation, available just for checking purposes
-- **reference_data_check** - validate references
 
 ## Notes on exceptions
 

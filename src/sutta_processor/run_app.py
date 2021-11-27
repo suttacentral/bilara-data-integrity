@@ -55,8 +55,13 @@ def main() -> int:
     Logging.setup()
     cfg = Config.from_yaml(f_pth=args.config)
     log.debug("cfg.debug_dir: %s", cfg.debug_dir)
-    # exec_module is specified in the config yaml file.
-    exec_module = getattr(use_cases, cfg.exec_module)
+    if not getattr(use_cases,  args.exec, None):
+        choices = use_cases.__all__
+        raise NameError(
+            f"Module {args.exec} was not found, choices: {choices}. "
+            "Check available options in `src/sutta_processor/application/use_cases`."
+        )
+    exec_module = getattr(use_cases, args.exec)
     if args.files:
         if exec_module.__name__ != 'check_all_changes':
             sys.exit("File paths were supplied as arguments to the application, "

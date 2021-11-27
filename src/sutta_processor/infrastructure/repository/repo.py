@@ -13,16 +13,11 @@ from sutta_processor.application.domain_models import (
     BilaraRootAggregate,
     BilaraTranslationAggregate,
     BilaraVariantAggregate,
-    PaliCanonAggregate,
     YuttaAggregate,
 )
 from sutta_processor.application.domain_models.base import (
     BaseFileAggregate,
     BaseRootAggregate,
-)
-from sutta_processor.application.domain_models.bilara_concordance.root import (
-    ConcordanceAggregate,
-    ConcordanceFileAggregate,
 )
 from sutta_processor.application.domain_models.bilara_translation.root import (
     BilaraTranslationFileAggregate,
@@ -37,7 +32,8 @@ class YuttadhammoRepo:
         self.cfg = cfg
 
     def get_aggregate(self) -> YuttaAggregate:
-        root_aggregate = YuttaAggregate.from_path(root_pth=self.cfg.ms_yuttadhammo_path)
+        root_aggregate = YuttaAggregate.from_path(exclude_dirs=self.cfg.exclude_dirs,
+                                                  root_pth=self.cfg.ms_yuttadhammo_path)
         return root_aggregate
 
     def get_xml_data_for_conversion(self) -> YuttaAggregate:
@@ -169,12 +165,6 @@ class BilaraRepo:
             )
         return self._reference
 
-    def get_concordance(self) -> ConcordanceAggregate:
-        aggregate = ConcordanceAggregate.from_path(
-            root_pth=self.cfg.pali_concordance_filepath
-        )
-        return aggregate
-
     def save(self, aggregate: BaseRootAggregate):
         log.info("Saving '%s'", aggregate.name())
         for each_file in aggregate.file_aggregates:  # type: BaseFileAggregate
@@ -189,10 +179,6 @@ class FileRepository:
         self.cfg = cfg
         self.yutta: YuttadhammoRepo = YuttadhammoRepo(cfg=cfg)
         self.bilara: BilaraRepo = BilaraRepo(cfg=cfg)
-
-    def get_all_pali_canon(self) -> PaliCanonAggregate:
-        root_aggregate = PaliCanonAggregate.from_path(root_pth=self.cfg.pali_canon_path)
-        return root_aggregate
 
     def dump_pickle(self, aggregate):
         out_pth = self.cfg.debug_dir / f"{aggregate.name()}.{self.PICKLE_EXTENSION}"

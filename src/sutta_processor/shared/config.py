@@ -34,17 +34,6 @@ def touch_file(pth: Union[str, Path]) -> Path:
     return pth
 
 
-def use_case_present(_inst, _attr, uc_name: str):
-    from sutta_processor.application import use_cases
-
-    if not getattr(use_cases, uc_name, None):
-        choices = use_cases.__all__
-        raise NameError(
-            f"Module {uc_name} was not found, choices: {choices}. "
-            "Check `exec_module` config key."
-        )
-
-
 @attr.s(frozen=True, auto_attribs=True)
 class ExcludeRepo:
     headers_without_0: set = attr.ib(default=set())
@@ -88,8 +77,6 @@ class Config:
     # A list of folder names, where each folder has files in a certain language.
     bilara_root_langs: List[Path] = attr.ib()
 
-    exec_module: str = attr.ib(validator=use_case_present)
-
     bilara_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     pali_canon_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     ms_yuttadhammo_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
@@ -97,7 +84,6 @@ class Config:
     bilara_comment_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_variant_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     bilara_translation_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
-    pali_concordance_filepath: Path = attr.ib(default=NULL_PTH)
     reference_root_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
     migration_differences_path: Path = attr.ib(converter=create_dir, default=NULL_PTH)
 
@@ -258,5 +244,7 @@ def configure_argparse() -> argparse.Namespace:
 
     # TODO: change to required false and test
     parser.add_argument('-f', '--files', type=Path, nargs='*')
+
+    parser.add_argument('-e', '--exec', help='The test module to run.', required=True, type=str)
 
     return parser.parse_args()

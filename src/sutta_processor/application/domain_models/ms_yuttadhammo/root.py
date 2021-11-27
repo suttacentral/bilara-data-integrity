@@ -1,7 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 import attr
 from natsort import natsorted, ns
@@ -24,10 +24,11 @@ class YuttaAggregate(BaseRootAggregate):
     _text_head_index: Dict[VerseTokens.HeadKey, Set[VerseTokens]] = attr.ib(init=False)
 
     @classmethod
-    def from_path(cls, root_pth: Path) -> "YuttaAggregate":
+    def from_path(cls,  exclude_dirs: List[Path], root_pth: Path) -> "YuttaAggregate":
         file_aggregates, index, errors = cls._from_path(
             root_pth=root_pth,
             file_aggregate_cls=YuttaFileAggregate,
+            exclude_dirs=exclude_dirs
         )
         return cls(file_aggregates=tuple(file_aggregates), index=index)
 
