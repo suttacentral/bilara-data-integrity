@@ -44,23 +44,23 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-7. Try running the sutta-processor app.  It takes the config file as an argument.
+7. Try running the sutta-processor app.  It takes the config file and the test module as arguments.
 
 ```bash
-sutta-processor -c run_all_checks_config.yaml
+sutta-processor -e run_all_checks -c sutta_processor_config.yaml
 ```
 
-The config file is located here `bilara-data-integrity/run_all_checks_config.yaml`. 
+The config file is located here `bilara-data-integrity/sutta_processor_config.yaml`. 
 
 # Running the application
 
-Whenever you want to run a particular script from the app just change `exec_module` in `run_all_checks_config.yaml`. For example:
+Whenever you want to run a particular script from the app just change the first argument. For example:
 
 ```bash
-exec_module: 'bilara_check_html'
+sutta-processor -e bilara_check_root -c sutta_processor_config.yaml
 ```
 
-The default `exec_module` is `run_all_checks`.
+The list of available scripts can be found here `src/sutta_processor/application/use_cases` or below.
 
 `sutta-processor` operates in two different scopes:
 1. all files found in the relevant directories, like `html ` or `root`
@@ -71,8 +71,8 @@ Scope 2 is meant to run on a list of changed files from a git commit.
 List of available scripts (unless otherwise noted, all scripts run in Scope 1):
 
 - **check_all_changes** - run checks on supplied list of files (Scope 2)
-- **run_all_checks** - run all available checks
-- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `run_all_checks_config.yaml` file, by default: `./bilara-data/migration_differences`
+- **run_all_checks** - run all available tests (but check_migration)
+- **check_migration** - cross-validate bilara-data text against original ms_yuttadhammo source files; the result will be saved to the path specified in `sutta_processor_config.yaml` file, by default: `./bilara-data/migration_differences`
 - **bilara_check_comment** - check if path to comments is set up properly
 - **bilara_check_html** - check if path to html files is set up properly
 - **bilara_check_root** - check if path to root files is set up properly

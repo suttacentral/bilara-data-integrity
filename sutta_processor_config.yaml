@@ -1,5 +1,3 @@
-exec_module: 'run_all_checks'
-
 bilara_root_path: "./bilara-data/root/"
 # Allows us to include more than just the Pali in the root tests
 bilara_root_langs: ['pli/ms/', 'lzh/']
